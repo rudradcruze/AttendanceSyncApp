@@ -8,7 +8,7 @@ namespace AttendanceSyncApp.Controllers
 {
     public class AttendanceController : Controller
     {
-        private AppDbContext db = new AppDbContext();
+        private readonly AppDbContext db = new AppDbContext();
 
         // GET: Attendance
         public ActionResult Index()
@@ -33,7 +33,7 @@ namespace AttendanceSyncApp.Controllers
                         CompanyName = a.Company != null ? a.Company.CompanyName : "N/A",
                         a.Status
                     })
-                    .AsEnumerable() // SWITCH TO MEMORY HERE
+                    .AsEnumerable()
                     .Select(a => new
                     {
                         Id = a.Id,
@@ -52,40 +52,32 @@ namespace AttendanceSyncApp.Controllers
             }
         }
 
-
-
         // POST: Create new synchronization (AJAX)
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public JsonResult CreateSynchronization(string fromDate, string toDate)
         {
             try
             {
-                // Parse dates
-                DateTime parsedFromDate;
-                DateTime parsedToDate;
-
-                if (!DateTime.TryParse(fromDate, out parsedFromDate))
+                if (!DateTime.TryParse(fromDate, out DateTime parsedFromDate))
                 {
                     return Json(new { success = false, message = "Invalid From Date format" });
                 }
 
-                if (!DateTime.TryParse(toDate, out parsedToDate))
+                if (!DateTime.TryParse(toDate, out DateTime parsedToDate))
                 {
                     return Json(new { success = false, message = "Invalid To Date format" });
                 }
 
-                // Check if database exists
                 if (!db.Database.Exists())
                 {
                     return Json(new { success = false, message = "Database does not exist!" });
                 }
 
-                // Get first company
                 var firstCompany = db.Companies.FirstOrDefault();
-
                 if (firstCompany == null)
                 {
-                    return Json(new { success = false, message = "No company found in database. Please run: UPDATE-DATABASE in Package Manager Console" });
+                    return Json(new { success = false, message = "No company found in database." });
                 }
 
                 var sync = new AttandanceSynchronization
@@ -93,35 +85,17 @@ namespace AttendanceSyncApp.Controllers
                     FromDate = parsedFromDate,
                     ToDate = parsedToDate,
                     CompanyId = firstCompany.CompanyId,
-                    Status = "NR" // Hardcoded as New Request
+                    Status = "NR"
                 };
 
                 db.AttandanceSynchronizations.Add(sync);
-                int result = db.SaveChanges();
+                db.SaveChanges();
 
-                if (result > 0)
-                {
-                    return Json(new { success = true, message = "Synchronization created successfully! ID: " + sync.Id });
-                }
-                else
-                {
-                    return Json(new { success = false, message = "SaveChanges returned 0. No records were saved." });
-                }
-            }
-            catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
-            {
-                string errors = string.Join("; ", dbEx.EntityValidationErrors
-                    .SelectMany(x => x.ValidationErrors)
-                    .Select(x => x.PropertyName + ": " + x.ErrorMessage));
-                return Json(new { success = false, message = "Validation Error: " + errors });
-            }
-            catch (System.Data.SqlClient.SqlException sqlEx)
-            {
-                return Json(new { success = false, message = "SQL Error: " + sqlEx.Message });
+                return Json(new { success = true, message = $"Synchronization created successfully! ID: {sync.Id}" });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "Error: " + ex.Message + (ex.InnerException != null ? " | Inner: " + ex.InnerException.Message : "") });
+                return Json(new { success = false, message = $"Error: {ex.Message}" });
             }
         }
 

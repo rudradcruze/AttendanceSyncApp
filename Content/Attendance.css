@@ -1,0 +1,24 @@
+﻿.form-section {
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 6px;
+}
+
+.status-badge {
+    padding: 4px 10px;
+    color: #fff;
+    font-weight: bold;
+    border-radius: 4px;
+}
+
+.status-nr {
+    background: #5bc0de;
+}
+
+.status-ip {
+    background: #f0ad4e;
+}
+
+.status-cp {
+    background: #5cb85c;
+}

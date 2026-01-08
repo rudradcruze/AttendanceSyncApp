@@ -2,29 +2,34 @@
 using System.Linq;
 using System.Web.Mvc;
 using System.Data.Entity;
-using AttendanceSyncApp.Models;
+using AttandanceSyncApp.Models;
 
-namespace AttendanceSyncApp.Controllers
+namespace AttandanceSyncApp.Controllers
 {
-    public class AttendanceController : Controller
+    public class AttandanceController : Controller
     {
         private readonly AppDbContext db = new AppDbContext();
 
-        // GET: Attendance
         public ActionResult Index()
         {
             return View();
         }
 
-        // GET: Get all synchronizations (AJAX)
         [HttpGet]
-        public JsonResult GetSynchronizations()
+        public JsonResult GetSynchronizationsPaged(int page = 1, int pageSize = 20)
         {
             try
             {
-                var data = db.AttandanceSynchronizations
+                var query = db.AttandanceSynchronizations
+                    .AsNoTracking()
                     .Include(a => a.Company)
-                    .OrderByDescending(a => a.Id)
+                    .OrderByDescending(a => a.Id);
+
+                var totalRecords = query.Count();
+
+                var data = query
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
                     .Select(a => new
                     {
                         a.Id,
@@ -33,13 +38,38 @@ namespace AttendanceSyncApp.Controllers
                         CompanyName = a.Company != null ? a.Company.CompanyName : "N/A",
                         a.Status
                     })
-                    .AsEnumerable()
+                    .ToList();
+
+                return Json(new
+                {
+                    totalRecords,
+                    page,
+                    pageSize,
+                    data
+                }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { error = true, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+
+        [HttpGet]
+        public JsonResult GetSynchronizations()
+        {
+            try
+            {
+                var data = db.AttandanceSynchronizations
+                    .AsNoTracking()
+                    .Include(a => a.Company)
+                    .OrderByDescending(a => a.Id)
                     .Select(a => new
                     {
-                        Id = a.Id,
-                        FromDate = a.FromDate.ToString("yyyy-MM-dd"),
-                        ToDate = a.ToDate.ToString("yyyy-MM-dd"),
-                        a.CompanyName,
+                        a.Id,
+                        a.FromDate,
+                        a.ToDate,
+                        CompanyName = a.Company != null ? a.Company.CompanyName : "N/A",
                         a.Status
                     })
                     .ToList();
@@ -52,39 +82,26 @@ namespace AttendanceSyncApp.Controllers
             }
         }
 
-        // POST: Create new synchronization (AJAX)
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public JsonResult CreateSynchronization(string fromDate, string toDate)
         {
             try
             {
                 if (!DateTime.TryParse(fromDate, out DateTime parsedFromDate))
-                {
                     return Json(new { success = false, message = "Invalid From Date format" });
-                }
 
                 if (!DateTime.TryParse(toDate, out DateTime parsedToDate))
-                {
                     return Json(new { success = false, message = "Invalid To Date format" });
-                }
-
-                if (!db.Database.Exists())
-                {
-                    return Json(new { success = false, message = "Database does not exist!" });
-                }
 
                 var firstCompany = db.Companies.FirstOrDefault();
                 if (firstCompany == null)
-                {
                     return Json(new { success = false, message = "No company found in database." });
-                }
 
                 var sync = new AttandanceSynchronization
                 {
                     FromDate = parsedFromDate,
                     ToDate = parsedToDate,
-                    CompanyId = firstCompany.CompanyId,
+                    CompanyId = firstCompany.Id,
                     Status = "NR"
                 };
 
@@ -102,9 +119,7 @@ namespace AttendanceSyncApp.Controllers
         protected override void Dispose(bool disposing)
         {
             if (disposing)
-            {
                 db.Dispose();
-            }
             base.Dispose(disposing);
         }
     }

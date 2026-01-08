@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace AttendanceSyncApp.Models
+namespace AttandanceSyncApp.Models
 {
     [Table("AttandanceSynchronizations")]
     public class AttandanceSynchronization
@@ -22,8 +19,6 @@ namespace AttendanceSyncApp.Models
         [Required]
         public int CompanyId { get; set; }
 
-        [Required]
-        [StringLength(10)]
         public string Status { get; set; }
 
         [ForeignKey("CompanyId")]

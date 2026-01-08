@@ -1,0 +1,70 @@
+﻿@{
+    ViewBag.Title = "Attandance Synchronization";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <h2 class="text-center mb-2">Attandance Synchronization System</h2>
+    <hr class="w-25 mx-auto mb-4" style="border-top: 2px solid #667eea;" />
+
+    <!-- Form Section -->
+    <div class="form-section shadow">
+        <h4 class="mb-4">Create New Synchronization</h4>
+        <form id="syncForm">
+            <div class="row">
+                <div class="col-md-5">
+                    <div class="form-group">
+                        <label>From Date</label>
+                        <input type="date" class="form-control" id="fromDate" required />
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <div class="form-group">
+                        <label>To Date</label>
+                        <input type="date" class="form-control" id="toDate" required />
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <label class="d-block">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary btn-block">
+                        Create
+                    </button>
+                </div>
+            </div>
+        </form>
+        <div id="message" class="alert d-none mt-3"></div>
+    </div>
+
+    <!-- Table Section -->
+    <div class="table-section shadow">
+        <h4 class="mb-3">Synchronization Records</h4>
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover mb-0">
+                <thead>
+                    <tr class="text-center">
+                        <th>ID</th>
+                        <th>From Date</th>
+                        <th>To Date</th>
+                        <th>Company</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="syncTableBody" class="text-center">
+                    <tr>
+                        <td colspan="5">Loading...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination-wrapper navigation mt-2">
+            <div class="text-center">
+                <ul class="pagination" id="pagination"></ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/Scripts/Attandance.js"></script>
+}

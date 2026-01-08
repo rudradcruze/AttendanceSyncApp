@@ -1,0 +1,66 @@
+﻿/* Form Section Styling */
+.form-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 30px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+}
+
+    .form-section h4,
+    .form-section label {
+        color: #ffffff;
+    }
+
+    .form-section .btn-primary {
+        background: #ffffff;
+        color: #667eea;
+        border: none;
+        font-weight: 600;
+    }
+
+        .form-section .btn-primary:hover {
+            background: #f0f0f0;
+            color: #764ba2;
+        }
+
+/* Table Section */
+.table-section {
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.table thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.status-nr {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.status-ip {
+    background-color: #17a2b8;
+    color: #fff;
+}
+
+.status-cp {
+    background-color: #28a745;
+    color: #fff;
+}
+
+/* Pagination Scroll */
+.pagination-wrapper {
+    overflow-x: auto;
+    padding: 10px 0;
+}

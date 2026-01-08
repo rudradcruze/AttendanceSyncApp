@@ -5,7 +5,7 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 
-namespace AttendanceSyncApp
+namespace AttandanceSyncApp
 {
     public class RouteConfig
     {
@@ -16,7 +16,7 @@ namespace AttendanceSyncApp
             routes.MapRoute(
                 name: "Default",
                 url: "{controller}/{action}/{id}",
-                defaults: new { controller = "Attendance", action = "Index", id = UrlParameter.Optional }
+                defaults: new { controller = "Attandance", action = "Index", id = UrlParameter.Optional }
             );
         }
     }

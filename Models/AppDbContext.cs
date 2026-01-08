@@ -4,7 +4,7 @@ using System.Linq;
 using System.Web;
 using System.Data.Entity;
 
-namespace AttendanceSyncApp.Models
+namespace AttandanceSyncApp.Models
 {
     public class AppDbContext : DbContext
     {

@@ -140,7 +140,21 @@
     <Compile Include="Models\AppDbContext.cs" />
     <Compile Include="Models\AttandanceSynchronization.cs" />
     <Compile Include="Models\Company.cs" />
+    <Compile Include="Models\DTOs\AttandanceSynchronizationDto.cs" />
+    <Compile Include="Models\DTOs\PagedResultDto.cs" />
+    <Compile Include="Models\DTOs\ServiceResult.cs" />
+    <Compile Include="Models\DTOs\StatusDto.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Repositories\AttandanceSynchronizationRepository.cs" />
+    <Compile Include="Repositories\CompanyRepository.cs" />
+    <Compile Include="Repositories\Interfaces\IAttandanceSynchronizationRepository.cs" />
+    <Compile Include="Repositories\Interfaces\ICompanyRepository.cs" />
+    <Compile Include="Repositories\Interfaces\IRepository.cs" />
+    <Compile Include="Repositories\Interfaces\IUnitOfWork.cs" />
+    <Compile Include="Repositories\Repository.cs" />
+    <Compile Include="Repositories\UnitOfWork.cs" />
+    <Compile Include="Services\AttandanceSynchronizationService.cs" />
+    <Compile Include="Services\Interfaces\IAttandanceSynchronizationService.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Views\web.config" />
@@ -178,6 +192,11 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Models\DTOs\" />
+    <Folder Include="Repositories\" />
+    <Folder Include="Repositories\Interfaces\" />
+    <Folder Include="Services\" />
+    <Folder Include="Services\Interfaces\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

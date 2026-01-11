@@ -14,10 +14,12 @@ namespace AttandanceSyncApp.Services
     public class AttandanceSynchronizationService : IAttandanceSynchronizationService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ICompanyService _companyService;
 
-        public AttandanceSynchronizationService(IUnitOfWork unitOfWork)
+        public AttandanceSynchronizationService(IUnitOfWork unitOfWork, ICompanyService companyService)
         {
             _unitOfWork = unitOfWork;
+            _companyService = companyService;
         }
 
         public ServiceResult<PagedResultDto<AttandanceSynchronizationDto>> GetSynchronizationsPaged(int page, int pageSize)
@@ -33,8 +35,8 @@ namespace AttandanceSyncApp.Services
                 // Get all company IDs from the attendance records
                 var companyIds = attendanceRecords.Select(a => a.CompanyId).Distinct().ToList();
 
-                // Fetch companies and create dictionary
-                var companies = _unitOfWork.Companies.GetCompanyNamesByIds(companyIds);
+                // Fetch companies using CompanyService
+                var companies = _companyService.GetCompanyNamesByIds(companyIds);
 
                 // Map to DTOs
                 var data = attendanceRecords.Select(a => new AttandanceSynchronizationDto
@@ -84,8 +86,8 @@ namespace AttandanceSyncApp.Services
                     return ServiceResult<int>.FailureResult("To Date must be greater than or equal to From Date");
                 }
 
-                // Get the first company
-                var firstCompany = _unitOfWork.Companies.GetFirstCompany();
+                // Get the first company using CompanyService
+                var firstCompany = _companyService.GetFirstCompany();
                 if (firstCompany == null)
                 {
                     return ServiceResult<int>.FailureResult("No company found in database.");

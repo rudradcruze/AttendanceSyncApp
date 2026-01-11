@@ -154,7 +154,9 @@
     <Compile Include="Repositories\Repository.cs" />
     <Compile Include="Repositories\UnitOfWork.cs" />
     <Compile Include="Services\AttandanceSynchronizationService.cs" />
+    <Compile Include="Services\CompanyService.cs" />
     <Compile Include="Services\Interfaces\IAttandanceSynchronizationService.cs" />
+    <Compile Include="Services\Interfaces\ICompanyService.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Views\web.config" />

@@ -17,7 +17,8 @@ namespace AttandanceSyncApp.Controllers
         public AttandanceController()
         {
             _unitOfWork = new UnitOfWork();
-            _synchronizationService = new AttandanceSynchronizationService(_unitOfWork);
+            var companyService = new CompanyService(_unitOfWork);
+            _synchronizationService = new AttandanceSynchronizationService(_unitOfWork, companyService);
         }
 
         public AttandanceController(IAttandanceSynchronizationService synchronizationService, IUnitOfWork unitOfWork)

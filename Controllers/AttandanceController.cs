@@ -105,7 +105,59 @@ namespace AttandanceSyncApp.Controllers
             }
         }
 
-        
+        [HttpPost]
+        public JsonResult CreateSynchronization(string fromDate, string toDate)
+        {
+            try
+            {
+                if (!DateTime.TryParse(fromDate, out DateTime parsedFromDate))
+                    return Json(new { success = false, message = "Invalid From Date format" });
+                if (!DateTime.TryParse(toDate, out DateTime parsedToDate))
+                    return Json(new { success = false, message = "Invalid To Date format" });
+                var firstCompany = db.Companies
+                    .OrderBy(c => c.Id)
+                    .FirstOrDefault();
+                if (firstCompany == null)
+                    return Json(new { success = false, message = "No company found in database." });
+                var sync = new AttandanceSynchronization
+                {
+                    FromDate = parsedFromDate,
+                    ToDate = parsedToDate,
+                    CompanyId = firstCompany.Id,
+                    Status = "NR"
+                };
+                db.AttandanceSynchronizations.Add(sync);
+                db.SaveChanges();
+                return Json(new { success = true, message = $"Synchronization created successfully! ID: {sync.Id}" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Error: {ex.Message}" });
+            }
+        }
+
+        [HttpPost]
+        public JsonResult GetStatusesByIds(int[] ids)
+        {
+            try
+            {
+                if (ids == null || !ids.Any())
+                    return Json(new List<object>(), JsonRequestBehavior.AllowGet);
+
+                var statuses = db.AttandanceSynchronizations
+                    .AsNoTracking()
+                    .Where(a => ids.Contains(a.Id))
+                    .Select(a => new { a.Id, a.Status })
+                    .ToList();
+
+                return Json(statuses, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { error = true, message = ex.Message });
+            }
+        }
+
         protected override void Dispose(bool disposing)
         {
             if (disposing)

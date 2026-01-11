@@ -58,7 +58,7 @@ function loadSynchronizations(page) {
                     <td>${formatDate(item.FromDate)}</td>
                     <td>${formatDate(item.ToDate)}</td>
                     <td>${item.CompanyName}</td>
-                    <td class="status-cell">
+                    <td class="status-cell">                   
                         <span class="status-badge ${getStatusClass(item.Status)}">
                             ${getStatusText(item.Status)}
                         </span>
@@ -94,7 +94,6 @@ function renderPagination(totalRecords, page, pageSize) {
    Status Polling (Every 2 sec)
 ============================ */
 function updateStatusesOnly() {
-
     var ids = [];
 
     $('tr[data-id]').each(function () {
@@ -103,12 +102,10 @@ function updateStatusesOnly() {
 
     if (!ids.length) return;
 
-    $.get('/Attandance/GetSynchronizations', function (data) {
+    // Send only the IDs we need status for
+    $.post('/Attandance/GetStatusesByIds', { ids: ids }, function (data) {
 
         $.each(data, function (_, item) {
-
-            if (!ids.includes(item.Id)) return;
-
             var row = $('tr[data-id="' + item.Id + '"]');
             var badge = row.find('.status-badge');
             var newText = getStatusText(item.Status);

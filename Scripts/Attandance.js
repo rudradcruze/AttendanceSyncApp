@@ -32,7 +32,7 @@ $(function () {
             return;
         }
 
-        $.post('/Attandance/CreateSynchronization', {
+        $.post(APP.baseUrl + 'Attandance/CreateSynchronization', {
             fromDate: fromDate,
             toDate: toDate
         }).done(function (res) {
@@ -53,7 +53,7 @@ $(function () {
 function loadSynchronizations(page) {
     currentPage = page;
 
-    $.get('/Attandance/GetSynchronizationsPaged', {
+    $.get(APP.baseUrl + 'Attandance/GetSynchronizationsPaged', {
         page: page,
         pageSize: pageSize
     }, function (res) {
@@ -126,7 +126,7 @@ function updateStatusesOnly() {
     if (!ids.length) return;
 
     // Send only the IDs we need status for
-    $.post('/Attandance/GetStatusesByIds', { ids: ids }, function (res) {
+    $.post(APP.baseUrl + 'Attandance/GetStatusesByIds', { ids: ids }, function (res) {
 
         // Check for errors
         if (res.Errors && res.Errors.length > 0) {

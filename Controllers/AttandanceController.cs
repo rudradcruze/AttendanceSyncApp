@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Web.Mvc;
+using AttandanceSyncApp.Models.DTOs;
 using AttandanceSyncApp.Repositories;
 using AttandanceSyncApp.Repositories.Interfaces;
 using AttandanceSyncApp.Services;
@@ -39,16 +41,10 @@ namespace AttandanceSyncApp.Controllers
 
             if (!result.Success)
             {
-                return Json(new { error = true, message = result.Message }, JsonRequestBehavior.AllowGet);
+                return Json(ApiResponse<PagedResultDto<AttandanceSynchronizationDto>>.Fail(result.Message), JsonRequestBehavior.AllowGet);
             }
 
-            return Json(new
-            {
-                totalRecords = result.Data.TotalRecords,
-                page = result.Data.Page,
-                pageSize = result.Data.PageSize,
-                data = result.Data.Data
-            }, JsonRequestBehavior.AllowGet);
+            return Json(ApiResponse<PagedResultDto<AttandanceSynchronizationDto>>.Success(result.Data), JsonRequestBehavior.AllowGet);
         }
 
         [HttpPost]
@@ -56,7 +52,12 @@ namespace AttandanceSyncApp.Controllers
         {
             var result = _synchronizationService.CreateSynchronization(fromDate, toDate);
 
-            return Json(new { success = result.Success, message = result.Message });
+            if (!result.Success)
+            {
+                return Json(ApiResponse<int>.Fail(result.Message));
+            }
+
+            return Json(ApiResponse<int>.Success(result.Data, result.Message));
         }
 
         [HttpPost]
@@ -66,10 +67,10 @@ namespace AttandanceSyncApp.Controllers
 
             if (!result.Success)
             {
-                return Json(new { error = true, message = result.Message });
+                return Json(ApiResponse<IEnumerable<StatusDto>>.Fail(result.Message));
             }
 
-            return Json(result.Data);
+            return Json(ApiResponse<IEnumerable<StatusDto>>.Success(result.Data));
         }
 
         protected override void Dispose(bool disposing)

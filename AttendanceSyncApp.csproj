@@ -95,6 +95,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include=".gitignore" />
     <Content Include="Content\Attandance.css" />
     <Content Include="Content\bootstrap-grid.css" />
     <Content Include="Content\bootstrap-grid.min.css" />
@@ -140,6 +141,7 @@
     <Compile Include="Models\AppDbContext.cs" />
     <Compile Include="Models\AttandanceSynchronization.cs" />
     <Compile Include="Models\Company.cs" />
+    <Compile Include="Models\DTOs\ApiResponse.cs" />
     <Compile Include="Models\DTOs\AttandanceSynchronizationDto.cs" />
     <Compile Include="Models\DTOs\PagedResultDto.cs" />
     <Compile Include="Models\DTOs\ServiceResult.cs" />
@@ -194,11 +196,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Models\DTOs\" />
-    <Folder Include="Repositories\" />
-    <Folder Include="Repositories\Interfaces\" />
-    <Folder Include="Services\" />
-    <Folder Include="Services\Interfaces\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

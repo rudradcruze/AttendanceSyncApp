@@ -22,9 +22,10 @@ $(function () {
             fromDate: $('#fromDate').val(),
             toDate: $('#toDate').val()
         }).done(function (res) {
-            showMessage(res.message, res.success ? 'success' : 'danger');
+            var hasErrors = res.Errors && res.Errors.length > 0;
+            showMessage(res.Message, hasErrors ? 'danger' : 'success');
 
-            if (res.success) {
+            if (!hasErrors) {
                 $('#syncForm')[0].reset();
                 loadSynchronizations(currentPage);
             }
@@ -45,20 +46,28 @@ function loadSynchronizations(page) {
 
         var tbody = $('#syncTableBody').empty();
 
-        if (!res.data || !res.data.length) {
+        // Check for errors
+        if (res.Errors && res.Errors.length > 0) {
+            tbody.append('<tr><td colspan="5" class="text-center text-danger">' + res.Message + '</td></tr>');
+            $('#pagination').empty();
+            return;
+        }
+
+        var pagedData = res.Data;
+        if (!pagedData || !pagedData.Data || !pagedData.Data.length) {
             tbody.append('<tr><td colspan="5" class="text-center">No records found</td></tr>');
             $('#pagination').empty();
             return;
         }
 
-        $.each(res.data, function (_, item) {
+        $.each(pagedData.Data, function (_, item) {
             tbody.append(`
                 <tr data-id="${item.Id}">
                     <td>${item.Id}</td>
                     <td>${formatDate(item.FromDate)}</td>
                     <td>${formatDate(item.ToDate)}</td>
                     <td>${item.CompanyName}</td>
-                    <td class="status-cell">                   
+                    <td class="status-cell">
                         <span class="status-badge ${getStatusClass(item.Status)}">
                             ${getStatusText(item.Status)}
                         </span>
@@ -67,7 +76,7 @@ function loadSynchronizations(page) {
             `);
         });
 
-        renderPagination(res.totalRecords, res.page, res.pageSize);
+        renderPagination(pagedData.TotalRecords, pagedData.Page, pagedData.PageSize);
     });
 }
 
@@ -103,14 +112,19 @@ function updateStatusesOnly() {
     if (!ids.length) return;
 
     // Send only the IDs we need status for
-    $.post('/Attandance/GetStatusesByIds', { ids: ids }, function (data) {
+    $.post('/Attandance/GetStatusesByIds', { ids: ids }, function (res) {
 
-        $.each(data, function (_, item) {
+        // Check for errors
+        if (res.Errors && res.Errors.length > 0) {
+            return;
+        }
+
+        $.each(res.Data, function (_, item) {
             var row = $('tr[data-id="' + item.Id + '"]');
             var badge = row.find('.status-badge');
             var newText = getStatusText(item.Status);
 
-            if (badge.text() !== newText) {
+            if (badge.text().trim() !== newText) {
                 badge
                     .removeClass('status-nr status-ip status-cp')
                     .addClass(getStatusClass(item.Status))

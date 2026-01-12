@@ -14,13 +14,27 @@ $(function () {
     // Poll only status every 2 seconds
     setInterval(updateStatusesOnly, 2000);
 
+    // Sync toDate when fromDate changes
+    $('#fromDate').on('change', function () {
+        $('#toDate').val($(this).val());
+    });
+
     // Create synchronization
     $('#syncForm').on('submit', function (e) {
         e.preventDefault();
 
+        var fromDate = $('#fromDate').val();
+        var toDate = $('#toDate').val();
+
+        // Validate: ToDate must be same as FromDate
+        if (fromDate !== toDate) {
+            showMessage('To Date must be the same as From Date', 'danger');
+            return;
+        }
+
         $.post('/Attandance/CreateSynchronization', {
-            fromDate: $('#fromDate').val(),
-            toDate: $('#toDate').val()
+            fromDate: fromDate,
+            toDate: toDate
         }).done(function (res) {
             var hasErrors = res.Errors && res.Errors.length > 0;
             showMessage(res.Message, hasErrors ? 'danger' : 'success');

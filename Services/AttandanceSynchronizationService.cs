@@ -80,10 +80,10 @@ namespace AttandanceSyncApp.Services
                     return ServiceResult<int>.FailureResult("Invalid To Date format");
                 }
 
-                // Business rule: ToDate must be greater than or equal to FromDate
-                if (parsedToDate < parsedFromDate)
+                // Business rule: ToDate must be equal to FromDate
+                if (parsedToDate != parsedFromDate)
                 {
-                    return ServiceResult<int>.FailureResult("To Date must be greater than or equal to From Date");
+                    return ServiceResult<int>.FailureResult("To Date must be the same as From Date");
                 }
 
                 // Get the first company using CompanyService

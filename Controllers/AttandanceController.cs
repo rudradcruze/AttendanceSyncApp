@@ -44,7 +44,7 @@ namespace AttandanceSyncApp.Controllers
                 return Json(ApiResponse<PagedResultDto<AttandanceSynchronizationDto>>.Fail(result.Message), JsonRequestBehavior.AllowGet);
             }
 
-            return Json(ApiResponse<PagedResultDto<AttandanceSynchronizationDto>>.Success(result.Data), JsonRequestBehavior.AllowGet);
+            return Json(ApiResponse<PagedResultDto<AttandanceSynchronizationDto>>.Success(result.Data, "Successfully retrieved data"), JsonRequestBehavior.AllowGet);
         }
 
         [HttpPost]
@@ -70,7 +70,7 @@ namespace AttandanceSyncApp.Controllers
                 return Json(ApiResponse<IEnumerable<StatusDto>>.Fail(result.Message));
             }
 
-            return Json(ApiResponse<IEnumerable<StatusDto>>.Success(result.Data));
+            return Json(ApiResponse<IEnumerable<StatusDto>>.Success(result.Data, "Successfully retrieved data"));
         }
 
         protected override void Dispose(bool disposing)

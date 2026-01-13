@@ -19,7 +19,7 @@ namespace AttandanceSyncApp.Repositories
         {
             return _dbSet
                 .AsNoTracking()
-                .OrderByDescending(a => a.Id)
+                .OrderByDescending(a => a.ToDate)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();

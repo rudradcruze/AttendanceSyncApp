@@ -1,32 +1,38 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Web.Mvc;
+using AttandanceSyncApp.Controllers.Filters;
 using AttandanceSyncApp.Models.DTOs;
+using AttandanceSyncApp.Models.DTOs.Sync;
 using AttandanceSyncApp.Repositories;
 using AttandanceSyncApp.Repositories.Interfaces;
 using AttandanceSyncApp.Services;
 using AttandanceSyncApp.Services.Interfaces;
+using AttandanceSyncApp.Services.Interfaces.Sync;
+using AttandanceSyncApp.Services.Sync;
 
 namespace AttandanceSyncApp.Controllers
 {
     /// <summary>
-    /// Controller for Attandance Synchronization - Thin layer handling HTTP requests/responses only
+    /// Controller for Attandance Synchronization - Updated with authentication
     /// </summary>
-    public class AttandanceController : Controller
+    [AuthorizeUser]
+    public class AttandanceController : BaseController
     {
-        private readonly IAttandanceSynchronizationService _synchronizationService;
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly ISyncRequestService _syncRequestService;
+        private readonly IAuthUnitOfWork _authUnitOfWork;
 
-        public AttandanceController()
+        public AttandanceController() : base()
         {
-            _unitOfWork = new UnitOfWork();
-            var companyService = new CompanyService(_unitOfWork);
-            _synchronizationService = new AttandanceSynchronizationService(_unitOfWork, companyService);
+            _authUnitOfWork = new AuthUnitOfWork();
+            _syncRequestService = new SyncRequestService(_authUnitOfWork);
         }
 
-        public AttandanceController(IAttandanceSynchronizationService synchronizationService, IUnitOfWork unitOfWork)
+        public AttandanceController(ISyncRequestService syncRequestService, IAuthUnitOfWork unitOfWork)
+            : base()
         {
-            _synchronizationService = synchronizationService;
-            _unitOfWork = unitOfWork;
+            _syncRequestService = syncRequestService;
+            _authUnitOfWork = unitOfWork;
         }
 
         public ActionResult Index()
@@ -37,20 +43,28 @@ namespace AttandanceSyncApp.Controllers
         [HttpGet]
         public JsonResult GetSynchronizationsPaged(int page = 1, int pageSize = 20)
         {
-            var result = _synchronizationService.GetSynchronizationsPaged(page, pageSize);
+            var result = _syncRequestService.GetUserRequestsPaged(CurrentUserId, page, pageSize);
 
             if (!result.Success)
             {
-                return Json(ApiResponse<PagedResultDto<AttandanceSynchronizationDto>>.Fail(result.Message), JsonRequestBehavior.AllowGet);
+                return Json(ApiResponse<PagedResultDto<SyncRequestDto>>.Fail(result.Message), JsonRequestBehavior.AllowGet);
             }
 
-            return Json(ApiResponse<PagedResultDto<AttandanceSynchronizationDto>>.Success(result.Data, "Successfully retrieved data"), JsonRequestBehavior.AllowGet);
+            return Json(ApiResponse<PagedResultDto<SyncRequestDto>>.Success(result.Data, "Successfully retrieved data"), JsonRequestBehavior.AllowGet);
         }
 
         [HttpPost]
-        public JsonResult CreateSynchronization(string fromDate, string toDate)
+        public JsonResult CreateSynchronization(SyncRequestCreateDto dto)
         {
-            var result = _synchronizationService.CreateSynchronization(fromDate, toDate);
+            var currentUser = CurrentUser;
+            var sessionId = CurrentSessionId;
+
+            if (currentUser == null || sessionId == 0)
+            {
+                return Json(ApiResponse<int>.Fail("Session expired. Please login again."));
+            }
+
+            var result = _syncRequestService.CreateSyncRequest(dto, CurrentUserId, currentUser.Email, sessionId);
 
             if (!result.Success)
             {
@@ -63,7 +77,7 @@ namespace AttandanceSyncApp.Controllers
         [HttpPost]
         public JsonResult GetStatusesByIds(int[] ids)
         {
-            var result = _synchronizationService.GetStatusesByIds(ids);
+            var result = _syncRequestService.GetStatusesByIds(ids);
 
             if (!result.Success)
             {
@@ -73,11 +87,52 @@ namespace AttandanceSyncApp.Controllers
             return Json(ApiResponse<IEnumerable<StatusDto>>.Success(result.Data, "Successfully retrieved data"));
         }
 
+        [HttpGet]
+        public JsonResult GetUsers()
+        {
+            var result = _syncRequestService.GetAllUsers();
+
+            if (!result.Success)
+            {
+                return Json(ApiResponse<object>.Fail(result.Message), JsonRequestBehavior.AllowGet);
+            }
+
+            return Json(ApiResponse<object>.Success(result.Data), JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpGet]
+        public JsonResult GetCompanies()
+        {
+            var result = _syncRequestService.GetActiveCompanies();
+
+            if (!result.Success)
+            {
+                return Json(ApiResponse<object>.Fail(result.Message), JsonRequestBehavior.AllowGet);
+            }
+
+            var data = result.Data.Select(c => new { c.Id, c.Name }).ToList();
+            return Json(ApiResponse<object>.Success(data), JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpGet]
+        public JsonResult GetTools()
+        {
+            var result = _syncRequestService.GetActiveTools();
+
+            if (!result.Success)
+            {
+                return Json(ApiResponse<object>.Fail(result.Message), JsonRequestBehavior.AllowGet);
+            }
+
+            var data = result.Data.Select(t => new { t.Id, t.Name }).ToList();
+            return Json(ApiResponse<object>.Success(data), JsonRequestBehavior.AllowGet);
+        }
+
         protected override void Dispose(bool disposing)
         {
             if (disposing)
             {
-                _unitOfWork.Dispose();
+                _authUnitOfWork?.Dispose();
             }
             base.Dispose(disposing);
         }

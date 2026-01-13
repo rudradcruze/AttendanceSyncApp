@@ -1,0 +1,59 @@
+using AttandanceSyncApp.Models;
+using AttandanceSyncApp.Repositories.Interfaces;
+using AttandanceSyncApp.Repositories.Interfaces.Auth;
+using AttandanceSyncApp.Repositories.Interfaces.Sync;
+using AttandanceSyncApp.Repositories.Auth;
+using AttandanceSyncApp.Repositories.Sync;
+
+namespace AttandanceSyncApp.Repositories
+{
+    public class AuthUnitOfWork : IAuthUnitOfWork
+    {
+        private readonly AuthDbContext _context;
+
+        private IUserRepository _userRepository;
+        private ILoginSessionRepository _loginSessionRepository;
+        private ISyncCompanyRepository _syncCompanyRepository;
+        private IToolRepository _toolRepository;
+        private IAttandanceSyncRequestRepository _syncRequestRepository;
+        private IDatabaseConfigurationRepository _dbConfigRepository;
+
+        public AuthUnitOfWork()
+        {
+            _context = new AuthDbContext();
+        }
+
+        public AuthUnitOfWork(AuthDbContext context)
+        {
+            _context = context;
+        }
+
+        public IUserRepository Users =>
+            _userRepository ?? (_userRepository = new UserRepository(_context));
+
+        public ILoginSessionRepository LoginSessions =>
+            _loginSessionRepository ?? (_loginSessionRepository = new LoginSessionRepository(_context));
+
+        public ISyncCompanyRepository SyncCompanies =>
+            _syncCompanyRepository ?? (_syncCompanyRepository = new SyncCompanyRepository(_context));
+
+        public IToolRepository Tools =>
+            _toolRepository ?? (_toolRepository = new ToolRepository(_context));
+
+        public IAttandanceSyncRequestRepository AttandanceSyncRequests =>
+            _syncRequestRepository ?? (_syncRequestRepository = new AttandanceSyncRequestRepository(_context));
+
+        public IDatabaseConfigurationRepository DatabaseConfigurations =>
+            _dbConfigRepository ?? (_dbConfigRepository = new DatabaseConfigurationRepository(_context));
+
+        public int SaveChanges()
+        {
+            return _context.SaveChanges();
+        }
+
+        public void Dispose()
+        {
+            _context.Dispose();
+        }
+    }
+}

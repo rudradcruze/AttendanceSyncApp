@@ -1,0 +1,51 @@
+@using System.Configuration
+@{
+    ViewBag.Title = "Sign Up";
+    Layout = "~/Views/Shared/_AuthLayout.cshtml";
+}
+
+<div class="auth-container">
+    <div class="auth-card shadow">
+        <div class="auth-header">
+            <h2>Sign Up</h2>
+            <p>Create your Attandance Sync account</p>
+        </div>
+
+        <!-- Google Sign-Up Button -->
+        <div class="google-signup-section">
+            <div id="g_id_onload"
+                 data-client_id="@ViewBag.GoogleClientId"
+                 data-context="signup"
+                 data-ux_mode="popup"
+                 data-callback="handleGoogleSignUp"
+                 data-auto_prompt="false">
+            </div>
+
+            <div class="g_id_signin"
+                 data-type="standard"
+                 data-shape="rectangular"
+                 data-theme="outline"
+                 data-text="signup_with"
+                 data-size="large"
+                 data-logo_alignment="left"
+                 data-width="300">
+            </div>
+        </div>
+
+        <div id="message" class="alert d-none mt-3"></div>
+
+        <div class="auth-footer">
+            <p>Already have an account? <a href="@Url.Action("Login", "Auth")">Sign In</a></p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        window.APP = {
+            baseUrl: '@Url.Content(ConfigurationManager.AppSettings["AppBaseUrl"])'
+        };
+    </script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="~/Scripts/Auth.js"></script>
+}

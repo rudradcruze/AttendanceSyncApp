@@ -9,6 +9,25 @@
     <link href="~/Content/Attandance.css" rel="stylesheet" />
 </head>
 <body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+        <div class="container">
+            <a class="navbar-brand" href="@Url.Action("Index", "Attandance")">Attandance Sync</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Action("Index", "Attandance")">Dashboard</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav" id="userNavMenu">
+                    <!-- User menu will be populated by JS -->
+                </ul>
+            </div>
+        </div>
+    </nav>
 
     <div class="container body-content">
         @RenderBody()
@@ -19,7 +38,42 @@
     </div>
 
     <script src="~/Scripts/jquery-3.7.1.min.js"></script>
-    <script src="~/Scripts/bootstrap.min.js"></script>
+    <script src="~/Scripts/bootstrap.bundle.min.js"></script>
+    <script>
+        // Load user menu
+        $(function () {
+            $.get('/Auth/CurrentUser', function (res) {
+                var menu = $('#userNavMenu');
+                if (res.Data) {
+                    var adminLink = res.Data.Role === 'ADMIN'
+                        ? '<li class="nav-item"><a class="nav-link" href="/Admin/Dashboard">Admin Panel</a></li>'
+                        : '';
+                    menu.html(
+                        adminLink +
+                        '<li class="nav-item dropdown">' +
+                        '<a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">' +
+                        res.Data.Name +
+                        '</a>' +
+                        '<ul class="dropdown-menu dropdown-menu-end">' +
+                        '<li><a class="dropdown-item" href="#" onclick="logout(); return false;">Logout</a></li>' +
+                        '</ul>' +
+                        '</li>'
+                    );
+                } else {
+                    menu.html(
+                        '<li class="nav-item"><a class="nav-link" href="/Auth/Login">Sign In</a></li>' +
+                        '<li class="nav-item"><a class="nav-link" href="/Auth/Register">Sign Up</a></li>'
+                    );
+                }
+            });
+        });
+
+        function logout() {
+            $.post('/Auth/Logout', function () {
+                window.location.href = '/Auth/Login';
+            });
+        }
+    </script>
 
     @RenderSection("Scripts", required: false)
 </body>

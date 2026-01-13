@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - Admin Panel</title>
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/Admin.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="admin-wrapper">
+        <!-- Sidebar -->
+        <nav class="admin-sidebar">
+            <div class="sidebar-header">
+                <h4>Admin Panel</h4>
+            </div>
+            <ul class="sidebar-menu">
+                <li class="@(ViewBag.ActiveMenu == "Dashboard" ? "active" : "")">
+                    <a href="@Url.Action("Dashboard", "Admin")">Dashboard</a>
+                </li>
+                <li class="@(ViewBag.ActiveMenu == "Requests" ? "active" : "")">
+                    <a href="@Url.Action("Requests", "Admin")">Requests</a>
+                </li>
+                <li class="@(ViewBag.ActiveMenu == "Users" ? "active" : "")">
+                    <a href="@Url.Action("Users", "Admin")">Users</a>
+                </li>
+                <li class="divider"></li>
+                <li>
+                    <a href="@Url.Action("Index", "Attandance")">User Dashboard</a>
+                </li>
+                <li>
+                    <a href="#" onclick="logout(); return false;">Logout</a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="admin-content">
+            <header class="admin-header">
+                <h2>@ViewBag.Title</h2>
+                <div class="user-info" id="adminUserInfo"></div>
+            </header>
+            <main class="admin-main">
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    <script src="~/Scripts/jquery-3.7.1.min.js"></script>
+    <script src="~/Scripts/bootstrap.bundle.min.js"></script>
+    <script>
+        function logout() {
+            $.post('/Auth/Logout', function () {
+                window.location.href = '/Auth/Login';
+            });
+        }
+
+        $(function () {
+            $.get('/Auth/CurrentUser', function (res) {
+                if (res.Data) {
+                    $('#adminUserInfo').html('<span>' + res.Data.Name + '</span>');
+                }
+            });
+        });
+    </script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

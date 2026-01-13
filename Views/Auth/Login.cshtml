@@ -1,0 +1,73 @@
+@using System.Configuration
+@{
+    ViewBag.Title = "Sign In";
+    Layout = "~/Views/Shared/_AuthLayout.cshtml";
+}
+
+<div class="auth-container">
+    <div class="auth-card shadow">
+        <div class="auth-header">
+            <h2>Sign In</h2>
+            <p>Welcome back to Attandance Sync</p>
+        </div>
+
+        <!-- Google Sign-In Button -->
+        <div class="google-signin-section">
+            <div id="g_id_onload"
+                 data-client_id="@ViewBag.GoogleClientId"
+                 data-context="signin"
+                 data-ux_mode="popup"
+                 data-callback="handleGoogleSignIn"
+                 data-auto_prompt="false">
+            </div>
+
+            <div class="g_id_signin"
+                 data-type="standard"
+                 data-shape="rectangular"
+                 data-theme="outline"
+                 data-text="signin_with"
+                 data-size="large"
+                 data-logo_alignment="left"
+                 data-width="300">
+            </div>
+        </div>
+
+        <div class="divider">
+            <span>or</span>
+        </div>
+
+        <!-- Admin Login Form -->
+        <div class="admin-login-section">
+            <h5>Admin Login</h5>
+            <form id="adminLoginForm">
+                <div class="form-group mb-3">
+                    <label for="adminEmail">Email</label>
+                    <input type="email" class="form-control" id="adminEmail" required />
+                </div>
+                <div class="form-group mb-3">
+                    <label for="adminPassword">Password</label>
+                    <input type="password" class="form-control" id="adminPassword" required />
+                </div>
+                <button type="submit" class="btn btn-primary btn-block w-100">
+                    Sign In as Admin
+                </button>
+            </form>
+        </div>
+
+        <div id="message" class="alert d-none mt-3"></div>
+
+        <div class="auth-footer">
+            <p>Don't have an account? <a href="@Url.Action("Register", "Auth")">Sign Up</a></p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        window.APP = {
+            baseUrl: '@Url.Content(ConfigurationManager.AppSettings["AppBaseUrl"])'
+        };
+    </script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="~/Scripts/Auth.js"></script>
+}

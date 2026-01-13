@@ -36,6 +36,82 @@
         <div id="message" class="alert d-none mt-3"></div>
     </div>
 
+    <!-- Sort Accordion -->
+    <div class="accordion mb-4" id="sortAccordion">
+
+        <div class="accordion-item shadow-sm">
+            <h2 class="accordion-header" id="sortHeading">
+                <button class="accordion-button collapsed fw-semibold"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#sortCollapse"
+                        aria-expanded="false"
+                        aria-controls="sortCollapse">
+                    <i class="fa fa-sort me-2 text-primary"></i>
+                    Sort Synchronization Records
+                </button>
+            </h2>
+
+            <div id="sortCollapse"
+                 class="accordion-collapse collapse"
+                 aria-labelledby="sortHeading"
+                 data-bs-parent="#sortAccordion">
+
+                <div class="accordion-body">
+
+                    <div class="row g-3 align-items-end">
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">
+                                Sort Field
+                            </label>
+                            <select id="sortColumn" class="form-select">
+                                <option value="ToDate">To Date</option>
+                                <option value="FromDate">From Date</option>
+                                <option value="Id">ID</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">
+                                Sort Order
+                            </label>
+
+                            <div class="d-flex gap-2">
+                                <button type="button"
+                                        class="btn btn-outline-secondary w-50 sort-dir-btn active"
+                                        data-value="DESC">
+                                    <i class="fa fa-arrow-down"></i> Desc
+                                </button>
+
+                                <button type="button"
+                                        class="btn btn-outline-secondary w-50 sort-dir-btn"
+                                        data-value="ASC">
+                                    <i class="fa fa-arrow-up"></i> Asc
+                                </button>
+                            </div>
+
+                            <input type="hidden" id="sortDirection" value="DESC" />
+                        </div>
+
+                        <div class="col-md-4">
+                            <button class="btn btn-primary w-100 py-2"
+                                    onclick="applySorting()">
+                                <i class="fa fa-filter me-2"></i>
+                                Apply Sorting
+                            </button>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+
     <!-- Table Section -->
     <div class="table-section shadow">
         <h4 class="mb-3">Synchronization Records</h4>

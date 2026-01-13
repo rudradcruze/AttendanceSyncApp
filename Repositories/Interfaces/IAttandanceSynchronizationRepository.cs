@@ -8,7 +8,7 @@ namespace AttandanceSyncApp.Repositories.Interfaces
     /// </summary>
     public interface IAttandanceSynchronizationRepository : IRepository<AttandanceSynchronization>
     {
-        IEnumerable<AttandanceSynchronization> GetPaged(int page, int pageSize);
+        IEnumerable<AttandanceSynchronization> GetPaged(int page, int pageSize, string sortColumn, string sortDirection);
         IEnumerable<AttandanceSynchronization> GetByIds(int[] ids);
     }
 }

@@ -35,16 +35,20 @@ namespace AttandanceSyncApp.Controllers
         }
 
         [HttpGet]
-        public JsonResult GetSynchronizationsPaged(int page = 1, int pageSize = 20)
+        public JsonResult GetSynchronizationsPaged(int page = 1, int pageSize = 20, string sortColumn = "ToDate", string sortDirection = "DESC")
         {
-            var result = _synchronizationService.GetSynchronizationsPaged(page, pageSize);
+            var result = _synchronizationService
+                .GetSynchronizationsPaged(page, pageSize, sortColumn, sortDirection);
 
             if (!result.Success)
             {
-                return Json(ApiResponse<PagedResultDto<AttandanceSynchronizationDto>>.Fail(result.Message), JsonRequestBehavior.AllowGet);
+                return Json(ApiResponse<PagedResultDto<AttandanceSynchronizationDto>>
+                    .Fail(result.Message), JsonRequestBehavior.AllowGet);
             }
 
-            return Json(ApiResponse<PagedResultDto<AttandanceSynchronizationDto>>.Success(result.Data, "Successfully retrieved data"), JsonRequestBehavior.AllowGet);
+            return Json(ApiResponse<PagedResultDto<AttandanceSynchronizationDto>>
+                    .Success(result.Data, "Successfully retrieved data"),
+                JsonRequestBehavior.AllowGet);
         }
 
         [HttpPost]

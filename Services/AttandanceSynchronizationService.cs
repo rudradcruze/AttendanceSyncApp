@@ -22,7 +22,7 @@ namespace AttandanceSyncApp.Services
             _companyService = companyService;
         }
 
-        public ServiceResult<PagedResultDto<AttandanceSynchronizationDto>> GetSynchronizationsPaged(int page, int pageSize)
+        public ServiceResult<PagedResultDto<AttandanceSynchronizationDto>> GetSynchronizationsPaged(int page, int pageSize, string sortColumn, string sortDirection)
         {
             try
             {
@@ -30,7 +30,7 @@ namespace AttandanceSyncApp.Services
                 var totalRecords = _unitOfWork.AttandanceSynchronizations.Count();
 
                 // Get attendance records with pagination
-                var attendanceRecords = _unitOfWork.AttandanceSynchronizations.GetPaged(page, pageSize);
+                var attendanceRecords = _unitOfWork.AttandanceSynchronizations.GetPaged(page, pageSize, sortColumn, sortDirection);
 
                 // Get all company IDs from the attendance records
                 var companyIds = attendanceRecords.Select(a => a.CompanyId).Distinct().ToList();

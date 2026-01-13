@@ -15,11 +15,34 @@ namespace AttandanceSyncApp.Repositories
         {
         }
 
-        public IEnumerable<AttandanceSynchronization> GetPaged(int page, int pageSize)
+        public IEnumerable<AttandanceSynchronization> GetPaged(int page, int pageSize, string sortColumn, string sortDirection)
         {
-            return _dbSet
-                .AsNoTracking()
-                .OrderByDescending(a => a.ToDate)
+            IQueryable<AttandanceSynchronization> query =
+                _dbSet.AsNoTracking();
+
+            switch (sortColumn)
+            {
+                case "Id":
+                    query = sortDirection == "ASC"
+                        ? query.OrderBy(x => x.Id)
+                        : query.OrderByDescending(x => x.Id);
+                    break;
+
+                case "FromDate":
+                    query = sortDirection == "ASC"
+                        ? query.OrderBy(x => x.FromDate)
+                        : query.OrderByDescending(x => x.FromDate);
+                    break;
+
+                case "ToDate":
+                default:
+                    query = sortDirection == "ASC"
+                        ? query.OrderBy(x => x.ToDate)
+                        : query.OrderByDescending(x => x.ToDate);
+                    break;
+            }
+
+            return query
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();

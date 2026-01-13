@@ -8,7 +8,7 @@ namespace AttandanceSyncApp.Services.Interfaces
     /// </summary>
     public interface IAttandanceSynchronizationService
     {
-        ServiceResult<PagedResultDto<AttandanceSynchronizationDto>> GetSynchronizationsPaged(int page, int pageSize);
+        ServiceResult<PagedResultDto<AttandanceSynchronizationDto>> GetSynchronizationsPaged(int page, int pageSize, string sortColumn, string sortDirection);
         ServiceResult<int> CreateSynchronization(string fromDate, string toDate);
         ServiceResult<IEnumerable<StatusDto>> GetStatusesByIds(int[] ids);
     }

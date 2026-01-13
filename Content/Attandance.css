@@ -64,3 +64,17 @@
     overflow-x: auto;
     padding: 10px 0;
 }
+
+
+.card-header h5 {
+    font-weight: 600;
+}
+
+.sort-dir-btn.active {
+    color: #fff;
+}
+
+.form-label {
+    font-size: 0.9rem;
+    color: #555;
+}

@@ -4,6 +4,10 @@
 var currentPage = 1;
 var pageSize = 20;
 
+// DEFAULT SORT (Initial Load)
+var sortColumn = 'ToDate';
+var sortDirection = 'DESC';
+
 /* ============================
    Document Ready
 ============================ */
@@ -47,6 +51,7 @@ $(function () {
     });
 });
 
+
 /* ============================
    Load Paged Data
 ============================ */
@@ -55,7 +60,9 @@ function loadSynchronizations(page) {
 
     $.get(APP.baseUrl + 'Attandance/GetSynchronizationsPaged', {
         page: page,
-        pageSize: pageSize
+        pageSize: pageSize,
+        sortColumn: sortColumn,
+        sortDirection: sortDirection
     }, function (res) {
 
         var tbody = $('#syncTableBody').empty();
@@ -197,3 +204,20 @@ function showMessage(msg, type) {
         .delay(3000)
         .fadeOut();
 }
+
+
+function applySorting() {
+    sortColumn = $('#sortColumn').val();
+    sortDirection = $('#sortDirection').val();
+    loadSynchronizations(1);
+}
+
+$(document).on('click', '.sort-dir-btn', function () {
+    $('.sort-dir-btn').removeClass('active btn-primary')
+        .addClass('btn-outline-secondary');
+
+    $(this).addClass('active btn-primary')
+        .removeClass('btn-outline-secondary');
+
+    $('#sortDirection').val($(this).data('value'));
+});

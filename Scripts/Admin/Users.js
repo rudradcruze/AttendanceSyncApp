@@ -3,11 +3,12 @@
 ============================ */
 var currentPage = 1;
 var pageSize = 20;
+var userModal = null;
 
 $(function () {
+    userModal = new bootstrap.Modal(document.getElementById('editUserModal'));
     loadUsers(1);
 
-    // Save User Button
     $('#saveUserBtn').on('click', saveUser);
 });
 
@@ -66,7 +67,7 @@ function loadUsers(page) {
 function editUser(userId) {
     $.get(APP.baseUrl + 'Admin/GetUser', { id: userId }, function (res) {
         if (res.Errors && res.Errors.length > 0) {
-            alert('Error: ' + res.Message);
+            Swal.fire('Error', res.Message, 'error');
             return;
         }
 
@@ -76,8 +77,7 @@ function editUser(userId) {
         $('#editUserEmail').val(user.Email);
         $('#editUserActive').prop('checked', user.IsActive);
 
-        var modal = new bootstrap.Modal(document.getElementById('editUserModal'));
-        modal.show();
+        userModal.show();
     });
 }
 
@@ -95,45 +95,48 @@ function saveUser() {
         data: data,
         success: function (res) {
             if (res.Errors && res.Errors.length > 0) {
-                alert('Error: ' + res.Message);
+                Swal.fire('Error', res.Message, 'error');
             } else {
-                alert('User updated successfully!');
-                bootstrap.Modal.getInstance(document.getElementById('editUserModal')).hide();
+                Swal.fire('Success', res.Message, 'success');
+                userModal.hide();
                 loadUsers(currentPage);
             }
         },
         error: function () {
-            alert('Failed to update user');
+            Swal.fire('Error', 'Failed to update user', 'error');
         }
     });
 }
 
 function toggleStatus(userId) {
-    if (!confirm('Are you sure you want to change this user\'s status?')) {
-        return;
-    }
-
-    $.ajax({
-        url: APP.baseUrl + 'Admin/ToggleUserStatus',
-        type: 'POST',
-        data: { userId: userId },
-        success: function (res) {
-            if (res.Errors && res.Errors.length > 0) {
-                alert('Error: ' + res.Message);
-            } else {
-                loadUsers(currentPage);
-            }
-        },
-        error: function () {
-            alert('Failed to update user status');
+    Swal.fire({
+        title: 'Confirm',
+        text: 'Are you sure you want to change this user\'s status?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, change it'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: APP.baseUrl + 'Admin/ToggleUserStatus',
+                type: 'POST',
+                data: { userId: userId },
+                success: function (res) {
+                    if (res.Errors && res.Errors.length > 0) {
+                        Swal.fire('Error', res.Message, 'error');
+                    } else {
+                        Swal.fire('Success', res.Message, 'success');
+                        loadUsers(currentPage);
+                    }
+                },
+                error: function () {
+                    Swal.fire('Error', 'Failed to update user status', 'error');
+                }
+            });
         }
     });
-}
-
-function formatDate(value) {
-    if (!value) return 'N/A';
-    var date = new Date(value);
-    return date.toLocaleDateString();
 }
 
 function renderPagination(totalRecords, page, pageSize) {

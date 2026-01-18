@@ -8,7 +8,7 @@ namespace AttandanceSyncApp.Models.DTOs
     /// </summary>
     public class ApiResponse
     {
-        public DateTime Timestamp { get; set; }
+        public string Timestamp { get; set; }
         public List<string> Errors { get; set; }
         public string Message { get; set; }
 
@@ -16,9 +16,9 @@ namespace AttandanceSyncApp.Models.DTOs
         {
             return new ApiResponse
             {
-                Timestamp = DateTime.UtcNow,
+                Timestamp = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
                 Errors = null,
-                Message = message
+                Message = message ?? "Success"
             };
         }
 
@@ -26,9 +26,9 @@ namespace AttandanceSyncApp.Models.DTOs
         {
             return new ApiResponse
             {
-                Timestamp = DateTime.UtcNow,
+                Timestamp = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
                 Errors = new List<string> { error },
-                Message = message ?? error
+                Message = message ?? "Operation failed"
             };
         }
 
@@ -36,9 +36,9 @@ namespace AttandanceSyncApp.Models.DTOs
         {
             return new ApiResponse
             {
-                Timestamp = DateTime.UtcNow,
+                Timestamp = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
                 Errors = errors,
-                Message = message ?? (errors != null && errors.Count > 0 ? errors[0] : null)
+                Message = message ?? "Operation failed"
             };
         }
     }
@@ -48,7 +48,7 @@ namespace AttandanceSyncApp.Models.DTOs
     /// </summary>
     public class ApiResponse<T>
     {
-        public DateTime Timestamp { get; set; }
+        public string Timestamp { get; set; }
         public List<string> Errors { get; set; }
         public T Data { get; set; }
         public string Message { get; set; }
@@ -57,10 +57,10 @@ namespace AttandanceSyncApp.Models.DTOs
         {
             return new ApiResponse<T>
             {
-                Timestamp = DateTime.UtcNow,
+                Timestamp = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
                 Errors = null,
                 Data = data,
-                Message = message
+                Message = message ?? "Success"
             };
         }
 
@@ -68,10 +68,10 @@ namespace AttandanceSyncApp.Models.DTOs
         {
             return new ApiResponse<T>
             {
-                Timestamp = DateTime.UtcNow,
+                Timestamp = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
                 Errors = new List<string> { error },
                 Data = default(T),
-                Message = message ?? error
+                Message = message ?? "Operation failed"
             };
         }
 
@@ -79,10 +79,10 @@ namespace AttandanceSyncApp.Models.DTOs
         {
             return new ApiResponse<T>
             {
-                Timestamp = DateTime.UtcNow,
+                Timestamp = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
                 Errors = errors,
                 Data = default(T),
-                Message = message ?? (errors != null && errors.Count > 0 ? errors[0] : null)
+                Message = message ?? "Operation failed"
             };
         }
     }

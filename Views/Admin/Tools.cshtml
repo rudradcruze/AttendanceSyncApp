@@ -1,0 +1,75 @@
+@using System.Configuration
+@{
+    ViewBag.Title = "Manage Tools";
+    ViewBag.ActiveMenu = "Tools";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="tools-management">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5>Tools List</h5>
+        <button class="btn btn-primary" onclick="showCreateModal()">
+            Add Tool
+        </button>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped" id="toolsTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <div id="pagination" class="pagination-wrapper"></div>
+</div>
+
+<!-- Create/Edit Tool Modal -->
+<div class="modal fade" id="toolModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="toolModalTitle">Add Tool</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="toolForm">
+                    <input type="hidden" id="toolId" />
+                    <div class="form-group mb-3">
+                        <label for="toolName">Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="toolName" required maxlength="150" />
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="toolDescription">Description</label>
+                        <textarea class="form-control" id="toolDescription" rows="3" maxlength="500"></textarea>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input type="checkbox" class="form-check-input" id="toolActive" checked />
+                        <label class="form-check-label" for="toolActive">Active</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveToolBtn">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        window.APP = {
+            baseUrl: '@Url.Content(ConfigurationManager.AppSettings["AppBaseUrl"])'
+        };
+    </script>
+    <script src="~/Scripts/Admin/Tools.js"></script>
+}

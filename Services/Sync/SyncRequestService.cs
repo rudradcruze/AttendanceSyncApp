@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AttandanceSyncApp.Models.DTOs;
+using AttandanceSyncApp.Models.DTOs.Admin;
 using AttandanceSyncApp.Models.DTOs.Auth;
 using AttandanceSyncApp.Models.DTOs.Sync;
 using AttandanceSyncApp.Models.Sync;
@@ -29,10 +30,12 @@ namespace AttandanceSyncApp.Services.Sync
                     {
                         Id = r.Id,
                         UserName = r.User?.Name ?? "Unknown",
+                        EmployeeName = r.Employee?.Name ?? "Unknown",
                         CompanyName = r.Company?.Name ?? "Unknown",
                         ToolName = r.Tool?.Name ?? "Unknown",
-                        Email = r.Email,
-                        Status = r.Status,
+                        ExternalSyncId = r.ExternalSyncId,
+                        IsSuccessful = r.IsSuccessful,
+                        Status = GetStatusText(r.IsSuccessful),
                         FromDate = r.FromDate,
                         ToDate = r.ToDate,
                         CreatedAt = r.CreatedAt
@@ -51,46 +54,42 @@ namespace AttandanceSyncApp.Services.Sync
             }
             catch (Exception ex)
             {
-                return ServiceResult<PagedResultDto<SyncRequestDto>>.FailureResult($"Error retrieving requests: {ex.Message}");
+                return ServiceResult<PagedResultDto<SyncRequestDto>>.FailureResult($"Failed to retrieve requests: {ex.Message}");
             }
         }
 
-        public ServiceResult<int> CreateSyncRequest(SyncRequestCreateDto dto, int userId, string userEmail, int sessionId)
+        public ServiceResult<int> CreateSyncRequest(SyncRequestCreateDto dto, int userId, int sessionId)
         {
             try
             {
                 // Validate dates
-                DateTime? fromDate = null;
-                DateTime? toDate = null;
-
-                if (!string.IsNullOrEmpty(dto.FromDate))
+                if (!DateTime.TryParse(dto.FromDate, out DateTime fromDate))
                 {
-                    if (!DateTime.TryParse(dto.FromDate, out DateTime parsedFromDate))
-                    {
-                        return ServiceResult<int>.FailureResult("Invalid From Date format");
-                    }
-                    fromDate = parsedFromDate;
+                    return ServiceResult<int>.FailureResult("Invalid From Date format");
                 }
 
-                if (!string.IsNullOrEmpty(dto.ToDate))
+                if (!DateTime.TryParse(dto.ToDate, out DateTime toDate))
                 {
-                    if (!DateTime.TryParse(dto.ToDate, out DateTime parsedToDate))
-                    {
-                        return ServiceResult<int>.FailureResult("Invalid To Date format");
-                    }
-                    toDate = parsedToDate;
+                    return ServiceResult<int>.FailureResult("Invalid To Date format");
+                }
+
+                if (fromDate > toDate)
+                {
+                    return ServiceResult<int>.FailureResult("From Date cannot be after To Date");
+                }
+
+                // Validate employee exists
+                var employee = _unitOfWork.Employees.GetById(dto.EmployeeId);
+                if (employee == null || !employee.IsActive)
+                {
+                    return ServiceResult<int>.FailureResult("Selected employee not found or inactive");
                 }
 
                 // Validate company exists
                 var company = _unitOfWork.SyncCompanies.GetById(dto.CompanyId);
-                if (company == null)
+                if (company == null || company.Status != "Active")
                 {
-                    return ServiceResult<int>.FailureResult("Selected company not found");
-                }
-
-                if (company.Status != "Active")
-                {
-                    return ServiceResult<int>.FailureResult("Selected company is not active");
+                    return ServiceResult<int>.FailureResult("Selected company not found or inactive");
                 }
 
                 // Validate tool exists
@@ -103,25 +102,62 @@ namespace AttandanceSyncApp.Services.Sync
                 // Create sync request
                 var request = new AttandanceSyncRequest
                 {
-                    UserId = dto.UserId,
+                    UserId = userId,
+                    EmployeeId = dto.EmployeeId,
                     CompanyId = dto.CompanyId,
                     ToolId = dto.ToolId,
-                    Email = userEmail,
-                    Status = "NR",
                     SessionId = sessionId,
                     FromDate = fromDate,
                     ToDate = toDate,
+                    IsSuccessful = null, // Pending
                     CreatedAt = DateTime.Now
                 };
 
                 _unitOfWork.AttandanceSyncRequests.Add(request);
                 _unitOfWork.SaveChanges();
 
-                return ServiceResult<int>.SuccessResult(request.Id, "Sync request created successfully");
+                return ServiceResult<int>.SuccessResult(request.Id, "Request created");
             }
             catch (Exception ex)
             {
-                return ServiceResult<int>.FailureResult($"Error creating request: {ex.Message}");
+                return ServiceResult<int>.FailureResult($"Failed to create request: {ex.Message}");
+            }
+        }
+
+        public ServiceResult CancelSyncRequest(int requestId, int userId)
+        {
+            try
+            {
+                var request = _unitOfWork.AttandanceSyncRequests.GetById(requestId);
+                if (request == null)
+                {
+                    return ServiceResult.FailureResult("Request not found");
+                }
+
+                // Only allow cancellation of own requests
+                if (request.UserId != userId)
+                {
+                    return ServiceResult.FailureResult("Not authorized");
+                }
+
+                // Only allow cancellation of pending requests (IsSuccessful == null)
+                if (request.IsSuccessful != null)
+                {
+                    return ServiceResult.FailureResult("Cannot cancel processed request");
+                }
+
+                // Mark as cancelled (IsSuccessful = false)
+                request.IsSuccessful = false;
+                request.UpdatedAt = DateTime.Now;
+
+                _unitOfWork.AttandanceSyncRequests.Update(request);
+                _unitOfWork.SaveChanges();
+
+                return ServiceResult.SuccessResult("Request cancelled");
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult.FailureResult($"Failed to cancel request: {ex.Message}");
             }
         }
 
@@ -138,7 +174,7 @@ namespace AttandanceSyncApp.Services.Sync
                     .Select(r => new StatusDto
                     {
                         Id = r.Id,
-                        Status = r.Status
+                        Status = GetStatusText(r.IsSuccessful)
                     })
                     .ToList();
 
@@ -146,7 +182,7 @@ namespace AttandanceSyncApp.Services.Sync
             }
             catch (Exception ex)
             {
-                return ServiceResult<IEnumerable<StatusDto>>.FailureResult($"Error retrieving statuses: {ex.Message}");
+                return ServiceResult<IEnumerable<StatusDto>>.FailureResult($"Failed to retrieve statuses: {ex.Message}");
             }
         }
 
@@ -170,7 +206,7 @@ namespace AttandanceSyncApp.Services.Sync
             }
             catch (Exception ex)
             {
-                return ServiceResult<IEnumerable<UserDto>>.FailureResult($"Error retrieving users: {ex.Message}");
+                return ServiceResult<IEnumerable<UserDto>>.FailureResult($"Failed to retrieve users: {ex.Message}");
             }
         }
 
@@ -183,7 +219,7 @@ namespace AttandanceSyncApp.Services.Sync
             }
             catch (Exception ex)
             {
-                return ServiceResult<IEnumerable<SyncCompany>>.FailureResult($"Error retrieving companies: {ex.Message}");
+                return ServiceResult<IEnumerable<SyncCompany>>.FailureResult($"Failed to retrieve companies: {ex.Message}");
             }
         }
 
@@ -196,8 +232,35 @@ namespace AttandanceSyncApp.Services.Sync
             }
             catch (Exception ex)
             {
-                return ServiceResult<IEnumerable<Tool>>.FailureResult($"Error retrieving tools: {ex.Message}");
+                return ServiceResult<IEnumerable<Tool>>.FailureResult($"Failed to retrieve tools: {ex.Message}");
             }
+        }
+
+        public ServiceResult<IEnumerable<EmployeeDto>> GetActiveEmployees()
+        {
+            try
+            {
+                var employees = _unitOfWork.Employees.GetActiveEmployees()
+                    .Select(e => new EmployeeDto
+                    {
+                        Id = e.Id,
+                        Name = e.Name,
+                        IsActive = e.IsActive
+                    })
+                    .ToList();
+
+                return ServiceResult<IEnumerable<EmployeeDto>>.SuccessResult(employees);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<IEnumerable<EmployeeDto>>.FailureResult($"Failed to retrieve employees: {ex.Message}");
+            }
+        }
+
+        private static string GetStatusText(bool? isSuccessful)
+        {
+            if (isSuccessful == null) return "Pending";
+            return isSuccessful.Value ? "Completed" : "Failed";
         }
     }
 }

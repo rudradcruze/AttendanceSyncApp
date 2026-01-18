@@ -11,8 +11,13 @@ namespace AttandanceSyncApp.Models.Sync
         [Key]
         public int Id { get; set; }
 
+        // Who submitted the request
         [Required]
         public int UserId { get; set; }
+
+        // Who the request is about
+        [Required]
+        public int EmployeeId { get; set; }
 
         [Required]
         public int CompanyId { get; set; }
@@ -21,27 +26,25 @@ namespace AttandanceSyncApp.Models.Sync
         public int ToolId { get; set; }
 
         [Required]
-        [StringLength(255)]
-        public string Email { get; set; }
-
-        [Required]
-        [StringLength(5)]
-        public string Status { get; set; } = "NR";
-
-        [Required]
         public int SessionId { get; set; }
 
-        public DateTime? FromDate { get; set; }
+        // External dynamic DB reference
+        public int? ExternalSyncId { get; set; }
 
-        public DateTime? ToDate { get; set; }
+        public bool? IsSuccessful { get; set; }
+
+        public DateTime FromDate { get; set; }
+        public DateTime ToDate { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
-
         public DateTime? UpdatedAt { get; set; }
 
         // Navigation
         [ForeignKey("UserId")]
         public virtual User User { get; set; }
+
+        [ForeignKey("EmployeeId")]
+        public virtual Employee Employee { get; set; }
 
         [ForeignKey("CompanyId")]
         public virtual SyncCompany Company { get; set; }

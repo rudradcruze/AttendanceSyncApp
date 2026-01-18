@@ -120,10 +120,14 @@
     <Content Include="Content\bootstrap.rtl.min.css" />
     <Content Include="Content\Site.css" />
     <Content Include="Global.asax" />
+    <Content Include="Scripts\Admin\Companies.js" />
     <Content Include="Scripts\Admin\Dashboard.js" />
+    <Content Include="Scripts\Admin\Employees.js" />
     <Content Include="Scripts\Admin\Requests.js" />
+    <Content Include="Scripts\Admin\Tools.js" />
     <Content Include="Scripts\Admin\Users.js" />
     <Content Include="Scripts\Attandance.js" />
+    <Content Include="Scripts\Attandance\Requests.js" />
     <Content Include="Scripts\Auth.js" />
     <Content Include="Scripts\bootstrap.bundle.js" />
     <Content Include="Scripts\bootstrap.bundle.min.js" />
@@ -162,7 +166,9 @@
     <Compile Include="Models\Company.cs" />
     <Compile Include="Models\DTOs\Admin\AssignDatabaseDto.cs" />
     <Compile Include="Models\DTOs\Admin\CompanyManagementDto.cs" />
+    <Compile Include="Models\DTOs\Admin\EmployeeDto.cs" />
     <Compile Include="Models\DTOs\Admin\RequestListDto.cs" />
+    <Compile Include="Models\DTOs\Admin\ToolDto.cs" />
     <Compile Include="Models\DTOs\Admin\UserListDto.cs" />
     <Compile Include="Models\DTOs\ApiResponse.cs" />
     <Compile Include="Models\DTOs\AttandanceSynchronizationDto.cs" />
@@ -179,6 +185,7 @@
     <Compile Include="Models\DynamicDbContext.cs" />
     <Compile Include="Models\Sync\AttandanceSyncRequest.cs" />
     <Compile Include="Models\Sync\DatabaseConfiguration.cs" />
+    <Compile Include="Models\Sync\Employee.cs" />
     <Compile Include="Models\Sync\SyncCompany.cs" />
     <Compile Include="Models\Sync\Tool.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -196,17 +203,22 @@
     <Compile Include="Repositories\Interfaces\IUnitOfWork.cs" />
     <Compile Include="Repositories\Interfaces\Sync\IAttandanceSyncRequestRepository.cs" />
     <Compile Include="Repositories\Interfaces\Sync\IDatabaseConfigurationRepository.cs" />
+    <Compile Include="Repositories\Interfaces\Sync\IEmployeeRepository.cs" />
     <Compile Include="Repositories\Interfaces\Sync\ISyncCompanyRepository.cs" />
     <Compile Include="Repositories\Interfaces\Sync\IToolRepository.cs" />
     <Compile Include="Repositories\Repository.cs" />
     <Compile Include="Repositories\Sync\AttandanceSyncRequestRepository.cs" />
     <Compile Include="Repositories\Sync\DatabaseConfigurationRepository.cs" />
+    <Compile Include="Repositories\Sync\EmployeeRepository.cs" />
     <Compile Include="Repositories\Sync\SyncCompanyRepository.cs" />
     <Compile Include="Repositories\Sync\ToolRepository.cs" />
     <Compile Include="Repositories\UnitOfWork.cs" />
     <Compile Include="Services\Admin\AdminRequestService.cs" />
     <Compile Include="Services\Admin\AdminUserService.cs" />
+    <Compile Include="Services\Admin\CompanyManagementService.cs" />
     <Compile Include="Services\Admin\DatabaseAssignmentService.cs" />
+    <Compile Include="Services\Admin\EmployeeService.cs" />
+    <Compile Include="Services\Admin\ToolManagementService.cs" />
     <Compile Include="Services\AttandanceSynchronizationService.cs" />
     <Compile Include="Services\Auth\AuthService.cs" />
     <Compile Include="Services\Auth\GoogleAuthService.cs" />
@@ -214,7 +226,10 @@
     <Compile Include="Services\CompanyService.cs" />
     <Compile Include="Services\Interfaces\Admin\IAdminRequestService.cs" />
     <Compile Include="Services\Interfaces\Admin\IAdminUserService.cs" />
+    <Compile Include="Services\Interfaces\Admin\ICompanyManagementService.cs" />
     <Compile Include="Services\Interfaces\Admin\IDatabaseAssignmentService.cs" />
+    <Compile Include="Services\Interfaces\Admin\IEmployeeService.cs" />
+    <Compile Include="Services\Interfaces\Admin\IToolManagementService.cs" />
     <Compile Include="Services\Interfaces\Auth\IAuthService.cs" />
     <Compile Include="Services\Interfaces\Auth\IGoogleAuthService.cs" />
     <Compile Include="Services\Interfaces\Auth\ISessionService.cs" />
@@ -259,6 +274,10 @@
     <Content Include="Views\Auth\Register.cshtml" />
     <Content Include="Views\Shared\_AdminLayout.cshtml" />
     <Content Include="Views\Shared\_AuthLayout.cshtml" />
+    <Content Include="Views\Admin\Companies.cshtml" />
+    <Content Include="Views\Admin\Employees.cshtml" />
+    <Content Include="Views\Admin\Tools.cshtml" />
+    <Content Include="Views\Attandance\Requests.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

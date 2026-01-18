@@ -16,6 +16,9 @@ namespace AttandanceSyncApp.Controllers
         private readonly IAdminUserService _adminUserService;
         private readonly IAdminRequestService _adminRequestService;
         private readonly IDatabaseAssignmentService _dbAssignmentService;
+        private readonly IEmployeeService _employeeService;
+        private readonly ICompanyManagementService _companyService;
+        private readonly IToolManagementService _toolService;
 
         public AdminController() : base()
         {
@@ -23,17 +26,9 @@ namespace AttandanceSyncApp.Controllers
             _adminUserService = new AdminUserService(unitOfWork);
             _adminRequestService = new AdminRequestService(unitOfWork);
             _dbAssignmentService = new DatabaseAssignmentService(unitOfWork);
-        }
-
-        public AdminController(
-            IAdminUserService adminUserService,
-            IAdminRequestService adminRequestService,
-            IDatabaseAssignmentService dbAssignmentService)
-            : base()
-        {
-            _adminUserService = adminUserService;
-            _adminRequestService = adminRequestService;
-            _dbAssignmentService = dbAssignmentService;
+            _employeeService = new EmployeeService(unitOfWork);
+            _companyService = new CompanyManagementService(unitOfWork);
+            _toolService = new ToolManagementService(unitOfWork);
         }
 
         // GET: Admin/Dashboard
@@ -65,6 +60,14 @@ namespace AttandanceSyncApp.Controllers
         {
             return View();
         }
+
+        // GET: Admin/Employees
+        public ActionResult Employees()
+        {
+            return View();
+        }
+
+        #region User Management
 
         // GET: Admin/GetUsers
         [HttpGet]
@@ -121,6 +124,274 @@ namespace AttandanceSyncApp.Controllers
 
             return Json(ApiResponse.Success(result.Message));
         }
+
+        #endregion
+
+        #region Employee Management
+
+        // GET: Admin/GetEmployees
+        [HttpGet]
+        public JsonResult GetEmployees(int page = 1, int pageSize = 20)
+        {
+            var result = _employeeService.GetEmployeesPaged(page, pageSize);
+
+            if (!result.Success)
+            {
+                return Json(ApiResponse<object>.Fail(result.Message), JsonRequestBehavior.AllowGet);
+            }
+
+            return Json(ApiResponse<object>.Success(result.Data), JsonRequestBehavior.AllowGet);
+        }
+
+        // GET: Admin/GetEmployee
+        [HttpGet]
+        public JsonResult GetEmployee(int id)
+        {
+            var result = _employeeService.GetEmployeeById(id);
+
+            if (!result.Success)
+            {
+                return Json(ApiResponse<EmployeeDto>.Fail(result.Message), JsonRequestBehavior.AllowGet);
+            }
+
+            return Json(ApiResponse<EmployeeDto>.Success(result.Data), JsonRequestBehavior.AllowGet);
+        }
+
+        // POST: Admin/CreateEmployee
+        [HttpPost]
+        public JsonResult CreateEmployee(EmployeeCreateDto dto)
+        {
+            var result = _employeeService.CreateEmployee(dto);
+
+            if (!result.Success)
+            {
+                return Json(ApiResponse.Fail(result.Message));
+            }
+
+            return Json(ApiResponse.Success(result.Message));
+        }
+
+        // POST: Admin/UpdateEmployee
+        [HttpPost]
+        public JsonResult UpdateEmployee(EmployeeUpdateDto dto)
+        {
+            var result = _employeeService.UpdateEmployee(dto);
+
+            if (!result.Success)
+            {
+                return Json(ApiResponse.Fail(result.Message));
+            }
+
+            return Json(ApiResponse.Success(result.Message));
+        }
+
+        // POST: Admin/DeleteEmployee
+        [HttpPost]
+        public JsonResult DeleteEmployee(int id)
+        {
+            var result = _employeeService.DeleteEmployee(id);
+
+            if (!result.Success)
+            {
+                return Json(ApiResponse.Fail(result.Message));
+            }
+
+            return Json(ApiResponse.Success(result.Message));
+        }
+
+        // POST: Admin/ToggleEmployeeStatus
+        [HttpPost]
+        public JsonResult ToggleEmployeeStatus(int id)
+        {
+            var result = _employeeService.ToggleEmployeeStatus(id);
+
+            if (!result.Success)
+            {
+                return Json(ApiResponse.Fail(result.Message));
+            }
+
+            return Json(ApiResponse.Success(result.Message));
+        }
+
+        #endregion
+
+        #region Company Management
+
+        // GET: Admin/GetCompanies
+        [HttpGet]
+        public JsonResult GetCompanies(int page = 1, int pageSize = 20)
+        {
+            var result = _companyService.GetCompaniesPaged(page, pageSize);
+
+            if (!result.Success)
+            {
+                return Json(ApiResponse<object>.Fail(result.Message), JsonRequestBehavior.AllowGet);
+            }
+
+            return Json(ApiResponse<object>.Success(result.Data), JsonRequestBehavior.AllowGet);
+        }
+
+        // GET: Admin/GetCompany
+        [HttpGet]
+        public JsonResult GetCompany(int id)
+        {
+            var result = _companyService.GetCompanyById(id);
+
+            if (!result.Success)
+            {
+                return Json(ApiResponse<CompanyManagementDto>.Fail(result.Message), JsonRequestBehavior.AllowGet);
+            }
+
+            return Json(ApiResponse<CompanyManagementDto>.Success(result.Data), JsonRequestBehavior.AllowGet);
+        }
+
+        // POST: Admin/CreateCompany
+        [HttpPost]
+        public JsonResult CreateCompany(CompanyCreateDto dto)
+        {
+            var result = _companyService.CreateCompany(dto);
+
+            if (!result.Success)
+            {
+                return Json(ApiResponse.Fail(result.Message));
+            }
+
+            return Json(ApiResponse.Success(result.Message));
+        }
+
+        // POST: Admin/UpdateCompany
+        [HttpPost]
+        public JsonResult UpdateCompany(CompanyUpdateDto dto)
+        {
+            var result = _companyService.UpdateCompany(dto);
+
+            if (!result.Success)
+            {
+                return Json(ApiResponse.Fail(result.Message));
+            }
+
+            return Json(ApiResponse.Success(result.Message));
+        }
+
+        // POST: Admin/DeleteCompany
+        [HttpPost]
+        public JsonResult DeleteCompany(int id)
+        {
+            var result = _companyService.DeleteCompany(id);
+
+            if (!result.Success)
+            {
+                return Json(ApiResponse.Fail(result.Message));
+            }
+
+            return Json(ApiResponse.Success(result.Message));
+        }
+
+        // POST: Admin/ToggleCompanyStatus
+        [HttpPost]
+        public JsonResult ToggleCompanyStatus(int id)
+        {
+            var result = _companyService.ToggleCompanyStatus(id);
+
+            if (!result.Success)
+            {
+                return Json(ApiResponse.Fail(result.Message));
+            }
+
+            return Json(ApiResponse.Success(result.Message));
+        }
+
+        #endregion
+
+        #region Tool Management
+
+        // GET: Admin/GetTools
+        [HttpGet]
+        public JsonResult GetTools(int page = 1, int pageSize = 20)
+        {
+            var result = _toolService.GetToolsPaged(page, pageSize);
+
+            if (!result.Success)
+            {
+                return Json(ApiResponse<object>.Fail(result.Message), JsonRequestBehavior.AllowGet);
+            }
+
+            return Json(ApiResponse<object>.Success(result.Data), JsonRequestBehavior.AllowGet);
+        }
+
+        // GET: Admin/GetTool
+        [HttpGet]
+        public JsonResult GetTool(int id)
+        {
+            var result = _toolService.GetToolById(id);
+
+            if (!result.Success)
+            {
+                return Json(ApiResponse<ToolDto>.Fail(result.Message), JsonRequestBehavior.AllowGet);
+            }
+
+            return Json(ApiResponse<ToolDto>.Success(result.Data), JsonRequestBehavior.AllowGet);
+        }
+
+        // POST: Admin/CreateTool
+        [HttpPost]
+        public JsonResult CreateTool(ToolCreateDto dto)
+        {
+            var result = _toolService.CreateTool(dto);
+
+            if (!result.Success)
+            {
+                return Json(ApiResponse.Fail(result.Message));
+            }
+
+            return Json(ApiResponse.Success(result.Message));
+        }
+
+        // POST: Admin/UpdateTool
+        [HttpPost]
+        public JsonResult UpdateTool(ToolUpdateDto dto)
+        {
+            var result = _toolService.UpdateTool(dto);
+
+            if (!result.Success)
+            {
+                return Json(ApiResponse.Fail(result.Message));
+            }
+
+            return Json(ApiResponse.Success(result.Message));
+        }
+
+        // POST: Admin/DeleteTool
+        [HttpPost]
+        public JsonResult DeleteTool(int id)
+        {
+            var result = _toolService.DeleteTool(id);
+
+            if (!result.Success)
+            {
+                return Json(ApiResponse.Fail(result.Message));
+            }
+
+            return Json(ApiResponse.Success(result.Message));
+        }
+
+        // POST: Admin/ToggleToolStatus
+        [HttpPost]
+        public JsonResult ToggleToolStatus(int id)
+        {
+            var result = _toolService.ToggleToolStatus(id);
+
+            if (!result.Success)
+            {
+                return Json(ApiResponse.Fail(result.Message));
+            }
+
+            return Json(ApiResponse.Success(result.Message));
+        }
+
+        #endregion
+
+        #region Request Management
 
         // GET: Admin/GetAllRequests
         [HttpGet]
@@ -220,6 +491,8 @@ namespace AttandanceSyncApp.Controllers
             return Json(ApiResponse.Success(result.Message));
         }
 
+        #endregion
+
         // GET: Admin/GetStats
         [HttpGet]
         public JsonResult GetStats()
@@ -228,15 +501,17 @@ namespace AttandanceSyncApp.Controllers
             {
                 var totalUsers = unitOfWork.Users.Count();
                 var totalRequests = unitOfWork.AttandanceSyncRequests.GetTotalCount();
-                var pendingRequests = unitOfWork.AttandanceSyncRequests.Count(r => r.Status == "NR" || r.Status == "IP");
-                var completedRequests = unitOfWork.AttandanceSyncRequests.Count(r => r.Status == "CP");
+                var totalEmployees = unitOfWork.Employees.Count();
+                var totalCompanies = unitOfWork.SyncCompanies.Count();
+                var totalTools = unitOfWork.Tools.Count();
 
                 var stats = new
                 {
                     TotalUsers = totalUsers,
                     TotalRequests = totalRequests,
-                    PendingRequests = pendingRequests,
-                    CompletedRequests = completedRequests
+                    TotalEmployees = totalEmployees,
+                    TotalCompanies = totalCompanies,
+                    TotalTools = totalTools
                 };
 
                 return Json(ApiResponse<object>.Success(stats), JsonRequestBehavior.AllowGet);

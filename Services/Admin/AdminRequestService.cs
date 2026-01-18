@@ -28,12 +28,15 @@ namespace AttandanceSyncApp.Services.Admin
                         UserId = r.UserId,
                         UserName = r.User?.Name ?? "Unknown",
                         UserEmail = r.User?.Email ?? "Unknown",
+                        EmployeeId = r.EmployeeId,
+                        EmployeeName = r.Employee?.Name ?? "Unknown",
                         CompanyId = r.CompanyId,
                         CompanyName = r.Company?.Name ?? "Unknown",
                         ToolId = r.ToolId,
                         ToolName = r.Tool?.Name ?? "Unknown",
-                        Email = r.Email,
-                        Status = r.Status,
+                        ExternalSyncId = r.ExternalSyncId,
+                        IsSuccessful = r.IsSuccessful,
+                        Status = GetStatusText(r.IsSuccessful),
                         FromDate = r.FromDate,
                         ToDate = r.ToDate,
                         CreatedAt = r.CreatedAt,
@@ -53,7 +56,7 @@ namespace AttandanceSyncApp.Services.Admin
             }
             catch (Exception ex)
             {
-                return ServiceResult<PagedResultDto<RequestListDto>>.FailureResult($"Error retrieving requests: {ex.Message}");
+                return ServiceResult<PagedResultDto<RequestListDto>>.FailureResult($"Failed to retrieve requests: {ex.Message}");
             }
         }
 
@@ -73,12 +76,15 @@ namespace AttandanceSyncApp.Services.Admin
                     UserId = request.UserId,
                     UserName = request.User?.Name ?? "Unknown",
                     UserEmail = request.User?.Email ?? "Unknown",
+                    EmployeeId = request.EmployeeId,
+                    EmployeeName = request.Employee?.Name ?? "Unknown",
                     CompanyId = request.CompanyId,
                     CompanyName = request.Company?.Name ?? "Unknown",
                     ToolId = request.ToolId,
                     ToolName = request.Tool?.Name ?? "Unknown",
-                    Email = request.Email,
-                    Status = request.Status,
+                    ExternalSyncId = request.ExternalSyncId,
+                    IsSuccessful = request.IsSuccessful,
+                    Status = GetStatusText(request.IsSuccessful),
                     FromDate = request.FromDate,
                     ToDate = request.ToDate,
                     CreatedAt = request.CreatedAt,
@@ -89,7 +95,7 @@ namespace AttandanceSyncApp.Services.Admin
             }
             catch (Exception ex)
             {
-                return ServiceResult<RequestListDto>.FailureResult($"Error retrieving request: {ex.Message}");
+                return ServiceResult<RequestListDto>.FailureResult($"Failed to retrieve request: {ex.Message}");
             }
         }
 
@@ -103,24 +109,46 @@ namespace AttandanceSyncApp.Services.Admin
                     return ServiceResult.FailureResult("Request not found");
                 }
 
-                var validStatuses = new[] { "NR", "IP", "CP" };
-                if (!validStatuses.Contains(status))
+                // Map status text to IsSuccessful
+                bool? isSuccessful = null;
+                switch (status?.ToUpper())
                 {
-                    return ServiceResult.FailureResult("Invalid status. Must be NR, IP, or CP.");
+                    case "COMPLETED":
+                    case "CP":
+                    case "SUCCESS":
+                        isSuccessful = true;
+                        break;
+                    case "FAILED":
+                    case "CANCELLED":
+                        isSuccessful = false;
+                        break;
+                    case "PENDING":
+                    case "NR":
+                    case "IP":
+                        isSuccessful = null;
+                        break;
+                    default:
+                        return ServiceResult.FailureResult("Invalid status");
                 }
 
-                request.Status = status;
+                request.IsSuccessful = isSuccessful;
                 request.UpdatedAt = DateTime.Now;
 
                 _unitOfWork.AttandanceSyncRequests.Update(request);
                 _unitOfWork.SaveChanges();
 
-                return ServiceResult.SuccessResult("Request status updated successfully");
+                return ServiceResult.SuccessResult("Request updated");
             }
             catch (Exception ex)
             {
-                return ServiceResult.FailureResult($"Error updating request status: {ex.Message}");
+                return ServiceResult.FailureResult($"Failed to update request: {ex.Message}");
             }
+        }
+
+        private static string GetStatusText(bool? isSuccessful)
+        {
+            if (isSuccessful == null) return "Pending";
+            return isSuccessful.Value ? "Completed" : "Failed";
         }
     }
 }

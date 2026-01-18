@@ -6,15 +6,13 @@ using AttandanceSyncApp.Models.DTOs;
 using AttandanceSyncApp.Models.DTOs.Sync;
 using AttandanceSyncApp.Repositories;
 using AttandanceSyncApp.Repositories.Interfaces;
-using AttandanceSyncApp.Services;
-using AttandanceSyncApp.Services.Interfaces;
 using AttandanceSyncApp.Services.Interfaces.Sync;
 using AttandanceSyncApp.Services.Sync;
 
 namespace AttandanceSyncApp.Controllers
 {
     /// <summary>
-    /// Controller for Attandance Synchronization - Updated with authentication
+    /// Controller for Attandance Synchronization - User-facing dashboard
     /// </summary>
     [AuthorizeUser]
     public class AttandanceController : BaseController
@@ -35,13 +33,20 @@ namespace AttandanceSyncApp.Controllers
             _authUnitOfWork = unitOfWork;
         }
 
+        // GET: Attandance/Index - Main dashboard
         public ActionResult Index()
         {
             return View();
         }
 
+        // GET: Attandance/Requests - User's requests page (CompanyRequest)
+        public ActionResult Requests()
+        {
+            return View();
+        }
+
         [HttpGet]
-        public JsonResult GetSynchronizationsPaged(int page = 1, int pageSize = 20)
+        public JsonResult GetMyRequests(int page = 1, int pageSize = 20)
         {
             var result = _syncRequestService.GetUserRequestsPaged(CurrentUserId, page, pageSize);
 
@@ -50,21 +55,20 @@ namespace AttandanceSyncApp.Controllers
                 return Json(ApiResponse<PagedResultDto<SyncRequestDto>>.Fail(result.Message), JsonRequestBehavior.AllowGet);
             }
 
-            return Json(ApiResponse<PagedResultDto<SyncRequestDto>>.Success(result.Data, "Successfully retrieved data"), JsonRequestBehavior.AllowGet);
+            return Json(ApiResponse<PagedResultDto<SyncRequestDto>>.Success(result.Data), JsonRequestBehavior.AllowGet);
         }
 
         [HttpPost]
-        public JsonResult CreateSynchronization(SyncRequestCreateDto dto)
+        public JsonResult CreateRequest(SyncRequestCreateDto dto)
         {
-            var currentUser = CurrentUser;
             var sessionId = CurrentSessionId;
 
-            if (currentUser == null || sessionId == 0)
+            if (CurrentUser == null || sessionId == 0)
             {
-                return Json(ApiResponse<int>.Fail("Session expired. Please login again."));
+                return Json(ApiResponse<int>.Fail("Session expired"));
             }
 
-            var result = _syncRequestService.CreateSyncRequest(dto, CurrentUserId, currentUser.Email, sessionId);
+            var result = _syncRequestService.CreateSyncRequest(dto, CurrentUserId, sessionId);
 
             if (!result.Success)
             {
@@ -72,6 +76,19 @@ namespace AttandanceSyncApp.Controllers
             }
 
             return Json(ApiResponse<int>.Success(result.Data, result.Message));
+        }
+
+        [HttpPost]
+        public JsonResult CancelRequest(int id)
+        {
+            var result = _syncRequestService.CancelSyncRequest(id, CurrentUserId);
+
+            if (!result.Success)
+            {
+                return Json(ApiResponse.Fail(result.Message));
+            }
+
+            return Json(ApiResponse.Success(result.Message));
         }
 
         [HttpPost]
@@ -84,20 +101,21 @@ namespace AttandanceSyncApp.Controllers
                 return Json(ApiResponse<IEnumerable<StatusDto>>.Fail(result.Message));
             }
 
-            return Json(ApiResponse<IEnumerable<StatusDto>>.Success(result.Data, "Successfully retrieved data"));
+            return Json(ApiResponse<IEnumerable<StatusDto>>.Success(result.Data));
         }
 
         [HttpGet]
-        public JsonResult GetUsers()
+        public JsonResult GetEmployees()
         {
-            var result = _syncRequestService.GetAllUsers();
+            var result = _syncRequestService.GetActiveEmployees();
 
             if (!result.Success)
             {
                 return Json(ApiResponse<object>.Fail(result.Message), JsonRequestBehavior.AllowGet);
             }
 
-            return Json(ApiResponse<object>.Success(result.Data), JsonRequestBehavior.AllowGet);
+            var data = result.Data.Select(e => new { e.Id, e.Name }).ToList();
+            return Json(ApiResponse<object>.Success(data), JsonRequestBehavior.AllowGet);
         }
 
         [HttpGet]

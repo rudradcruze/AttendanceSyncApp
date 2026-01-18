@@ -20,6 +20,7 @@ namespace AttandanceSyncApp.Models
         // Sync entities
         public DbSet<SyncCompany> Companies { get; set; }
         public DbSet<Tool> Tools { get; set; }
+        public DbSet<Employee> Employees { get; set; }
         public DbSet<AttandanceSyncRequest> AttandanceSyncRequests { get; set; }
         public DbSet<DatabaseConfiguration> DatabaseConfigurations { get; set; }
 
@@ -37,6 +38,13 @@ namespace AttandanceSyncApp.Models
                 .HasRequired(sr => sr.User)
                 .WithMany(u => u.SyncRequests)
                 .HasForeignKey(sr => sr.UserId)
+                .WillCascadeOnDelete(false);
+
+            // Employee - AttandanceSyncRequest relationship (one-to-many)
+            modelBuilder.Entity<AttandanceSyncRequest>()
+                .HasRequired(sr => sr.Employee)
+                .WithMany(e => e.SyncRequests)
+                .HasForeignKey(sr => sr.EmployeeId)
                 .WillCascadeOnDelete(false);
 
             // SyncCompany - AttandanceSyncRequest relationship (one-to-many)

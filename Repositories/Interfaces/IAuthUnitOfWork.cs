@@ -10,6 +10,7 @@ namespace AttandanceSyncApp.Repositories.Interfaces
         ILoginSessionRepository LoginSessions { get; }
         ISyncCompanyRepository SyncCompanies { get; }
         IToolRepository Tools { get; }
+        IEmployeeRepository Employees { get; }
         IAttandanceSyncRequestRepository AttandanceSyncRequests { get; }
         IDatabaseConfigurationRepository DatabaseConfigurations { get; }
         int SaveChanges();

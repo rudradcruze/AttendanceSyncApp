@@ -1,3 +1,4 @@
+@using System.Configuration
 <!DOCTYPE html>
 <html>
 <head>
@@ -6,6 +7,7 @@
     <title>@ViewBag.Title - Attandance Sync</title>
     <link href="~/Content/bootstrap.min.css" rel="stylesheet" />
     <link href="~/Content/Auth.css" rel="stylesheet" />
+    <link href="~/Content/sweetalert2.min.css" rel="stylesheet" />
 </head>
 <body class="auth-body">
     <div class="auth-wrapper">
@@ -14,6 +16,12 @@
 
     <script src="~/Scripts/jquery-3.7.1.min.js"></script>
     <script src="~/Scripts/bootstrap.bundle.min.js"></script>
+    <script src="~/Scripts/sweetalert2@11.js"></script>
+    <script>
+        window.APP = {
+            baseUrl: '@Url.Content(ConfigurationManager.AppSettings["AppBaseUrl"])'
+        };
+    </script>
     @RenderSection("Scripts", required: false)
 </body>
 </html>

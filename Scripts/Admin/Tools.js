@@ -51,6 +51,7 @@ function loadTools(page) {
                 '<td>' + (item.Description || 'N/A') + '</td>' +
                 '<td>' + statusBadge + '</td>' +
                 '<td>' + formatDate(item.CreatedAt) + '</td>' +
+                '<td>' + formatDate(item.UpdatedAt) + '</td>' +
                 '<td>' + actions + '</td>' +
                 '</tr>'
             );

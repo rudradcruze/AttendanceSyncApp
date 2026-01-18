@@ -50,7 +50,8 @@ function loadCompanies(page) {
                 '<td>' + item.Name + '</td>' +
                 '<td>' + (item.Email || 'N/A') + '</td>' +
                 '<td>' + statusBadge + '</td>' +
-                '<td>' + formatDate(item.CreatedAt) + '</td>' +
+                '<td>' + formatDateTime(item.CreatedAt) + '</td>' +
+                '<td>' + formatDateTime(item.UpdatedAt) + '</td>' +
                 '<td>' + actions + '</td>' +
                 '</tr>'
             );

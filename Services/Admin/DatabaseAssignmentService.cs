@@ -59,7 +59,7 @@ namespace AttandanceSyncApp.Services.Admin
                 _unitOfWork.DatabaseConfigurations.Add(config);
 
                 // Update request status to Completed
-                request.Status = "CP";
+                request.IsSuccessful = true;
                 request.UpdatedAt = DateTime.Now;
                 _unitOfWork.AttandanceSyncRequests.Update(request);
 

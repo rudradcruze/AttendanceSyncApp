@@ -155,11 +155,30 @@ function getStatusBadge(status) {
     return statusMap[status] || status;
 }
 
+// Simple formate (without hours/minutes/sec)
+//function formatDate(value) {
+//    if (!value) return 'N/A';
+//    var date = new Date(value);
+//    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+//}
+
 function formatDate(value) {
     if (!value) return 'N/A';
+    console.log(value)
+
     var date = new Date(value);
-    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+
+    return date.toLocaleString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+    });
 }
+
 
 function renderPagination(totalRecords, page, pageSize) {
     var totalPages = Math.ceil(totalRecords / pageSize);

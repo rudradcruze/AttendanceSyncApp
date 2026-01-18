@@ -1,4 +1,3 @@
-@using System.Configuration
 @{
     ViewBag.Title = "Attandance Synchronization";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -102,10 +101,5 @@
 </div>
 
 @section Scripts {
-    <script>
-        window.APP = {
-            baseUrl: '@Url.Content(ConfigurationManager.AppSettings["AppBaseUrl"])'
-        };
-    </script>
     <script src="~/Scripts/Attandance.js"></script>
 }

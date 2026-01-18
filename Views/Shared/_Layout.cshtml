@@ -1,3 +1,4 @@
+@using System.Configuration
 <!DOCTYPE html>
 <html>
 <head>
@@ -6,8 +7,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link href="~/Content/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/sweetalert2.min.css" rel="stylesheet" />
     <link href="~/Content/Attandance.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet" />
 </head>
 <body>
     <!-- Navigation Bar -->
@@ -43,88 +44,14 @@
 
     <script src="~/Scripts/jquery-3.7.1.min.js"></script>
     <script src="~/Scripts/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/Scripts/sweetalert2@11.js"></script>
     <script>
-        // Load user menu
-        $(function () {
-            $.get('/Auth/CurrentUser', function (res) {
-                var menu = $('#userNavMenu');
-                if (res.Data) {
-                    var adminLink = res.Data.Role === 'ADMIN'
-                        ? '<li class="nav-item"><a class="nav-link" href="/Admin/Dashboard">Admin Panel</a></li>'
-                        : '';
-                    menu.html(
-                        adminLink +
-                        '<li class="nav-item dropdown">' +
-                        '<a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">' +
-                        res.Data.Name +
-                        '</a>' +
-                        '<ul class="dropdown-menu dropdown-menu-end">' +
-                        '<li><a class="dropdown-item" href="#" onclick="logout(); return false;">Logout</a></li>' +
-                        '</ul>' +
-                        '</li>'
-                    );
-                } else {
-                    menu.html(
-                        '<li class="nav-item"><a class="nav-link" href="/Auth/Login">Sign In</a></li>' +
-                        '<li class="nav-item"><a class="nav-link" href="/Auth/Register">Sign Up</a></li>'
-                    );
-                }
-            }).fail(function (xhr) {
-                if (xhr.status === 401) {
-                    window.location.href = '/Auth/Login';
-                }
-            });
-        });
-
-        function logout() {
-            Swal.fire({
-                title: 'Logout',
-                text: 'Are you sure you want to logout?',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, logout'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.post('/Auth/Logout', function () {
-                        window.location.href = '/Auth/Login';
-                    });
-                }
-            });
-        }
-
-        // Global date formatter
-        function formatDate(value) {
-            if (!value) return 'N/A';
-            var date = new Date(parseInt(value.replace('/Date(', '').replace(')/', '')));
-            if (isNaN(date.getTime())) {
-                date = new Date(value);
-            }
-            if (isNaN(date.getTime())) return 'N/A';
-            return date.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
-            });
-        }
-
-        // Global error handler for AJAX
-        $(document).ajaxError(function (event, xhr) {
-            if (xhr.status === 401) {
-                Swal.fire({
-                    title: 'Session Expired',
-                    text: 'Your session has expired. Please login again.',
-                    icon: 'warning',
-                    confirmButtonText: 'Login'
-                }).then(() => {
-                    window.location.href = '/Auth/Login';
-                });
-            }
-        });
+        window.APP = {
+            baseUrl: '@Url.Content(ConfigurationManager.AppSettings["AppBaseUrl"])'
+        };
     </script>
-
+    <script src="~/Scripts/User/User.js"></script>
+    <script src="~/Scripts/Common.js"></script>
     @RenderSection("Scripts", required: false)
 </body>
 </html>

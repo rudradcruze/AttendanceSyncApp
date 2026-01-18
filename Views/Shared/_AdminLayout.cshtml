@@ -21,7 +21,15 @@
                     <a href="@Url.Action("Index", "AdminDashboard")">Dashboard</a>
                 </li>
                 <li class="@(ViewBag.ActiveMenu == "Requests" ? "active" : "")">
-                    <a href="@Url.Action("Index", "AdminRequests")">Requests</a>
+                    <a href="#requestsSubmenu" data-bs-toggle="collapse" aria-expanded="@(ViewBag.ActiveMenu == "Requests" ? "true" : "false")" class="dropdown-toggle">Requests</a>
+                    <ul class="collapse list-unstyled @(ViewBag.ActiveMenu == "Requests" ? "show" : "")" id="requestsSubmenu" style="padding-left: 20px;">
+                        <li>
+                            <a href="@Url.Action("SyncRequests", "AdminRequests")" style="color: #adb5bd; font-size: 0.9em;">Sync Request</a>
+                        </li>
+                        <li>
+                            <a href="@Url.Action("Index", "AdminCompanyRequests")" style="color: #adb5bd; font-size: 0.9em;">Company Request</a>
+                        </li>
+                    </ul>
                 </li>
                 <li class="@(ViewBag.ActiveMenu == "Users" ? "active" : "")">
                     <a href="@Url.Action("Index", "AdminUsers")">Users</a>

@@ -1,0 +1,83 @@
+@{
+    ViewBag.Title = "Company Requests";
+    ViewBag.ActiveMenu = "Requests";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="requests-management">
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped" id="companyRequestsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>User</th>
+                            <th>Employee</th>
+                            <th>Company</th>
+                            <th>Tool</th>
+                            <th>Status</th>
+                            <th>Cancelled</th>
+                            <th>Created</th>
+                            <th>Updated</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div id="companyPagination" class="pagination-wrapper"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Company Request Status Modal -->
+<div class="modal fade" id="updateCompanyStatusModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Update Company Request Status</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Request Info -->
+                <div class="request-info mb-4 p-3 bg-light rounded">
+                    <h6>Request Information</h6>
+                    <div class="row">
+                        <div class="col-12">
+                            <p><strong>User:</strong> <span id="crUserName"></span></p>
+                            <p><strong>Email:</strong> <span id="crUserEmail"></span></p>
+                        </div>
+                        <div class="col-12">
+                            <p><strong>Employee:</strong> <span id="crEmployeeName"></span></p>
+                            <p><strong>Company:</strong> <span id="crCompanyName"></span></p>
+                            <p><strong>Tool:</strong> <span id="crToolName"></span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="updateStatusForm">
+                    <input type="hidden" id="crRequestId" />
+                    <div class="form-group mb-3">
+                        <label for="crStatus">New Status</label>
+                        <select class="form-control" id="crStatus" required>
+                            <option value="">Select Status</option>
+                            <option value="NR">New Request</option>
+                            <option value="IP">In Progress</option>
+                            <option value="CP">Completed</option>
+                            <option value="RR">Rejected</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="updateStatusBtn">Update Status</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/Scripts/Admin/CompanyRequests.js"></script>
+}

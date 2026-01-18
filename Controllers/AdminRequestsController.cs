@@ -3,7 +3,6 @@ using System.Web.Mvc;
 using AttandanceSyncApp.Controllers.Filters;
 using AttandanceSyncApp.Models.DTOs;
 using AttandanceSyncApp.Models.DTOs.Admin;
-using AttandanceSyncApp.Models.DTOs.CompanyRequest;
 using AttandanceSyncApp.Models.DTOs.Sync;
 using AttandanceSyncApp.Repositories;
 using AttandanceSyncApp.Services.Admin;
@@ -16,20 +15,18 @@ namespace AttandanceSyncApp.Controllers
     {
         private readonly IAdminRequestService _adminRequestService;
         private readonly IDatabaseAssignmentService _dbAssignmentService;
-        private readonly IAdminCompanyRequestService _adminCompanyRequestService;
 
         public AdminRequestsController() : base()
         {
             var unitOfWork = new AuthUnitOfWork();
             _adminRequestService = new AdminRequestService(unitOfWork);
             _dbAssignmentService = new DatabaseAssignmentService(unitOfWork);
-            _adminCompanyRequestService = new AdminCompanyRequestService(unitOfWork);
         }
 
-        // GET: AdminRequests/Index
-        public ActionResult Index()
+        // GET: AdminRequests/SyncRequests
+        public ActionResult SyncRequests()
         {
-            return View("~/Views/Admin/Requests.cshtml");
+            return View("~/Views/Admin/SyncRequests.cshtml");
         }
 
         // GET: AdminRequests/GetAllRequests
@@ -146,51 +143,5 @@ namespace AttandanceSyncApp.Controllers
 
             return builder.ConnectionString;
         }
-
-        #region Company Requests
-
-        // GET: AdminRequests/GetAllCompanyRequests
-        [HttpGet]
-        public JsonResult GetAllCompanyRequests(int page = 1, int pageSize = 20)
-        {
-            var result = _adminCompanyRequestService.GetAllRequestsPaged(page, pageSize);
-
-            if (!result.Success)
-            {
-                return Json(ApiResponse<object>.Fail(result.Message), JsonRequestBehavior.AllowGet);
-            }
-
-            return Json(ApiResponse<object>.Success(result.Data), JsonRequestBehavior.AllowGet);
-        }
-
-        // GET: AdminRequests/GetCompanyRequest
-        [HttpGet]
-        public JsonResult GetCompanyRequest(int id)
-        {
-            var result = _adminCompanyRequestService.GetRequestById(id);
-
-            if (!result.Success)
-            {
-                return Json(ApiResponse<CompanyRequestListDto>.Fail(result.Message), JsonRequestBehavior.AllowGet);
-            }
-
-            return Json(ApiResponse<CompanyRequestListDto>.Success(result.Data), JsonRequestBehavior.AllowGet);
-        }
-
-        // POST: AdminRequests/UpdateCompanyRequestStatus
-        [HttpPost]
-        public JsonResult UpdateCompanyRequestStatus(int requestId, string status)
-        {
-            var result = _adminCompanyRequestService.UpdateRequestStatus(requestId, status);
-
-            if (!result.Success)
-            {
-                return Json(ApiResponse.Fail(result.Message));
-            }
-
-            return Json(ApiResponse.Success(result.Message));
-        }
-
-        #endregion
     }
 }

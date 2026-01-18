@@ -123,9 +123,10 @@
     <Content Include="Global.asax" />
     <Content Include="Scripts\Admin\Admin.js" />
     <Content Include="Scripts\Admin\Companies.js" />
+    <Content Include="Scripts\Admin\CompanyRequests.js" />
     <Content Include="Scripts\Admin\Dashboard.js" />
     <Content Include="Scripts\Admin\Employees.js" />
-    <Content Include="Scripts\Admin\Requests.js" />
+    <Content Include="Scripts\Admin\SyncRequests.js" />
     <Content Include="Scripts\Admin\Tools.js" />
     <Content Include="Scripts\Admin\Users.js" />
     <Content Include="Scripts\Attandance.js" />
@@ -154,6 +155,7 @@
   <ItemGroup>
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\AdminCompaniesController.cs" />
+    <Compile Include="Controllers\AdminCompanyRequestsController.cs" />
     <Compile Include="Controllers\AdminDashboardController.cs" />
     <Compile Include="Controllers\AdminEmployeesController.cs" />
     <Compile Include="Controllers\AdminRequestsController.cs" />
@@ -299,7 +301,6 @@
     <Content Include="Scripts\jquery-3.7.1.slim.min.map" />
     <Content Include="Scripts\jquery-3.7.1.min.map" />
     <Content Include="Views\Admin\Dashboard.cshtml" />
-    <Content Include="Views\Admin\Requests.cshtml" />
     <Content Include="Views\Admin\Users.cshtml" />
     <Content Include="Views\Auth\Login.cshtml" />
     <Content Include="Views\Auth\Register.cshtml" />
@@ -310,6 +311,8 @@
     <Content Include="Views\Admin\Tools.cshtml" />
     <Content Include="Views\Attandance\Requests.cshtml" />
     <Content Include="Views\CompanyRequest\Index.cshtml" />
+    <Content Include="Views\Admin\CompanyRequests.cshtml" />
+    <Content Include="Views\Admin\SyncRequests.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

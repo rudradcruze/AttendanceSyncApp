@@ -18,22 +18,22 @@
             </div>
             <ul class="sidebar-menu">
                 <li class="@(ViewBag.ActiveMenu == "Dashboard" ? "active" : "")">
-                    <a href="@Url.Action("Dashboard", "Admin")">Dashboard</a>
+                    <a href="@Url.Action("Index", "AdminDashboard")">Dashboard</a>
                 </li>
                 <li class="@(ViewBag.ActiveMenu == "Requests" ? "active" : "")">
-                    <a href="@Url.Action("Requests", "Admin")">Requests</a>
+                    <a href="@Url.Action("Index", "AdminRequests")">Requests</a>
                 </li>
                 <li class="@(ViewBag.ActiveMenu == "Users" ? "active" : "")">
-                    <a href="@Url.Action("Users", "Admin")">Users</a>
+                    <a href="@Url.Action("Index", "AdminUsers")">Users</a>
                 </li>
                 <li class="@(ViewBag.ActiveMenu == "Employees" ? "active" : "")">
-                    <a href="@Url.Action("Employees", "Admin")">Employees</a>
+                    <a href="@Url.Action("Index", "AdminEmployees")">Employees</a>
                 </li>
                 <li class="@(ViewBag.ActiveMenu == "Companies" ? "active" : "")">
-                    <a href="@Url.Action("Companies", "Admin")">Companies</a>
+                    <a href="@Url.Action("Index", "AdminCompanies")">Companies</a>
                 </li>
                 <li class="@(ViewBag.ActiveMenu == "Tools" ? "active" : "")">
-                    <a href="@Url.Action("Tools", "Admin")">Tools</a>
+                    <a href="@Url.Action("Index", "AdminTools")">Tools</a>
                 </li>
                 <li class="divider"></li>
                 <li>

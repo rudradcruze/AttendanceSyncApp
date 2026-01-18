@@ -15,7 +15,7 @@ $(function () {
 function loadUsers(page) {
     currentPage = page;
 
-    $.get(APP.baseUrl + 'Admin/GetUsers', {
+    $.get(APP.baseUrl + 'AdminUsers/GetUsers', {
         page: page,
         pageSize: pageSize
     }, function (res) {
@@ -54,7 +54,8 @@ function loadUsers(page) {
                 '<td>' + item.Email + '</td>' +
                 '<td>' + roleBadge + '</td>' +
                 '<td>' + statusBadge + '</td>' +
-                '<td>' + formatDate(item.CreatedAt) + '</td>' +
+                '<td>' + formatDateTime(item.CreatedAt) + '</td>' +
+                '<td>' + formatDateTime(item.UpdatedAt) + '</td>' +
                 '<td>' + actions + '</td>' +
                 '</tr>'
             );
@@ -65,7 +66,7 @@ function loadUsers(page) {
 }
 
 function editUser(userId) {
-    $.get(APP.baseUrl + 'Admin/GetUser', { id: userId }, function (res) {
+    $.get(APP.baseUrl + 'AdminUsers/GetUser', { id: userId }, function (res) {
         if (res.Errors && res.Errors.length > 0) {
             Swal.fire('Error', res.Message, 'error');
             return;
@@ -90,7 +91,7 @@ function saveUser() {
     };
 
     $.ajax({
-        url: APP.baseUrl + 'Admin/UpdateUser',
+        url: APP.baseUrl + 'AdminUsers/UpdateUser',
         type: 'POST',
         data: data,
         success: function (res) {
@@ -120,7 +121,7 @@ function toggleStatus(userId) {
     }).then((result) => {
         if (result.isConfirmed) {
             $.ajax({
-                url: APP.baseUrl + 'Admin/ToggleUserStatus',
+                url: APP.baseUrl + 'AdminUsers/ToggleUserStatus',
                 type: 'POST',
                 data: { userId: userId },
                 success: function (res) {

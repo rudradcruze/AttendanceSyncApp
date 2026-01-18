@@ -17,7 +17,7 @@ $(function () {
 function loadRequests(page) {
     currentPage = page;
 
-    $.get(APP.baseUrl + 'Admin/GetAllRequests', {
+    $.get(APP.baseUrl + 'AdminRequests/GetAllRequests', {
         page: page,
         pageSize: pageSize
     }, function (res) {
@@ -67,7 +67,7 @@ function openAssignModal(requestId) {
     $('#connectionStatus').text('');
 
     // Load request info
-    $.get(APP.baseUrl + 'Admin/GetRequest', { id: requestId }, function (res) {
+    $.get(APP.baseUrl + 'AdminRequests/GetRequest', { id: requestId }, function (res) {
         if (res.Data) {
             var req = res.Data;
             $('#reqUserName').text(req.UserName);
@@ -97,7 +97,7 @@ function testConnection() {
     $('#connectionStatus').html('<span class="text-info">Testing...</span>');
 
     $.ajax({
-        url: APP.baseUrl + 'Admin/TestDatabaseConnection',
+        url: APP.baseUrl + 'AdminRequests/TestDatabaseConnection',
         type: 'POST',
         data: data,
         success: function (res) {
@@ -128,7 +128,7 @@ function assignDatabase() {
     }
 
     $.ajax({
-        url: APP.baseUrl + 'Admin/AssignDatabase',
+        url: APP.baseUrl + 'AdminRequests/AssignDatabase',
         type: 'POST',
         data: data,
         success: function (res) {

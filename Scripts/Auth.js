@@ -15,7 +15,7 @@ function handleGoogleSignIn(response) {
                 showMessage('Login successful! Redirecting...', 'success');
                 setTimeout(function () {
                     if (res.Data.Role === 'ADMIN') {
-                        window.location.href = APP.baseUrl + 'Admin/Dashboard';
+                        window.location.href = APP.baseUrl + 'AdminDashboard';
                     } else {
                         window.location.href = APP.baseUrl + 'Attandance';
                     }
@@ -77,7 +77,7 @@ $(function () {
                 } else if (res.Data) {
                     showMessage('Login successful! Redirecting...', 'success');
                     setTimeout(function () {
-                        window.location.href = APP.baseUrl + 'Admin/Dashboard';
+                        window.location.href = APP.baseUrl + 'AdminDashboard';
                     }, 1000);
                 }
             },

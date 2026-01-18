@@ -10,7 +10,7 @@
     }).then((result) => {
         if (result.isConfirmed) {
             $.post(APP.baseUrl + 'Auth/Logout', function () {
-                window.location.href = APP.baseUrl + '/Auth/Login';
+                window.location.href = APP.baseUrl + 'Auth/Login';
             });
         }
     });

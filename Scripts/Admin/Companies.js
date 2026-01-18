@@ -15,7 +15,7 @@ $(function () {
 function loadCompanies(page) {
     currentPage = page;
 
-    $.get(APP.baseUrl + 'Admin/GetCompanies', {
+    $.get(APP.baseUrl + 'AdminCompanies/GetCompanies', {
         page: page,
         pageSize: pageSize
     }, function (res) {
@@ -71,7 +71,7 @@ function showCreateModal() {
 }
 
 function editCompany(id) {
-    $.get(APP.baseUrl + 'Admin/GetCompany', { id: id }, function (res) {
+    $.get(APP.baseUrl + 'AdminCompanies/GetCompany', { id: id }, function (res) {
         if (res.Errors && res.Errors.length > 0) {
             Swal.fire('Error', res.Message, 'error');
             return;
@@ -98,7 +98,7 @@ function saveCompany() {
         return;
     }
 
-    var url = id ? APP.baseUrl + 'Admin/UpdateCompany' : APP.baseUrl + 'Admin/CreateCompany';
+    var url = id ? APP.baseUrl + 'AdminCompanies/UpdateCompany' : APP.baseUrl + 'AdminCompanies/CreateCompany';
     var data = id
         ? { Id: parseInt(id), Name: name, Email: email, Status: status }
         : { Name: name, Email: email, Status: status };
@@ -134,7 +134,7 @@ function toggleStatus(id) {
     }).then((result) => {
         if (result.isConfirmed) {
             $.ajax({
-                url: APP.baseUrl + 'Admin/ToggleCompanyStatus',
+                url: APP.baseUrl + 'AdminCompanies/ToggleCompanyStatus',
                 type: 'POST',
                 data: { id: id },
                 success: function (res) {
@@ -165,7 +165,7 @@ function deleteCompany(id) {
     }).then((result) => {
         if (result.isConfirmed) {
             $.ajax({
-                url: APP.baseUrl + 'Admin/DeleteCompany',
+                url: APP.baseUrl + 'AdminCompanies/DeleteCompany',
                 type: 'POST',
                 data: { id: id },
                 success: function (res) {

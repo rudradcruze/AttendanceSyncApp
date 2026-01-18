@@ -15,7 +15,7 @@ $(function () {
 function loadTools(page) {
     currentPage = page;
 
-    $.get(APP.baseUrl + 'Admin/GetTools', {
+    $.get(APP.baseUrl + 'AdminTools/GetTools', {
         page: page,
         pageSize: pageSize
     }, function (res) {
@@ -50,8 +50,8 @@ function loadTools(page) {
                 '<td>' + item.Name + '</td>' +
                 '<td>' + (item.Description || 'N/A') + '</td>' +
                 '<td>' + statusBadge + '</td>' +
-                '<td>' + formatDate(item.CreatedAt) + '</td>' +
-                '<td>' + formatDate(item.UpdatedAt) + '</td>' +
+                '<td>' + formatDateTime(item.CreatedAt) + '</td>' +
+                '<td>' + formatDateTime(item.UpdatedAt) + '</td>' +
                 '<td>' + actions + '</td>' +
                 '</tr>'
             );
@@ -71,7 +71,7 @@ function showCreateModal() {
 }
 
 function editTool(id) {
-    $.get(APP.baseUrl + 'Admin/GetTool', { id: id }, function (res) {
+    $.get(APP.baseUrl + 'AdminTools/GetTool', { id: id }, function (res) {
         if (res.Errors && res.Errors.length > 0) {
             Swal.fire('Error', res.Message, 'error');
             return;
@@ -98,7 +98,7 @@ function saveTool() {
         return;
     }
 
-    var url = id ? APP.baseUrl + 'Admin/UpdateTool' : APP.baseUrl + 'Admin/CreateTool';
+    var url = id ? APP.baseUrl + 'AdminTools/UpdateTool' : APP.baseUrl + 'AdminTools/CreateTool';
     var data = id
         ? { Id: parseInt(id), Name: name, Description: description, IsActive: isActive }
         : { Name: name, Description: description, IsActive: isActive };
@@ -134,7 +134,7 @@ function toggleStatus(id) {
     }).then((result) => {
         if (result.isConfirmed) {
             $.ajax({
-                url: APP.baseUrl + 'Admin/ToggleToolStatus',
+                url: APP.baseUrl + 'AdminTools/ToggleToolStatus',
                 type: 'POST',
                 data: { id: id },
                 success: function (res) {
@@ -165,7 +165,7 @@ function deleteTool(id) {
     }).then((result) => {
         if (result.isConfirmed) {
             $.ajax({
-                url: APP.baseUrl + 'Admin/DeleteTool',
+                url: APP.baseUrl + 'AdminTools/DeleteTool',
                 type: 'POST',
                 data: { id: id },
                 success: function (res) {

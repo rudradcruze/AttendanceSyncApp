@@ -8,7 +8,7 @@ $(function () {
 });
 
 function loadStats() {
-    $.get(APP.baseUrl + 'Admin/GetStats', function (res) {
+    $.get(APP.baseUrl + 'AdminDashboard/GetStats', function (res) {
         if (res.Data) {
             $('#totalUsers').text(res.Data.TotalUsers);
             $('#totalRequests').text(res.Data.TotalRequests);
@@ -19,7 +19,7 @@ function loadStats() {
 }
 
 function loadRecentRequests() {
-    $.get(APP.baseUrl + 'Admin/GetAllRequests', { page: 1, pageSize: 5 }, function (res) {
+    $.get(APP.baseUrl + 'AdminRequests/GetAllRequests', { page: 1, pageSize: 5 }, function (res) {
         var tbody = $('#recentRequestsTable tbody').empty();
 
         if (res.Errors && res.Errors.length > 0) {
@@ -46,7 +46,7 @@ function loadRecentRequests() {
 }
 
 function loadRecentUsers() {
-    $.get(APP.baseUrl + 'Admin/GetUsers', { page: 1, pageSize: 5 }, function (res) {
+    $.get(APP.baseUrl + 'AdminUsers/GetUsers', { page: 1, pageSize: 5 }, function (res) {
         var tbody = $('#recentUsersTable tbody').empty();
 
         if (res.Errors && res.Errors.length > 0) {

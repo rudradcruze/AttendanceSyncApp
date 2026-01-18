@@ -30,7 +30,7 @@ namespace AttandanceSyncApp.Controllers
             {
                 if (IsAdmin)
                 {
-                    return RedirectToAction("Dashboard", "Admin");
+                    return RedirectToAction("Index", "AdminDashboard");
                 }
                 return RedirectToAction("Index", "Attandance");
             }

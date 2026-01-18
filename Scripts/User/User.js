@@ -5,7 +5,7 @@ $(function () {
         if (res.Data) {
             var adminLink = res.Data.Role === 'ADMIN'
                 ? '<li class="nav-item">' +
-                '<a class="nav-link" href="' + APP.baseUrl + 'Admin/Dashboard">Admin Panel</a>' +
+                '<a class="nav-link" href="' + APP.baseUrl + 'AdminDashboard">Admin Panel</a>' +
                 '</li>'
                 : '';
             menu.html(

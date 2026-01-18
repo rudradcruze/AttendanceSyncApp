@@ -44,12 +44,20 @@ namespace AttandanceSyncApp.Services.Sync
         {
             try
             {
-                // Get the database configuration for this request
-                var dbConfig = _unitOfWork.DatabaseConfigurations.GetByRequestId(requestId);
+                // Get the request to find the CompanyId
+                var request = _unitOfWork.AttandanceSyncRequests.GetById(requestId);
+                if (request == null)
+                {
+                    return ServiceResult<IEnumerable<AttandanceSynchronization>>
+                        .FailureResult("Request not found");
+                }
+
+                // Get the database configuration for this Company
+                var dbConfig = _unitOfWork.DatabaseConfigurations.GetByCompanyId(request.CompanyId);
                 if (dbConfig == null)
                 {
                     return ServiceResult<IEnumerable<AttandanceSynchronization>>
-                        .FailureResult("No database configuration assigned for this request");
+                        .FailureResult("No database configuration assigned for this company");
                 }
 
                 // Decrypt the password

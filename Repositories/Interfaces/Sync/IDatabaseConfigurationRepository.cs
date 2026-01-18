@@ -4,7 +4,7 @@ namespace AttandanceSyncApp.Repositories.Interfaces.Sync
 {
     public interface IDatabaseConfigurationRepository : IRepository<DatabaseConfiguration>
     {
-        DatabaseConfiguration GetByRequestId(int requestId);
-        bool HasConfiguration(int requestId);
+        DatabaseConfiguration GetByCompanyId(int companyId);
+        bool HasConfiguration(int companyId);
     }
 }

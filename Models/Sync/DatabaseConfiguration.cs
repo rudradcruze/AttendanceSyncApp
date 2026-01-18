@@ -1,7 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using AttandanceSyncApp.Models.Auth;
 
 namespace AttandanceSyncApp.Models.Sync
 {
@@ -12,7 +11,7 @@ namespace AttandanceSyncApp.Models.Sync
         public int Id { get; set; }
 
         [Required]
-        public int RequestId { get; set; }
+        public int CompanyId { get; set; }
 
         [Required]
         [StringLength(100)]
@@ -30,20 +29,12 @@ namespace AttandanceSyncApp.Models.Sync
         [StringLength(150)]
         public string DatabaseName { get; set; }
 
-        [Required]
-        public int AssignedBy { get; set; }
-
-        public DateTime AssignedAt { get; set; } = DateTime.Now;
-
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         public DateTime? UpdatedAt { get; set; }
 
         // Navigation
-        [ForeignKey("RequestId")]
-        public virtual AttandanceSyncRequest Request { get; set; }
-
-        [ForeignKey("AssignedBy")]
-        public virtual User AssignedByUser { get; set; }
+        [ForeignKey("CompanyId")]
+        public virtual SyncCompany Company { get; set; }
     }
 }

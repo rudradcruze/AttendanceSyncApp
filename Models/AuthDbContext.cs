@@ -69,20 +69,18 @@ namespace AttandanceSyncApp.Models
                 .HasForeignKey(sr => sr.SessionId)
                 .WillCascadeOnDelete(false);
 
-            // AttandanceSyncRequest - DatabaseConfiguration (one-to-many, enforced as 1:1 by unique index)
-            // Note: EF6 requires this pattern when FK is not also the PK
+            // Company - DatabaseConfiguration (one-to-one or one-to-many depending on business logic)
+            // Assuming 1:1 or 1:Many (Company has 1 Config)
+            // But DatabaseConfiguration has CompanyId FK.
+            // Let's assume standard One-to-Many where Company has Many Configs (or at least 1).
+            // But unique index logic suggests 1:1 per company is likely intended or allowed.
+            // If strict 1:1, we can enforce it.
+            // Model says DatabaseConfiguration has CompanyId.
             modelBuilder.Entity<DatabaseConfiguration>()
-                .HasRequired(dc => dc.Request)
-                .WithMany()
-                .HasForeignKey(dc => dc.RequestId)
+                .HasRequired(dc => dc.Company)
+                .WithMany() // Or WithOptional() if it was 1:1 reverse navigation
+                .HasForeignKey(dc => dc.CompanyId)
                 .WillCascadeOnDelete(true);
-
-            // DatabaseConfiguration - AssignedBy User
-            modelBuilder.Entity<DatabaseConfiguration>()
-                .HasRequired(dc => dc.AssignedByUser)
-                .WithMany(u => u.AssignedConfigurations)
-                .HasForeignKey(dc => dc.AssignedBy)
-                .WillCascadeOnDelete(false);
 
             // Unique constraint on User.Email
             modelBuilder.Entity<User>()
@@ -94,9 +92,9 @@ namespace AttandanceSyncApp.Models
                 .HasIndex(ls => ls.SessionToken)
                 .IsUnique();
 
-            // Unique constraint on DatabaseConfiguration.RequestId
+            // Unique constraint on DatabaseConfiguration.CompanyId to enforce 1 configuration per company
             modelBuilder.Entity<DatabaseConfiguration>()
-                .HasIndex(dc => dc.RequestId)
+                .HasIndex(dc => dc.CompanyId)
                 .IsUnique();
 
             // User - CompanyRequest relationship (one-to-many)

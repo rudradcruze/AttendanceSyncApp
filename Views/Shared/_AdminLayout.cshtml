@@ -43,6 +43,9 @@
                 <li class="@(ViewBag.ActiveMenu == "Tools" ? "active" : "")">
                     <a href="@Url.Action("Index", "AdminTools")">Tools</a>
                 </li>
+                <li class="@(ViewBag.ActiveMenu == "DatabaseConfigs" ? "active" : "")">
+                    <a href="@Url.Action("Index", "AdminDatabaseConfigurations")">Database Configs</a>
+                </li>
                 <li class="divider"></li>
                 <li>
                     <a href="@Url.Action("Index", "Attandance")">User Dashboard</a>

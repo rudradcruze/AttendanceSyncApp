@@ -28,10 +28,22 @@ namespace AttandanceSyncApp.Services.Admin
                     return ServiceResult.FailureResult("Request not found");
                 }
 
-                // Check if already has configuration
-                if (_unitOfWork.DatabaseConfigurations.HasConfiguration(dto.RequestId))
+                // Check if company already has configuration
+                // NOTE: DatabaseConfiguration is now 1:1 with Company, not Request.
+                // So we check based on the Request's CompanyId.
+                if (_unitOfWork.DatabaseConfigurations.HasConfiguration(request.CompanyId))
                 {
-                    return ServiceResult.FailureResult("This request already has a database configuration assigned");
+                    // If configuration exists, we might just want to return success or update it?
+                    // Or maybe the user intends to OVERWRITE it?
+                    // For "AssignDatabase", if it exists, let's fail and say it exists, or update it.
+                    // Given the logic usually implies "creating" a link, let's assume update or fail.
+                    // But wait, the previous logic was 1 request -> 1 config.
+                    // Now it is 1 company -> 1 config.
+                    
+                    // If the company already has a config, we technically don't need to "create" a new one.
+                    // But if the Admin is inputting new details, they probably want to update the Company's config.
+                    
+                    return ServiceResult.FailureResult("A database configuration already exists for this company. Please manage it via 'Database Configs'.");
                 }
 
                 // Validate required fields
@@ -43,16 +55,14 @@ namespace AttandanceSyncApp.Services.Admin
                     return ServiceResult.FailureResult("All database configuration fields are required");
                 }
 
-                // Create database configuration with encrypted password
+                // Create database configuration
                 var config = new DatabaseConfiguration
                 {
-                    RequestId = dto.RequestId,
+                    CompanyId = request.CompanyId,
                     DatabaseIP = dto.DatabaseIP,
                     DatabaseUserId = dto.DatabaseUserId,
                     DatabasePassword = EncryptionHelper.Encrypt(dto.DatabasePassword),
                     DatabaseName = dto.DatabaseName,
-                    AssignedBy = adminUserId,
-                    AssignedAt = DateTime.Now,
                     CreatedAt = DateTime.Now
                 };
 
@@ -77,15 +87,21 @@ namespace AttandanceSyncApp.Services.Admin
         {
             try
             {
-                var config = _unitOfWork.DatabaseConfigurations.GetByRequestId(requestId);
+                var request = _unitOfWork.AttandanceSyncRequests.GetById(requestId);
+                if (request == null)
+                {
+                    return ServiceResult<AssignDatabaseDto>.FailureResult("Request not found");
+                }
+
+                var config = _unitOfWork.DatabaseConfigurations.GetByCompanyId(request.CompanyId);
                 if (config == null)
                 {
-                    return ServiceResult<AssignDatabaseDto>.FailureResult("No database configuration found for this request");
+                    return ServiceResult<AssignDatabaseDto>.FailureResult("No database configuration found for this company");
                 }
 
                 var dto = new AssignDatabaseDto
                 {
-                    RequestId = config.RequestId,
+                    RequestId = request.Id, // Kept for compatibility, though config is company-bound
                     DatabaseIP = config.DatabaseIP,
                     DatabaseUserId = config.DatabaseUserId,
                     DatabasePassword = EncryptionHelper.Decrypt(config.DatabasePassword),
@@ -104,10 +120,16 @@ namespace AttandanceSyncApp.Services.Admin
         {
             try
             {
-                var config = _unitOfWork.DatabaseConfigurations.GetByRequestId(requestId);
+                var request = _unitOfWork.AttandanceSyncRequests.GetById(requestId);
+                if (request == null)
+                {
+                    return ServiceResult.FailureResult("Request not found");
+                }
+
+                var config = _unitOfWork.DatabaseConfigurations.GetByCompanyId(request.CompanyId);
                 if (config == null)
                 {
-                    return ServiceResult.FailureResult("No database configuration found for this request");
+                    return ServiceResult.FailureResult("No database configuration found for this company");
                 }
 
                 // Update configuration

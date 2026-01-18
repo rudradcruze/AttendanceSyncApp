@@ -12,17 +12,16 @@ namespace AttandanceSyncApp.Repositories.Sync
         {
         }
 
-        public DatabaseConfiguration GetByRequestId(int requestId)
+        public DatabaseConfiguration GetByCompanyId(int companyId)
         {
             return _dbSet.AsNoTracking()
-                .Include(dc => dc.Request)
-                .Include(dc => dc.AssignedByUser)
-                .FirstOrDefault(dc => dc.RequestId == requestId);
+                //.Include(dc => dc.Company) // SyncCompany
+                .FirstOrDefault(dc => dc.CompanyId == companyId);
         }
 
-        public bool HasConfiguration(int requestId)
+        public bool HasConfiguration(int companyId)
         {
-            return _dbSet.Any(dc => dc.RequestId == requestId);
+            return _dbSet.Any(dc => dc.CompanyId == companyId);
         }
     }
 }

@@ -23,10 +23,12 @@ namespace AttandanceSyncApp.Models.Sync
 
         // Navigation
         public virtual ICollection<AttandanceSyncRequest> SyncRequests { get; set; }
+        public virtual ICollection<CompanyRequest> CompanyRequests { get; set; }
 
         public Employee()
         {
             SyncRequests = new HashSet<AttandanceSyncRequest>();
+            CompanyRequests = new HashSet<CompanyRequest>();
         }
     }
 }

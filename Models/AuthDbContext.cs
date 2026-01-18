@@ -22,6 +22,7 @@ namespace AttandanceSyncApp.Models
         public DbSet<Tool> Tools { get; set; }
         public DbSet<Employee> Employees { get; set; }
         public DbSet<AttandanceSyncRequest> AttandanceSyncRequests { get; set; }
+        public DbSet<CompanyRequest> CompanyRequests { get; set; }
         public DbSet<DatabaseConfiguration> DatabaseConfigurations { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
@@ -97,6 +98,41 @@ namespace AttandanceSyncApp.Models
             modelBuilder.Entity<DatabaseConfiguration>()
                 .HasIndex(dc => dc.RequestId)
                 .IsUnique();
+
+            // User - CompanyRequest relationship (one-to-many)
+            modelBuilder.Entity<CompanyRequest>()
+                .HasRequired(cr => cr.User)
+                .WithMany(u => u.CompanyRequests)
+                .HasForeignKey(cr => cr.UserId)
+                .WillCascadeOnDelete(false);
+
+            // Employee - CompanyRequest relationship (one-to-many)
+            modelBuilder.Entity<CompanyRequest>()
+                .HasRequired(cr => cr.Employee)
+                .WithMany(e => e.CompanyRequests)
+                .HasForeignKey(cr => cr.EmployeeId)
+                .WillCascadeOnDelete(false);
+
+            // SyncCompany - CompanyRequest relationship (one-to-many)
+            modelBuilder.Entity<CompanyRequest>()
+                .HasRequired(cr => cr.Company)
+                .WithMany(c => c.CompanyRequests)
+                .HasForeignKey(cr => cr.CompanyId)
+                .WillCascadeOnDelete(false);
+
+            // Tool - CompanyRequest relationship (one-to-many)
+            modelBuilder.Entity<CompanyRequest>()
+                .HasRequired(cr => cr.Tool)
+                .WithMany(t => t.CompanyRequests)
+                .HasForeignKey(cr => cr.ToolId)
+                .WillCascadeOnDelete(false);
+
+            // CompanyRequest - LoginSession relationship
+            modelBuilder.Entity<CompanyRequest>()
+                .HasRequired(cr => cr.Session)
+                .WithMany()
+                .HasForeignKey(cr => cr.SessionId)
+                .WillCascadeOnDelete(false);
 
             base.OnModelCreating(modelBuilder);
         }

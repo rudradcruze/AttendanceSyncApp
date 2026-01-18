@@ -1,5 +1,5 @@
 /* ============================
-   User Requests Management
+   Company Request Management
 ============================ */
 var currentPage = 1;
 var pageSize = 20;
@@ -16,7 +16,7 @@ $(function () {
 
 function loadDropdowns() {
     // Load employees
-    $.get(APP.baseUrl + 'Attandance/GetEmployees', function (res) {
+    $.get(APP.baseUrl + 'CompanyRequest/GetEmployees', function (res) {
         if (res.Data) {
             var select = $('#employeeId');
             select.find('option:not(:first)').remove();
@@ -27,7 +27,7 @@ function loadDropdowns() {
     });
 
     // Load companies
-    $.get(APP.baseUrl + 'Attandance/GetCompanies', function (res) {
+    $.get(APP.baseUrl + 'CompanyRequest/GetCompanies', function (res) {
         if (res.Data) {
             var select = $('#companyId');
             select.find('option:not(:first)').remove();
@@ -38,7 +38,7 @@ function loadDropdowns() {
     });
 
     // Load tools
-    $.get(APP.baseUrl + 'Attandance/GetTools', function (res) {
+    $.get(APP.baseUrl + 'CompanyRequest/GetTools', function (res) {
         if (res.Data) {
             var select = $('#toolId');
             select.find('option:not(:first)').remove();
@@ -52,30 +52,34 @@ function loadDropdowns() {
 function loadRequests(page) {
     currentPage = page;
 
-    $.get(APP.baseUrl + 'Attandance/GetMyRequests', {
+    $.get(APP.baseUrl + 'CompanyRequest/GetMyRequests', {
         page: page,
         pageSize: pageSize
     }, function (res) {
         var tbody = $('#requestsTable tbody').empty();
 
         if (res.Errors && res.Errors.length > 0) {
-            tbody.append('<tr><td colspan="9" class="text-danger">' + res.Message + '</td></tr>');
+            tbody.append('<tr><td colspan="7" class="text-danger">' + res.Message + '</td></tr>');
             return;
         }
 
         var data = res.Data;
         if (!data.Data || !data.Data.length) {
-            tbody.append('<tr><td colspan="9">No requests found</td></tr>');
+            tbody.append('<tr><td colspan="7">No requests found</td></tr>');
             return;
         }
 
         $.each(data.Data, function (_, item) {
-            var statusBadge = getStatusBadge(item.Status);
-            var canCancel = item.Status === 'Pending';
+            var statusBadge = getStatusBadge(item.Status, item.IsCancelled);
+            var actions = '';
 
-            var actions = canCancel
-                ? '<button class="btn btn-sm btn-danger" onclick="cancelRequest(' + item.Id + ')">Cancel</button>'
-                : '<span class="text-muted">-</span>';
+            if (item.IsCancelled) {
+                actions = '<span class="badge bg-secondary">Cancelled</span>';
+            } else if (item.CanCancel) {
+                actions = '<button class="btn btn-sm btn-danger" onclick="cancelRequest(' + item.Id + ')">Cancel</button>';
+            } else {
+                actions = '<span class="text-muted">-</span>';
+            }
 
             tbody.append(
                 '<tr>' +
@@ -83,8 +87,6 @@ function loadRequests(page) {
                 '<td>' + item.EmployeeName + '</td>' +
                 '<td>' + item.CompanyName + '</td>' +
                 '<td>' + item.ToolName + '</td>' +
-                '<td>' + formatDate(item.FromDate) + '</td>' +
-                '<td>' + formatDate(item.ToDate) + '</td>' +
                 '<td>' + statusBadge + '</td>' +
                 '<td>' + formatDateTime(item.CreatedAt) + '</td>' +
                 '<td>' + formatDateTime(item.UpdatedAt) + '</td>' +
@@ -97,14 +99,20 @@ function loadRequests(page) {
     });
 }
 
-function getStatusBadge(status) {
+function getStatusBadge(status, isCancelled) {
+    if (isCancelled) {
+        return '<span class="badge bg-secondary">Cancelled</span>';
+    }
+
     switch (status) {
-        case 'Pending':
-            return '<span class="badge bg-warning text-dark">Pending</span>';
-        case 'Completed':
+        case 'NR':
+            return '<span class="badge bg-warning text-dark">New Request</span>';
+        case 'IP':
+            return '<span class="badge bg-info">In Progress</span>';
+        case 'CP':
             return '<span class="badge bg-success">Completed</span>';
-        case 'Failed':
-            return '<span class="badge bg-danger">Failed</span>';
+        case 'RR':
+            return '<span class="badge bg-danger">Rejected</span>';
         default:
             return '<span class="badge bg-secondary">' + status + '</span>';
     }
@@ -119,10 +127,8 @@ function submitRequest() {
     var employeeId = $('#employeeId').val();
     var companyId = $('#companyId').val();
     var toolId = $('#toolId').val();
-    var fromDate = $('#fromDate').val();
-    var toDate = $('#toDate').val();
 
-    if (!employeeId || !companyId || !toolId || !fromDate || !toDate) {
+    if (!employeeId || !companyId || !toolId) {
         Swal.fire('Validation Error', 'Please fill in all required fields', 'warning');
         return;
     }
@@ -130,13 +136,11 @@ function submitRequest() {
     var data = {
         EmployeeId: parseInt(employeeId),
         CompanyId: parseInt(companyId),
-        ToolId: parseInt(toolId),
-        FromDate: fromDate,
-        ToDate: toDate
+        ToolId: parseInt(toolId)
     };
 
     $.ajax({
-        url: APP.baseUrl + 'Attandance/CreateRequest',
+        url: APP.baseUrl + 'CompanyRequest/CreateRequest',
         type: 'POST',
         data: data,
         success: function (res) {
@@ -166,7 +170,7 @@ function cancelRequest(id) {
     }).then((result) => {
         if (result.isConfirmed) {
             $.ajax({
-                url: APP.baseUrl + 'Attandance/CancelRequest',
+                url: APP.baseUrl + 'CompanyRequest/CancelRequest',
                 type: 'POST',
                 data: { id: id },
                 success: function (res) {

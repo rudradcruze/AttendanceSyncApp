@@ -42,12 +42,14 @@ namespace AttandanceSyncApp.Models.Auth
         // Navigation properties
         public virtual ICollection<LoginSession> LoginSessions { get; set; }
         public virtual ICollection<AttandanceSyncRequest> SyncRequests { get; set; }
+        public virtual ICollection<CompanyRequest> CompanyRequests { get; set; }
         public virtual ICollection<DatabaseConfiguration> AssignedConfigurations { get; set; }
 
         public User()
         {
             LoginSessions = new HashSet<LoginSession>();
             SyncRequests = new HashSet<AttandanceSyncRequest>();
+            CompanyRequests = new HashSet<CompanyRequest>();
             AssignedConfigurations = new HashSet<DatabaseConfiguration>();
         }
     }

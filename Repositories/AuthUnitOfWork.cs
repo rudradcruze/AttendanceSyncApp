@@ -17,6 +17,7 @@ namespace AttandanceSyncApp.Repositories
         private IToolRepository _toolRepository;
         private IEmployeeRepository _employeeRepository;
         private IAttandanceSyncRequestRepository _syncRequestRepository;
+        private ICompanyRequestRepository _companyRequestRepository;
         private IDatabaseConfigurationRepository _dbConfigRepository;
 
         public AuthUnitOfWork()
@@ -46,6 +47,9 @@ namespace AttandanceSyncApp.Repositories
 
         public IAttandanceSyncRequestRepository AttandanceSyncRequests =>
             _syncRequestRepository ?? (_syncRequestRepository = new AttandanceSyncRequestRepository(_context));
+
+        public ICompanyRequestRepository CompanyRequests =>
+            _companyRequestRepository ?? (_companyRequestRepository = new CompanyRequestRepository(_context));
 
         public IDatabaseConfigurationRepository DatabaseConfigurations =>
             _dbConfigRepository ?? (_dbConfigRepository = new DatabaseConfigurationRepository(_context));

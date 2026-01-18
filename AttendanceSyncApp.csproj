@@ -145,6 +145,7 @@
     <Content Include="Scripts\jquery-3.7.1.slim.min.js" />
     <Content Include="Scripts\sweetalert2%4011.js" />
     <Content Include="Scripts\User\User.js" />
+    <Content Include="Scripts\CompanyRequest\CompanyRequest.js" />
     <Content Include="Web.config" />
     <Content Include="Views\_ViewStart.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
@@ -161,6 +162,7 @@
     <Compile Include="Controllers\AttandanceController.cs" />
     <Compile Include="Controllers\AuthController.cs" />
     <Compile Include="Controllers\BaseController.cs" />
+    <Compile Include="Controllers\CompanyRequestController.cs" />
     <Compile Include="Controllers\Filters\AdminAuthorizeAttribute.cs" />
     <Compile Include="Controllers\Filters\AuthorizeUserAttribute.cs" />
     <Compile Include="Global.asax.cs">
@@ -170,6 +172,10 @@
     <Compile Include="Migrations\202601180421452_AddEmployeeAndUpdateSyncRequest.cs" />
     <Compile Include="Migrations\202601180421452_AddEmployeeAndUpdateSyncRequest.designer.cs">
       <DependentUpon>202601180421452_AddEmployeeAndUpdateSyncRequest.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202601180905298_AddCompanyRequest.cs" />
+    <Compile Include="Migrations\202601180905298_AddCompanyRequest.designer.cs">
+      <DependentUpon>202601180905298_AddCompanyRequest.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AppDbContext.cs" />
@@ -203,6 +209,10 @@
     <Compile Include="Models\Sync\Employee.cs" />
     <Compile Include="Models\Sync\SyncCompany.cs" />
     <Compile Include="Models\Sync\Tool.cs" />
+    <Compile Include="Models\Sync\CompanyRequest.cs" />
+    <Compile Include="Models\DTOs\CompanyRequest\CompanyRequestDto.cs" />
+    <Compile Include="Models\DTOs\CompanyRequest\CompanyRequestCreateDto.cs" />
+    <Compile Include="Models\DTOs\CompanyRequest\CompanyRequestListDto.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Repositories\AttandanceSynchronizationRepository.cs" />
     <Compile Include="Repositories\AuthUnitOfWork.cs" />
@@ -221,12 +231,14 @@
     <Compile Include="Repositories\Interfaces\Sync\IEmployeeRepository.cs" />
     <Compile Include="Repositories\Interfaces\Sync\ISyncCompanyRepository.cs" />
     <Compile Include="Repositories\Interfaces\Sync\IToolRepository.cs" />
+    <Compile Include="Repositories\Interfaces\Sync\ICompanyRequestRepository.cs" />
     <Compile Include="Repositories\Repository.cs" />
     <Compile Include="Repositories\Sync\AttandanceSyncRequestRepository.cs" />
     <Compile Include="Repositories\Sync\DatabaseConfigurationRepository.cs" />
     <Compile Include="Repositories\Sync\EmployeeRepository.cs" />
     <Compile Include="Repositories\Sync\SyncCompanyRepository.cs" />
     <Compile Include="Repositories\Sync\ToolRepository.cs" />
+    <Compile Include="Repositories\Sync\CompanyRequestRepository.cs" />
     <Compile Include="Repositories\UnitOfWork.cs" />
     <Compile Include="Services\Admin\AdminRequestService.cs" />
     <Compile Include="Services\Admin\AdminUserService.cs" />
@@ -234,6 +246,7 @@
     <Compile Include="Services\Admin\DatabaseAssignmentService.cs" />
     <Compile Include="Services\Admin\EmployeeService.cs" />
     <Compile Include="Services\Admin\ToolManagementService.cs" />
+    <Compile Include="Services\Admin\AdminCompanyRequestService.cs" />
     <Compile Include="Services\AttandanceSynchronizationService.cs" />
     <Compile Include="Services\Auth\AuthService.cs" />
     <Compile Include="Services\Auth\GoogleAuthService.cs" />
@@ -245,6 +258,7 @@
     <Compile Include="Services\Interfaces\Admin\IDatabaseAssignmentService.cs" />
     <Compile Include="Services\Interfaces\Admin\IEmployeeService.cs" />
     <Compile Include="Services\Interfaces\Admin\IToolManagementService.cs" />
+    <Compile Include="Services\Interfaces\Admin\IAdminCompanyRequestService.cs" />
     <Compile Include="Services\Interfaces\Auth\IAuthService.cs" />
     <Compile Include="Services\Interfaces\Auth\IGoogleAuthService.cs" />
     <Compile Include="Services\Interfaces\Auth\ISessionService.cs" />
@@ -252,8 +266,10 @@
     <Compile Include="Services\Interfaces\ICompanyService.cs" />
     <Compile Include="Services\Interfaces\Sync\IDynamicDatabaseService.cs" />
     <Compile Include="Services\Interfaces\Sync\ISyncRequestService.cs" />
+    <Compile Include="Services\Interfaces\Sync\ICompanyRequestService.cs" />
     <Compile Include="Services\Sync\DynamicDatabaseService.cs" />
     <Compile Include="Services\Sync\SyncRequestService.cs" />
+    <Compile Include="Services\Sync\CompanyRequestService.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Views\web.config" />
@@ -293,6 +309,7 @@
     <Content Include="Views\Admin\Employees.cshtml" />
     <Content Include="Views\Admin\Tools.cshtml" />
     <Content Include="Views\Attandance\Requests.cshtml" />
+    <Content Include="Views\CompanyRequest\Index.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -306,6 +323,9 @@
   <ItemGroup>
     <EmbeddedResource Include="Migrations\202601180421452_AddEmployeeAndUpdateSyncRequest.resx">
       <DependentUpon>202601180421452_AddEmployeeAndUpdateSyncRequest.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202601180905298_AddCompanyRequest.resx">
+      <DependentUpon>202601180905298_AddCompanyRequest.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

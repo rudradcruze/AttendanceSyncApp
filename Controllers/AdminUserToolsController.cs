@@ -107,7 +107,7 @@ namespace AttandanceSyncApp.Controllers
 
             foreach (var u in users)
             {
-                if (u.IsActive)
+                if (u.IsActive && u.Role != "ADMIN")
                 {
                     data.Add(new { u.Id, u.Name, u.Email });
                 }

@@ -26,42 +26,26 @@
         <!-- Form Section -->
         <div class="form-section shadow mb-4 p-4 bg-white rounded">
             <h4 class="mb-4">Create New Synchronization</h4>
-            <form id="syncForm">
-                <div class="row">
-                    <!-- Hidden fields for context -->
-                    <input type="hidden" id="selectedCompanyId" />
-                    <input type="hidden" id="selectedToolId" />
-                    <input type="hidden" id="selectedDbConfigId" />
-
-                    <div class="col-md-12 mb-3">
-                        <div class="form-group">
-                            <label class="form-label">Employee <span class="text-danger">*</span></label>
-                            <select class="form-select" id="employeeId" required>
-                                <option value="">Select Employee</option>
-                            </select>
+                <form id="syncForm">
+                    <div class="row mb-3">
+                        <input type="hidden" id="employeeId" />
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Employee</label>
+                                <input type="text" class="form-control" id="employeeName" readonly />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Company</label>
+                                <input type="text" class="form-control" id="selectedCompanyName" readonly />
+                                <input type="hidden" id="selectedCompanyId" />
+                                <input type="hidden" id="selectedToolId" />
+                                <input type="hidden" id="selectedDbConfigId" />
+                            </div>
                         </div>
                     </div>
-
-                    <div class="col-md-5">
-                        <div class="form-group">
-                            <label>From Date</label>
-                            <input type="date" class="form-control" id="fromDate" required />
-                        </div>
-                    </div>
-                    <div class="col-md-5">
-                        <div class="form-group">
-                            <label>To Date</label>
-                            <input type="date" class="form-control" id="toDate" required />
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="d-block">&nbsp;</label>
-                        <button type="button" class="btn btn-primary btn-block w-100" id="submitSyncBtn" onclick="createSynchronization()">
-                            Create
-                        </button>
-                    </div>
-                </div>
-            </form>
+                </form>
             <div id="message" class="alert d-none mt-3"></div>
         </div>
 

@@ -72,8 +72,8 @@ namespace AttandanceSyncApp.Helpers
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error creating sync in external DB: {ex.Message}");
-                return null;
+                // Throwing the exception allows the calling service to catch it and return the specific error message to the client
+                throw new Exception($"External DB Connection/Creation Failed: {ex.Message} (DB: {config.DatabaseName})", ex);
             }
         }
 

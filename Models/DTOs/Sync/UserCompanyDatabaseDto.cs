@@ -10,5 +10,7 @@ namespace AttandanceSyncApp.Models.DTOs.Sync
         public int DatabaseConfigurationId { get; set; }
         public int ToolId { get; set; }
         public string ToolName { get; set; }
+        public int EmployeeId { get; set; }
+        public string EmployeeName { get; set; }
     }
 }

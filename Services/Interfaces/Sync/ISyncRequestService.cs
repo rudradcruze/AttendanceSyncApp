@@ -9,7 +9,7 @@ namespace AttandanceSyncApp.Services.Interfaces.Sync
 {
     public interface ISyncRequestService
     {
-        ServiceResult<PagedResultDto<SyncRequestDto>> GetUserRequestsPaged(int userId, int page, int pageSize);
+        ServiceResult<PagedResultDto<SyncRequestDto>> GetUserRequestsPaged(int userId, int? companyId, int page, int pageSize);
         ServiceResult<int> CreateSyncRequest(SyncRequestCreateDto dto, int userId, int sessionId);
         ServiceResult CancelSyncRequest(int requestId, int userId);
         ServiceResult<IEnumerable<StatusDto>> GetStatusesByIds(int[] ids);

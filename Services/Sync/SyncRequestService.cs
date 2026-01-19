@@ -20,10 +20,73 @@ namespace AttandanceSyncApp.Services.Sync
             _unitOfWork = unitOfWork;
         }
 
-        public ServiceResult<PagedResultDto<SyncRequestDto>> GetUserRequestsPaged(int userId, int page, int pageSize)
+        public ServiceResult<PagedResultDto<SyncRequestDto>> GetUserRequestsPaged(int userId, int? companyId, int page, int pageSize)
         {
             try
             {
+                // If a specific company is selected, try to fetch from external DB
+                if (companyId.HasValue)
+                {
+                    // 1. Get the DB Config for this company
+                    var userDatabases = GetUserCompanyDatabases(userId);
+                    if (userDatabases.Success)
+                    {
+                        var targetDb = userDatabases.Data.FirstOrDefault(d => d.CompanyId == companyId.Value);
+                        if (targetDb != null)
+                        {
+                            var dbConfig = _unitOfWork.DatabaseConfigurations.GetById(targetDb.DatabaseConfigurationId);
+                            if (dbConfig != null)
+                            {
+                                // 2. Connect and Query External DB
+                                try 
+                                {
+                                    using (var context = Helpers.DynamicDbHelper.CreateExternalDbContext(dbConfig))
+                                    {
+                                        var query = context.AttandanceSynchronizations
+                                            .Where(s => s.CompanyId == companyId.Value)
+                                            .OrderByDescending(s => s.Id);
+
+                                        var totalExternal = query.Count();
+                                        var externalRequests = query
+                                            .Skip((page - 1) * pageSize)
+                                            .Take(pageSize)
+                                            .ToList()
+                                            .Select(r => new SyncRequestDto
+                                            {
+                                                Id = r.Id,
+                                                UserName = "External", // Or map from local user if needed
+                                                EmployeeName = targetDb.EmployeeName, // Use stored employee name
+                                                CompanyName = targetDb.CompanyName,
+                                                ToolName = targetDb.ToolName,
+                                                ExternalSyncId = r.Id,
+                                                IsSuccessful = r.Status == "CP", // Assuming CP is success
+                                                Status = r.Status,
+                                                FromDate = r.FromDate,
+                                                ToDate = r.ToDate,
+                                                CreatedAt = DateTime.Now // Or add CreatedAt to external model if it exists
+                                            })
+                                            .ToList();
+
+                                        return ServiceResult<PagedResultDto<SyncRequestDto>>.SuccessResult(new PagedResultDto<SyncRequestDto>
+                                        {
+                                            TotalRecords = totalExternal,
+                                            Page = page,
+                                            PageSize = pageSize,
+                                            Data = externalRequests
+                                        });
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    // Log or handle connection error, fallback to local or return error
+                                    return ServiceResult<PagedResultDto<SyncRequestDto>>.FailureResult($"Failed to connect to company database: {ex.Message}");
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Fallback to Local DB (Original Logic)
                 var totalCount = _unitOfWork.AttandanceSyncRequests.GetTotalCountByUserId(userId);
                 var requests = _unitOfWork.AttandanceSyncRequests.GetPagedByUserId(userId, page, pageSize)
                     .Select(r => new SyncRequestDto
@@ -330,7 +393,9 @@ namespace AttandanceSyncApp.Services.Sync
                             DatabaseName = dbConfig.DatabaseName,
                             DatabaseConfigurationId = dbConfig.Id,
                             ToolId = attendanceSyncTool.Id,
-                            ToolName = attendanceSyncTool.Name
+                            ToolName = attendanceSyncTool.Name,
+                            EmployeeId = request.EmployeeId,
+                            EmployeeName = request.Employee?.Name ?? "Unknown"
                         });
                     }
                 }

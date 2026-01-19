@@ -123,9 +123,9 @@ namespace AttandanceSyncApp.Controllers
         }
 
         [HttpGet]
-        public JsonResult GetMyRequests(int page = 1, int pageSize = 20)
+        public JsonResult GetMyRequests(int? companyId, int page = 1, int pageSize = 20)
         {
-            var result = _syncRequestService.GetUserRequestsPaged(CurrentUserId, page, pageSize);
+            var result = _syncRequestService.GetUserRequestsPaged(CurrentUserId, companyId, page, pageSize);
 
             if (!result.Success)
             {

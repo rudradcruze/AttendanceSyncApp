@@ -95,20 +95,6 @@ namespace AttandanceSyncApp.Controllers
             return Json(ApiResponse.Success(result.Message));
         }
 
-        // POST: AdminCompanyRequests/RevokeConnection
-        [HttpPost]
-        public JsonResult RevokeConnection(int requestId)
-        {
-            var result = _adminCompanyRequestService.RevokeConnection(requestId);
-
-            if (!result.Success)
-            {
-                return Json(ApiResponse.Fail(result.Message));
-            }
-
-            return Json(ApiResponse.Success(result.Message));
-        }
-
         // POST: AdminCompanyRequests/AssignDatabase
         [HttpPost]
         public JsonResult AssignDatabase(int requestId)

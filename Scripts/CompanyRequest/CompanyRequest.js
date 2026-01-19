@@ -88,8 +88,6 @@ function loadRequests(page, isPolling) {
 
                 if (item.IsCancelled) {
                     actions = '<span class="badge bg-secondary">Cancelled</span>';
-                } else if (item.IsRevoked) {
-                    actions = '<span class="badge bg-secondary">Revoked</span>';
                 } else if (item.CanCancel) {
                     actions = '<button class="btn btn-sm btn-danger" onclick="cancelRequest(' + item.Id + ')">Cancel</button>';
                 } else {
@@ -120,10 +118,6 @@ function loadRequests(page, isPolling) {
 function getStatusBadge(item) {
     if (item.IsCancelled) {
         return '<span class="badge bg-secondary">Cancelled</span>';
-    }
-    
-    if (item.IsRevoked) {
-        return '<span class="badge bg-dark">Revoked</span>';
     }
 
     switch (item.Status) {

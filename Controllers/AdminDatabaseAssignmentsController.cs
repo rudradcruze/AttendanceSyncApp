@@ -65,5 +65,33 @@ namespace AttandanceSyncApp.Controllers
 
             return Json(ApiResponse<object>.Success(result.Data), JsonRequestBehavior.AllowGet);
         }
+
+        // POST: AdminDatabaseAssignments/RevokeAssignment
+        [HttpPost]
+        public JsonResult RevokeAssignment(int id)
+        {
+            var result = _assignmentService.RevokeAssignment(id);
+
+            if (!result.Success)
+            {
+                return Json(ApiResponse.Fail(result.Message));
+            }
+
+            return Json(ApiResponse.Success(result.Message));
+        }
+
+        // POST: AdminDatabaseAssignments/UnrevokeAssignment
+        [HttpPost]
+        public JsonResult UnrevokeAssignment(int id)
+        {
+            var result = _assignmentService.UnrevokeAssignment(id);
+
+            if (!result.Success)
+            {
+                return Json(ApiResponse.Fail(result.Message));
+            }
+
+            return Json(ApiResponse.Success(result.Message));
+        }
     }
 }

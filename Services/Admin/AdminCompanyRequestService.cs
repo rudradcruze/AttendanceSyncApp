@@ -39,8 +39,6 @@ namespace AttandanceSyncApp.Services.Admin
                         Status = r.Status,
                         StatusText = GetStatusText(r.Status),
                         IsCancelled = r.IsCancelled,
-                        IsRevoked = r.IsRevoked,
-                        RevokedAt = r.RevokedAt,
                         CanProcess = !r.IsCancelled && r.Status != "CP" && r.Status != "RR",
                         CreatedAt = r.CreatedAt,
                         UpdatedAt = r.UpdatedAt
@@ -88,8 +86,6 @@ namespace AttandanceSyncApp.Services.Admin
                     Status = request.Status,
                     StatusText = GetStatusText(request.Status),
                     IsCancelled = request.IsCancelled,
-                    IsRevoked = request.IsRevoked,
-                    RevokedAt = request.RevokedAt,
                     CanProcess = !request.IsCancelled && request.Status != "CP" && request.Status != "RR",
                     CreatedAt = request.CreatedAt,
                     UpdatedAt = request.UpdatedAt
@@ -211,48 +207,6 @@ namespace AttandanceSyncApp.Services.Admin
             catch (Exception ex)
             {
                 return ServiceResult.FailureResult($"Failed to reject request: {ex.Message}");
-            }
-        }
-
-        public ServiceResult RevokeConnection(int requestId)
-        {
-            try
-            {
-                var request = _unitOfWork.CompanyRequests.GetById(requestId);
-                if (request == null)
-                {
-                    return ServiceResult.FailureResult("Request not found");
-                }
-
-                if (request.Status != "CP")
-                {
-                    return ServiceResult.FailureResult("Only completed requests can be revoked");
-                }
-
-                if (request.IsRevoked)
-                {
-                    return ServiceResult.FailureResult("Connection already revoked");
-                }
-
-                request.IsRevoked = true;
-                request.RevokedAt = DateTime.Now;
-                request.UpdatedAt = DateTime.Now;
-
-                _unitOfWork.CompanyRequests.Update(request);
-                
-                // Optionally remove assignment? 
-                // The user said "Revoke the database connection", usually implies breaking the link.
-                // But the request remains "CP" (Completed) just revoked.
-                // Depending on requirements, we might want to delete DatabaseAssignment.
-                // For now, I'll just set the flag as requested.
-
-                _unitOfWork.SaveChanges();
-
-                return ServiceResult.SuccessResult("Connection revoked successfully");
-            }
-            catch (Exception ex)
-            {
-                return ServiceResult.FailureResult($"Failed to revoke connection: {ex.Message}");
             }
         }
 

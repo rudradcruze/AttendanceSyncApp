@@ -27,6 +27,9 @@ namespace AttandanceSyncApp.Models.Sync
         [Required]
         public DateTime AssignedAt { get; set; }
 
+        public bool IsRevoked { get; set; }
+        public DateTime? RevokedAt { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         public DateTime? UpdatedAt { get; set; }

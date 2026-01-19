@@ -34,9 +34,6 @@ namespace AttandanceSyncApp.Models.Sync
 
         public bool IsCancelled { get; set; } = false;
 
-        public bool IsRevoked { get; set; } = false;
-        public DateTime? RevokedAt { get; set; }
-
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime? UpdatedAt { get; set; }
 

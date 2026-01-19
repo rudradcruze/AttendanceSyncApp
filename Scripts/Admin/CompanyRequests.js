@@ -62,9 +62,9 @@ function loadCompanyRequests(page, isPolling) {
 
             $.each(data.Data, function (_, item) {
                 var statusBadge = getCompanyStatusBadge(item);
-                var cancelledBadge = item.IsCancelled
-                    ? '<span class="badge bg-secondary">Yes</span>'
-                    : '<span class="badge bg-light text-dark">No</span>';
+                //var cancelledBadge = item.IsCancelled
+                //    ? '<span class="badge bg-secondary">Yes</span>'
+                //    : '<span class="badge bg-light text-dark">No</span>';
 
                 var actionBtns = buildActionButtons(item);
 
@@ -75,7 +75,7 @@ function loadCompanyRequests(page, isPolling) {
                     '<td>' + item.CompanyName + '</td>' +
                     '<td>' + item.ToolName + '</td>' +
                     '<td>' + statusBadge + '</td>' +
-                    '<td>' + cancelledBadge + '</td>' +
+                    //'<td>' + cancelledBadge + '</td>' +
                     '<td>' + formatDateTime(item.CreatedAt) + '</td>' +
                     '<td>' + formatDateTime(item.UpdatedAt) + '</td>' +
                     '<td>' + actionBtns + '</td>' +
@@ -97,19 +97,9 @@ function buildActionButtons(item) {
         return '<span class="badge bg-secondary">Locked</span>';
     }
 
-    // If Revoked
-    if (item.IsRevoked) {
-        return '<span class="badge bg-secondary">Revoked</span>';
-    }
-
-    // If rejected
-    if (item.Status === 'RR') {
+    // If rejected or completed - no actions
+    if (item.Status === 'RR' || item.Status === 'CP') {
         return '<span class="text-muted">-</span>';
-    }
-    
-    // If Completed - Show Revoke
-    if (item.Status === 'CP') {
-        return '<button class="btn btn-sm btn-dark" onclick="revokeRequest(' + item.Id + ')">Revoke</button>';
     }
 
     var buttons = '';
@@ -133,10 +123,6 @@ function getCompanyStatusBadge(item) {
     if (item.IsCancelled) {
         return '<span class="badge bg-secondary">Cancelled</span>';
     }
-    
-    if (item.IsRevoked) {
-        return '<span class="badge bg-dark">Revoked</span>';
-    }
 
     var statusMap = {
         'NR': '<span class="badge bg-warning text-dark">New Request</span>',
@@ -145,38 +131,6 @@ function getCompanyStatusBadge(item) {
         'RR': '<span class="badge bg-danger">Rejected</span>'
     };
     return statusMap[item.Status] || '<span class="badge bg-secondary">' + item.Status + '</span>';
-}
-
-// ===== Revoke Action =====
-function revokeRequest(requestId) {
-    Swal.fire({
-        title: 'Revoke Connection?',
-        text: 'This will revoke the database connection for this request.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#343a40',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Yes, Revoke'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $.ajax({
-                url: APP.baseUrl + 'AdminCompanyRequests/RevokeConnection',
-                type: 'POST',
-                data: { requestId: requestId },
-                success: function (res) {
-                    if (res.Errors && res.Errors.length > 0) {
-                        Swal.fire('Error', res.Message, 'error');
-                    } else {
-                        Swal.fire('Revoked', res.Message, 'success');
-                        loadCompanyRequests(companyCurrentPage);
-                    }
-                },
-                error: function () {
-                    Swal.fire('Error', 'Failed to revoke connection', 'error');
-                }
-            });
-        }
-    });
 }
 
 // ===== Accept/Reject Actions =====

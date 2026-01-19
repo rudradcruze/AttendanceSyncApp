@@ -195,6 +195,10 @@
     <Compile Include="Migrations\202601190621550_AddRevokeToCompanyRequest.designer.cs">
       <DependentUpon>202601190621550_AddRevokeToCompanyRequest.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202601190642195_AddRevokeToDatabaseAssign.cs" />
+    <Compile Include="Migrations\202601190642195_AddRevokeToDatabaseAssign.designer.cs">
+      <DependentUpon>202601190642195_AddRevokeToDatabaseAssign.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AppDbContext.cs" />
     <Compile Include="Models\AttandanceSynchronization.cs" />
@@ -367,6 +371,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202601190621550_AddRevokeToCompanyRequest.resx">
       <DependentUpon>202601190621550_AddRevokeToCompanyRequest.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202601190642195_AddRevokeToDatabaseAssign.resx">
+      <DependentUpon>202601190642195_AddRevokeToDatabaseAssign.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

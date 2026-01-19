@@ -79,6 +79,66 @@ namespace AttandanceSyncApp.Services.Admin
             }
         }
 
+        public ServiceResult RevokeAssignment(int id)
+        {
+            try
+            {
+                var assignment = _unitOfWork.DatabaseAssignments.GetById(id);
+                if (assignment == null)
+                {
+                    return ServiceResult.FailureResult("Assignment not found");
+                }
+
+                if (assignment.IsRevoked)
+                {
+                    return ServiceResult.FailureResult("Assignment is already revoked");
+                }
+
+                assignment.IsRevoked = true;
+                assignment.RevokedAt = DateTime.Now;
+                assignment.UpdatedAt = DateTime.Now;
+
+                _unitOfWork.DatabaseAssignments.Update(assignment);
+                _unitOfWork.SaveChanges();
+
+                return ServiceResult.SuccessResult("Database assignment revoked successfully");
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult.FailureResult($"Failed to revoke assignment: {ex.Message}");
+            }
+        }
+
+        public ServiceResult UnrevokeAssignment(int id)
+        {
+            try
+            {
+                var assignment = _unitOfWork.DatabaseAssignments.GetById(id);
+                if (assignment == null)
+                {
+                    return ServiceResult.FailureResult("Assignment not found");
+                }
+
+                if (!assignment.IsRevoked)
+                {
+                    return ServiceResult.FailureResult("Assignment is not revoked");
+                }
+
+                assignment.IsRevoked = false;
+                assignment.RevokedAt = null;
+                assignment.UpdatedAt = DateTime.Now;
+
+                _unitOfWork.DatabaseAssignments.Update(assignment);
+                _unitOfWork.SaveChanges();
+
+                return ServiceResult.SuccessResult("Database assignment un-revoked successfully");
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult.FailureResult($"Failed to un-revoke assignment: {ex.Message}");
+            }
+        }
+
         private static DatabaseAssignListDto MapToDto(DatabaseAssign a)
         {
             return new DatabaseAssignListDto
@@ -97,6 +157,8 @@ namespace AttandanceSyncApp.Services.Admin
                 DatabaseIP = a.DatabaseConfiguration?.DatabaseIP ?? "Unknown",
                 DatabaseName = a.DatabaseConfiguration?.DatabaseName ?? "Unknown",
                 DatabaseUserId = a.DatabaseConfiguration?.DatabaseUserId ?? "Unknown",
+                IsRevoked = a.IsRevoked,
+                RevokedAt = a.RevokedAt,
                 CreatedAt = a.CreatedAt,
                 UpdatedAt = a.UpdatedAt
             };

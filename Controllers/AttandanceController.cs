@@ -37,6 +37,12 @@ namespace AttandanceSyncApp.Controllers
         {
             if (IsAdmin)
             {
+                if (filterContext.ActionDescriptor.ActionName.Equals("Index", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    filterContext.Result = new RedirectResult("~/AdminDashboard");
+                    return;
+                }
+
                 ViewBag.Message = "Administrators cannot access the User Dashboard.";
                 filterContext.Result = View("AccessDenied");
                 return;

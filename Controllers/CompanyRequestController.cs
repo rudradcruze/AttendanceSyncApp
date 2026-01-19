@@ -29,6 +29,17 @@ namespace AttandanceSyncApp.Controllers
             _authUnitOfWork = unitOfWork;
         }
 
+        protected override void OnActionExecuting(ActionExecutingContext filterContext)
+        {
+            if (IsAdmin)
+            {
+                ViewBag.Message = "Administrators cannot access the User Company Requests page.";
+                filterContext.Result = View("AccessDenied");
+                return;
+            }
+            base.OnActionExecuting(filterContext);
+        }
+
         // GET: CompanyRequest/Index
         public ActionResult Index()
         {

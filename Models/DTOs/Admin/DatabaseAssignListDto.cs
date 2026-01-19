@@ -28,6 +28,9 @@ namespace AttandanceSyncApp.Models.DTOs.Admin
         public string DatabaseName { get; set; }
         public string DatabaseUserId { get; set; }
 
+        public bool IsRevoked { get; set; }
+        public DateTime? RevokedAt { get; set; }
+
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
     }

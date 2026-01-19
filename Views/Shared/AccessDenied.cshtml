@@ -1,7 +1,6 @@
-@{
-    ViewBag.Title = "Access Denied";
-    Layout = null;
-}
+@using System.Configuration
+@{ ViewBag.Title = "Access Denied";
+                Layout = null; }
 <!DOCTYPE html>
 <html>
 <head>
@@ -18,6 +17,7 @@
             justify-content: center;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
+
         .error-card {
             background: white;
             padding: 40px;
@@ -28,23 +28,27 @@
             width: 90%;
             animation: fadeIn 0.5s ease-out;
         }
+
         .error-icon {
             font-size: 80px;
             color: #dc3545;
             margin-bottom: 20px;
         }
+
         .error-title {
             font-size: 28px;
             font-weight: 700;
             color: #333;
             margin-bottom: 10px;
         }
+
         .error-message {
             color: #6c757d;
             font-size: 16px;
             margin-bottom: 30px;
             line-height: 1.5;
         }
+
         .btn-home {
             background: linear-gradient(45deg, #667eea, #764ba2);
             border: none;
@@ -55,14 +59,23 @@
             color: white;
             text-decoration: none;
         }
-        .btn-home:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(118, 75, 162, 0.4);
-            color: white;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
+
+            .btn-home:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(118, 75, 162, 0.4);
+                color: white;
+            }
+
+        @@keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 </head>
@@ -75,16 +88,15 @@
         <p class="error-message">
             @if (ViewBag.Message != null)
             {
-                @ViewBag.Message
-            }
+@ViewBag.Message }
             else
             {
-                @:You do not have permission to view this page. If you believe this is an error, please contact your administrator.
-            }
+@:You do not have permission to view this page. If you believe this is an error, please contact your administrator.
+}
         </p>
-        <a href="@Url.Action("Index", "Auth")" class="btn btn-primary btn-home">
-            Return to Login
-        </a>
+        <button onclick="window.location.href='/';" class="btn btn-primary btn-home">
+            Return to Home
+        </button>
     </div>
 </body>
 </html>

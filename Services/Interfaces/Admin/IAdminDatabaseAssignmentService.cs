@@ -8,5 +8,7 @@ namespace AttandanceSyncApp.Services.Interfaces.Admin
         ServiceResult<PagedResultDto<DatabaseAssignListDto>> GetAllAssignmentsPaged(int page, int pageSize);
         ServiceResult<DatabaseAssignListDto> GetAssignmentById(int id);
         ServiceResult<DatabaseAssignListDto> GetAssignmentByRequestId(int companyRequestId);
+        ServiceResult RevokeAssignment(int id);
+        ServiceResult UnrevokeAssignment(int id);
     }
 }

@@ -1,7 +1,9 @@
 using System;
 using System.Linq;
 using AttandanceSyncApp.Models.DTOs;
+using AttandanceSyncApp.Models.DTOs.Admin;
 using AttandanceSyncApp.Models.DTOs.CompanyRequest;
+using AttandanceSyncApp.Models.Sync;
 using AttandanceSyncApp.Repositories.Interfaces;
 using AttandanceSyncApp.Services.Interfaces.Admin;
 
@@ -137,6 +139,199 @@ namespace AttandanceSyncApp.Services.Admin
             catch (Exception ex)
             {
                 return ServiceResult.FailureResult($"Failed to update request status: {ex.Message}");
+            }
+        }
+
+        public ServiceResult AcceptRequest(int requestId)
+        {
+            try
+            {
+                var request = _unitOfWork.CompanyRequests.GetById(requestId);
+                if (request == null)
+                {
+                    return ServiceResult.FailureResult("Request not found");
+                }
+
+                if (request.IsCancelled)
+                {
+                    return ServiceResult.FailureResult("Cannot accept a cancelled request");
+                }
+
+                if (request.Status != "NR")
+                {
+                    return ServiceResult.FailureResult("Only new requests can be accepted");
+                }
+
+                request.Status = "IP";
+                request.UpdatedAt = DateTime.Now;
+
+                _unitOfWork.CompanyRequests.Update(request);
+                _unitOfWork.SaveChanges();
+
+                return ServiceResult.SuccessResult("Request accepted and set to In Progress");
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult.FailureResult($"Failed to accept request: {ex.Message}");
+            }
+        }
+
+        public ServiceResult RejectRequest(int requestId)
+        {
+            try
+            {
+                var request = _unitOfWork.CompanyRequests.GetById(requestId);
+                if (request == null)
+                {
+                    return ServiceResult.FailureResult("Request not found");
+                }
+
+                if (request.IsCancelled)
+                {
+                    return ServiceResult.FailureResult("Cannot reject a cancelled request");
+                }
+
+                if (request.Status == "CP" || request.Status == "RR")
+                {
+                    return ServiceResult.FailureResult("Cannot reject a completed or already rejected request");
+                }
+
+                request.Status = "RR";
+                request.UpdatedAt = DateTime.Now;
+
+                _unitOfWork.CompanyRequests.Update(request);
+                _unitOfWork.SaveChanges();
+
+                return ServiceResult.SuccessResult("Request rejected");
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult.FailureResult($"Failed to reject request: {ex.Message}");
+            }
+        }
+
+        public ServiceResult AssignDatabase(int requestId, int adminUserId)
+        {
+            try
+            {
+                var request = _unitOfWork.CompanyRequests.GetWithDetails(requestId);
+                if (request == null)
+                {
+                    return ServiceResult.FailureResult("Request not found");
+                }
+
+                if (request.IsCancelled)
+                {
+                    return ServiceResult.FailureResult("Cannot assign database to a cancelled request");
+                }
+
+                if (request.Status == "RR" || request.Status == "CP")
+                {
+                    return ServiceResult.FailureResult("Cannot assign database to a rejected or completed request");
+                }
+
+                // Check if already assigned
+                if (_unitOfWork.DatabaseAssignments.HasAssignment(requestId))
+                {
+                    return ServiceResult.FailureResult("Database already assigned to this request");
+                }
+
+                // Get the database configuration for the request's company
+                var dbConfig = _unitOfWork.DatabaseConfigurations.GetByCompanyId(request.CompanyId);
+                if (dbConfig == null)
+                {
+                    return ServiceResult.FailureResult($"No database configuration found for company '{request.Company?.Name ?? "Unknown"}'");
+                }
+
+                // Create assignment
+                var assignment = new DatabaseAssign
+                {
+                    CompanyRequestId = requestId,
+                    DatabaseConfigurationId = dbConfig.Id,
+                    AssignedBy = adminUserId,
+                    AssignedAt = DateTime.Now,
+                    CreatedAt = DateTime.Now
+                };
+
+                _unitOfWork.DatabaseAssignments.Add(assignment);
+
+                // Update request status to Completed
+                request.Status = "CP";
+                request.UpdatedAt = DateTime.Now;
+                _unitOfWork.CompanyRequests.Update(request);
+
+                _unitOfWork.SaveChanges();
+
+                return ServiceResult.SuccessResult("Database assigned successfully. Request marked as completed.");
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult.FailureResult($"Failed to assign database: {ex.Message}");
+            }
+        }
+
+        public ServiceResult<DatabaseConfigDto> GetDatabaseConfigForRequest(int requestId)
+        {
+            try
+            {
+                var request = _unitOfWork.CompanyRequests.GetWithDetails(requestId);
+                if (request == null)
+                {
+                    return ServiceResult<DatabaseConfigDto>.FailureResult("Request not found");
+                }
+
+                var dbConfig = _unitOfWork.DatabaseConfigurations.GetByCompanyId(request.CompanyId);
+                if (dbConfig == null)
+                {
+                    return ServiceResult<DatabaseConfigDto>.FailureResult($"No database configuration found for company '{request.Company?.Name ?? "Unknown"}'");
+                }
+
+                var dto = new DatabaseConfigDto
+                {
+                    Id = dbConfig.Id,
+                    CompanyId = dbConfig.CompanyId,
+                    CompanyName = request.Company?.Name ?? "Unknown",
+                    DatabaseIP = dbConfig.DatabaseIP,
+                    DatabaseName = dbConfig.DatabaseName,
+                    DatabaseUserId = dbConfig.DatabaseUserId,
+                    CreatedAt = dbConfig.CreatedAt,
+                    UpdatedAt = dbConfig.UpdatedAt
+                };
+
+                return ServiceResult<DatabaseConfigDto>.SuccessResult(dto);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<DatabaseConfigDto>.FailureResult($"Failed to get database configuration: {ex.Message}");
+            }
+        }
+
+        public ServiceResult<int> GetNewRequestsCount(int lastKnownId)
+        {
+            try
+            {
+                var count = _unitOfWork.CompanyRequests.Count(r => r.Id > lastKnownId);
+                return ServiceResult<int>.SuccessResult(count);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<int>.FailureResult($"Failed to get count: {ex.Message}");
+            }
+        }
+
+        public ServiceResult<int> GetNewestRequestId()
+        {
+            try
+            {
+                var newest = _unitOfWork.CompanyRequests.GetAll()
+                    .OrderByDescending(r => r.Id)
+                    .Select(r => r.Id)
+                    .FirstOrDefault();
+                return ServiceResult<int>.SuccessResult(newest);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<int>.FailureResult($"Failed to get newest ID: {ex.Message}");
             }
         }
 

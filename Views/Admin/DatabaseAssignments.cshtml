@@ -1,0 +1,77 @@
+@{
+    ViewBag.Title = "Database Assignments";
+    ViewBag.ActiveMenu = "Assignments";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="assignments-management">
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Database Assignments</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped" id="assignmentsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Request ID</th>
+                            <th>User</th>
+                            <th>Employee</th>
+                            <th>Company</th>
+                            <th>Tool</th>
+                            <th>Database Config</th>
+                            <th>Assigned By</th>
+                            <th>Assigned At</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div id="pagination" class="pagination-wrapper"></div>
+        </div>
+    </div>
+</div>
+
+<!-- View Details Modal -->
+<div class="modal fade" id="viewDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Assignment Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Request Information</h6>
+                        <p><strong>Request ID:</strong> <span id="detailRequestId"></span></p>
+                        <p><strong>User:</strong> <span id="detailUserName"></span></p>
+                        <p><strong>Email:</strong> <span id="detailUserEmail"></span></p>
+                        <p><strong>Employee:</strong> <span id="detailEmployeeName"></span></p>
+                        <p><strong>Company:</strong> <span id="detailCompanyName"></span></p>
+                        <p><strong>Tool:</strong> <span id="detailToolName"></span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Database Configuration</h6>
+                        <p><strong>Database IP:</strong> <span id="detailDatabaseIP"></span></p>
+                        <p><strong>Database Name:</strong> <span id="detailDatabaseName"></span></p>
+                        <p><strong>Database User:</strong> <span id="detailDatabaseUserId"></span></p>
+                        <hr />
+                        <h6>Assignment Info</h6>
+                        <p><strong>Assigned By:</strong> <span id="detailAssignedBy"></span></p>
+                        <p><strong>Assigned At:</strong> <span id="detailAssignedAt"></span></p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/Scripts/Admin/DatabaseAssignments.js"></script>
+}

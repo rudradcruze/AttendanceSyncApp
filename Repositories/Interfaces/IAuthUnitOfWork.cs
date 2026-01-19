@@ -14,6 +14,7 @@ namespace AttandanceSyncApp.Repositories.Interfaces
         IAttandanceSyncRequestRepository AttandanceSyncRequests { get; }
         ICompanyRequestRepository CompanyRequests { get; }
         IDatabaseConfigurationRepository DatabaseConfigurations { get; }
+        IDatabaseAssignRepository DatabaseAssignments { get; }
         int SaveChanges();
     }
 }

@@ -125,6 +125,7 @@
     <Content Include="Scripts\Admin\Companies.js" />
     <Content Include="Scripts\Admin\CompanyRequests.js" />
     <Content Include="Scripts\Admin\Dashboard.js" />
+    <Content Include="Scripts\Admin\DatabaseAssignments.js" />
     <Content Include="Scripts\Admin\DatabaseConfigurations.js" />
     <Content Include="Scripts\Admin\Employees.js" />
     <Content Include="Scripts\Admin\SyncRequests.js" />
@@ -158,6 +159,7 @@
     <Compile Include="Controllers\AdminCompaniesController.cs" />
     <Compile Include="Controllers\AdminCompanyRequestsController.cs" />
     <Compile Include="Controllers\AdminDashboardController.cs" />
+    <Compile Include="Controllers\AdminDatabaseAssignmentsController.cs" />
     <Compile Include="Controllers\AdminDatabaseConfigurationsController.cs" />
     <Compile Include="Controllers\AdminEmployeesController.cs" />
     <Compile Include="Controllers\AdminRequestsController.cs" />
@@ -185,6 +187,10 @@
     <Compile Include="Migrations\202601181149356_modifydbconfig.designer.cs">
       <DependentUpon>202601181149356_modifydbconfig.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202601190526000_AddDatabaseAssign.cs" />
+    <Compile Include="Migrations\202601190526000_AddDatabaseAssign.designer.cs">
+      <DependentUpon>202601190526000_AddDatabaseAssign.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AppDbContext.cs" />
     <Compile Include="Models\AttandanceSynchronization.cs" />
@@ -196,6 +202,7 @@
     <Compile Include="Models\DTOs\Admin\AssignDatabaseDto.cs" />
     <Compile Include="Models\DTOs\Admin\CompanyDto.cs" />
     <Compile Include="Models\DTOs\Admin\CompanyManagementDto.cs" />
+    <Compile Include="Models\DTOs\Admin\DatabaseAssignListDto.cs" />
     <Compile Include="Models\DTOs\Admin\DatabaseConfigDto.cs" />
     <Compile Include="Models\DTOs\Admin\EmployeeDto.cs" />
     <Compile Include="Models\DTOs\Admin\RequestListDto.cs" />
@@ -215,6 +222,7 @@
     <Compile Include="Models\DTOs\Sync\SyncRequestDto.cs" />
     <Compile Include="Models\DynamicDbContext.cs" />
     <Compile Include="Models\Sync\AttandanceSyncRequest.cs" />
+    <Compile Include="Models\Sync\DatabaseAssign.cs" />
     <Compile Include="Models\Sync\DatabaseConfiguration.cs" />
     <Compile Include="Models\Sync\Employee.cs" />
     <Compile Include="Models\Sync\SyncCompany.cs" />
@@ -237,6 +245,7 @@
     <Compile Include="Repositories\Interfaces\IRepository.cs" />
     <Compile Include="Repositories\Interfaces\IUnitOfWork.cs" />
     <Compile Include="Repositories\Interfaces\Sync\IAttandanceSyncRequestRepository.cs" />
+    <Compile Include="Repositories\Interfaces\Sync\IDatabaseAssignRepository.cs" />
     <Compile Include="Repositories\Interfaces\Sync\IDatabaseConfigurationRepository.cs" />
     <Compile Include="Repositories\Interfaces\Sync\IEmployeeRepository.cs" />
     <Compile Include="Repositories\Interfaces\Sync\ISyncCompanyRepository.cs" />
@@ -244,12 +253,14 @@
     <Compile Include="Repositories\Interfaces\Sync\ICompanyRequestRepository.cs" />
     <Compile Include="Repositories\Repository.cs" />
     <Compile Include="Repositories\Sync\AttandanceSyncRequestRepository.cs" />
+    <Compile Include="Repositories\Sync\DatabaseAssignRepository.cs" />
     <Compile Include="Repositories\Sync\DatabaseConfigurationRepository.cs" />
     <Compile Include="Repositories\Sync\EmployeeRepository.cs" />
     <Compile Include="Repositories\Sync\SyncCompanyRepository.cs" />
     <Compile Include="Repositories\Sync\ToolRepository.cs" />
     <Compile Include="Repositories\Sync\CompanyRequestRepository.cs" />
     <Compile Include="Repositories\UnitOfWork.cs" />
+    <Compile Include="Services\Admin\AdminDatabaseAssignmentService.cs" />
     <Compile Include="Services\Admin\AdminDatabaseConfigService.cs" />
     <Compile Include="Services\Admin\AdminRequestService.cs" />
     <Compile Include="Services\Admin\AdminUserService.cs" />
@@ -263,6 +274,7 @@
     <Compile Include="Services\Auth\GoogleAuthService.cs" />
     <Compile Include="Services\Auth\SessionService.cs" />
     <Compile Include="Services\CompanyService.cs" />
+    <Compile Include="Services\Interfaces\Admin\IAdminDatabaseAssignmentService.cs" />
     <Compile Include="Services\Interfaces\Admin\IAdminDatabaseConfigService.cs" />
     <Compile Include="Services\Interfaces\Admin\IAdminRequestService.cs" />
     <Compile Include="Services\Interfaces\Admin\IAdminUserService.cs" />
@@ -324,6 +336,7 @@
     <Content Include="Views\Admin\CompanyRequests.cshtml" />
     <Content Include="Views\Admin\SyncRequests.cshtml" />
     <Content Include="Views\Admin\DatabaseConfigurations.cshtml" />
+    <Content Include="Views\Admin\DatabaseAssignments.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -343,6 +356,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202601181149356_modifydbconfig.resx">
       <DependentUpon>202601181149356_modifydbconfig.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202601190526000_AddDatabaseAssign.resx">
+      <DependentUpon>202601190526000_AddDatabaseAssign.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

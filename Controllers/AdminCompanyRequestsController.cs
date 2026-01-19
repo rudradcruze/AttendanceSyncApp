@@ -66,5 +66,89 @@ namespace AttandanceSyncApp.Controllers
 
             return Json(ApiResponse.Success(result.Message));
         }
+
+        // POST: AdminCompanyRequests/AcceptRequest
+        [HttpPost]
+        public JsonResult AcceptRequest(int requestId)
+        {
+            var result = _adminCompanyRequestService.AcceptRequest(requestId);
+
+            if (!result.Success)
+            {
+                return Json(ApiResponse.Fail(result.Message));
+            }
+
+            return Json(ApiResponse.Success(result.Message));
+        }
+
+        // POST: AdminCompanyRequests/RejectRequest
+        [HttpPost]
+        public JsonResult RejectRequest(int requestId)
+        {
+            var result = _adminCompanyRequestService.RejectRequest(requestId);
+
+            if (!result.Success)
+            {
+                return Json(ApiResponse.Fail(result.Message));
+            }
+
+            return Json(ApiResponse.Success(result.Message));
+        }
+
+        // POST: AdminCompanyRequests/AssignDatabase
+        [HttpPost]
+        public JsonResult AssignDatabase(int requestId)
+        {
+            var result = _adminCompanyRequestService.AssignDatabase(requestId, CurrentUserId);
+
+            if (!result.Success)
+            {
+                return Json(ApiResponse.Fail(result.Message));
+            }
+
+            return Json(ApiResponse.Success(result.Message));
+        }
+
+        // GET: AdminCompanyRequests/GetDatabaseConfigForRequest
+        [HttpGet]
+        public JsonResult GetDatabaseConfigForRequest(int requestId)
+        {
+            var result = _adminCompanyRequestService.GetDatabaseConfigForRequest(requestId);
+
+            if (!result.Success)
+            {
+                return Json(ApiResponse<object>.Fail(result.Message), JsonRequestBehavior.AllowGet);
+            }
+
+            return Json(ApiResponse<object>.Success(result.Data), JsonRequestBehavior.AllowGet);
+        }
+
+        // GET: AdminCompanyRequests/CheckForNewRequests
+        [HttpGet]
+        public JsonResult CheckForNewRequests(int lastKnownId)
+        {
+            var result = _adminCompanyRequestService.GetNewRequestsCount(lastKnownId);
+
+            if (!result.Success)
+            {
+                return Json(ApiResponse<int>.Fail(result.Message), JsonRequestBehavior.AllowGet);
+            }
+
+            return Json(ApiResponse<int>.Success(result.Data), JsonRequestBehavior.AllowGet);
+        }
+
+        // GET: AdminCompanyRequests/GetNewestRequestId
+        [HttpGet]
+        public JsonResult GetNewestRequestId()
+        {
+            var result = _adminCompanyRequestService.GetNewestRequestId();
+
+            if (!result.Success)
+            {
+                return Json(ApiResponse<int>.Fail(result.Message), JsonRequestBehavior.AllowGet);
+            }
+
+            return Json(ApiResponse<int>.Success(result.Data), JsonRequestBehavior.AllowGet);
+        }
     }
 }

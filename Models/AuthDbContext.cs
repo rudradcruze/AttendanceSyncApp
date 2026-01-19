@@ -24,6 +24,7 @@ namespace AttandanceSyncApp.Models
         public DbSet<AttandanceSyncRequest> AttandanceSyncRequests { get; set; }
         public DbSet<CompanyRequest> CompanyRequests { get; set; }
         public DbSet<DatabaseConfiguration> DatabaseConfigurations { get; set; }
+        public DbSet<DatabaseAssign> DatabaseAssignments { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -131,6 +132,32 @@ namespace AttandanceSyncApp.Models
                 .WithMany()
                 .HasForeignKey(cr => cr.SessionId)
                 .WillCascadeOnDelete(false);
+
+            // DatabaseAssign - CompanyRequest relationship (one-to-one)
+            modelBuilder.Entity<DatabaseAssign>()
+                .HasRequired(da => da.CompanyRequest)
+                .WithMany()
+                .HasForeignKey(da => da.CompanyRequestId)
+                .WillCascadeOnDelete(false);
+
+            // DatabaseAssign - User (AssignedBy) relationship
+            modelBuilder.Entity<DatabaseAssign>()
+                .HasRequired(da => da.AssignedByUser)
+                .WithMany()
+                .HasForeignKey(da => da.AssignedBy)
+                .WillCascadeOnDelete(false);
+
+            // DatabaseAssign - DatabaseConfiguration relationship
+            modelBuilder.Entity<DatabaseAssign>()
+                .HasRequired(da => da.DatabaseConfiguration)
+                .WithMany()
+                .HasForeignKey(da => da.DatabaseConfigurationId)
+                .WillCascadeOnDelete(false);
+
+            // Unique constraint on DatabaseAssign.CompanyRequestId (one assignment per request)
+            modelBuilder.Entity<DatabaseAssign>()
+                .HasIndex(da => da.CompanyRequestId)
+                .IsUnique();
 
             base.OnModelCreating(modelBuilder);
         }

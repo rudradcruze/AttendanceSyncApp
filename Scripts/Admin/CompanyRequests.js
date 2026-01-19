@@ -3,13 +3,45 @@
 ============================ */
 var companyCurrentPage = 1;
 var companyPageSize = 20;
+var lastKnownRequestId = 0;
+var pollingInterval = null;
 
 $(function () {
     loadCompanyRequests(1);
 
-    // Update Company Status Button
-    $('#updateStatusBtn').on('click', updateCompanyStatus);
+    // Start polling for new requests
+    startPolling();
+
+    // Event handlers
+    $('#assignDatabaseBtn').on('click', assignDatabase);
 });
+
+// ===== Polling for New Requests =====
+function startPolling() {
+    // First, get the newest request ID
+    $.get(APP.baseUrl + 'AdminCompanyRequests/GetNewestRequestId', function (res) {
+        if (res.Data) {
+            lastKnownRequestId = res.Data;
+        }
+    });
+
+    // Poll every 2 seconds
+    pollingInterval = setInterval(checkForNewRequests, 2000);
+}
+
+function checkForNewRequests() {
+    $.get(APP.baseUrl + 'AdminCompanyRequests/CheckForNewRequests', {
+        lastKnownId: lastKnownRequestId
+    }, function (res) {
+        if (res.Data && res.Data > 0) {
+            $('#newRequestsBadge').text(res.Data + ' new request(s)').show();
+            // Auto-refresh if on page 1
+            if (companyCurrentPage === 1) {
+                loadCompanyRequests(1);
+            }
+        }
+    });
+}
 
 function loadCompanyRequests(page) {
     companyCurrentPage = page;
@@ -19,16 +51,22 @@ function loadCompanyRequests(page) {
         pageSize: companyPageSize
     }, function (res) {
         var tbody = $('#companyRequestsTable tbody').empty();
+        $('#newRequestsBadge').hide();
 
         if (res.Errors && res.Errors.length > 0) {
-            tbody.append('<tr><td colspan="9" class="text-danger">' + res.Message + '</td></tr>');
+            tbody.append('<tr><td colspan="10" class="text-danger">' + res.Message + '</td></tr>');
             return;
         }
 
         var data = res.Data;
         if (!data.Data || !data.Data.length) {
-            tbody.append('<tr><td colspan="9">No company requests found</td></tr>');
+            tbody.append('<tr><td colspan="10">No company requests found</td></tr>');
             return;
+        }
+
+        // Update lastKnownRequestId
+        if (data.Data.length > 0 && data.Data[0].Id > lastKnownRequestId) {
+            lastKnownRequestId = data.Data[0].Id;
         }
 
         $.each(data.Data, function (_, item) {
@@ -37,14 +75,7 @@ function loadCompanyRequests(page) {
                 ? '<span class="badge bg-secondary">Yes</span>'
                 : '<span class="badge bg-light text-dark">No</span>';
 
-            var actionBtn = '';
-            if (item.IsCancelled) {
-                actionBtn = '<span class="badge bg-secondary">Locked</span>';
-            } else if (item.CanProcess) {
-                actionBtn = '<button class="btn btn-sm btn-primary" onclick="openCompanyStatusModal(' + item.Id + ')">Update Status</button>';
-            } else {
-                actionBtn = '<span class="text-muted">-</span>';
-            }
+            var actionBtns = buildActionButtons(item);
 
             tbody.append(
                 '<tr>' +
@@ -57,13 +88,41 @@ function loadCompanyRequests(page) {
                 '<td>' + cancelledBadge + '</td>' +
                 '<td>' + formatDateTime(item.CreatedAt) + '</td>' +
                 '<td>' + formatDateTime(item.UpdatedAt) + '</td>' +
-                '<td>' + actionBtn + '</td>' +
+                '<td>' + actionBtns + '</td>' +
                 '</tr>'
             );
         });
 
         renderCompanyPagination(data.TotalRecords, data.Page, data.PageSize);
     });
+}
+
+function buildActionButtons(item) {
+    // If cancelled - show locked
+    if (item.IsCancelled) {
+        return '<span class="badge bg-secondary">Locked</span>';
+    }
+
+    // If rejected or completed - no actions
+    if (item.Status === 'RR' || item.Status === 'CP') {
+        return '<span class="text-muted">-</span>';
+    }
+
+    var buttons = '';
+
+    // New Request (NR) - show Accept and Reject buttons
+    if (item.Status === 'NR') {
+        buttons += '<button class="btn btn-sm btn-success me-1" onclick="acceptRequest(' + item.Id + ')">Accept</button>';
+        buttons += '<button class="btn btn-sm btn-danger" onclick="rejectRequest(' + item.Id + ')">Reject</button>';
+    }
+
+    // In Progress (IP) - show Reject and Assign Database buttons
+    if (item.Status === 'IP') {
+        buttons += '<button class="btn btn-sm btn-danger me-1" onclick="rejectRequest(' + item.Id + ')">Reject</button>';
+        buttons += '<button class="btn btn-sm btn-primary" onclick="openAssignDatabaseModal(' + item.Id + ')">Assign DB</button>';
+    }
+
+    return buttons || '<span class="text-muted">-</span>';
 }
 
 function getCompanyStatusBadge(status, isCancelled) {
@@ -80,55 +139,139 @@ function getCompanyStatusBadge(status, isCancelled) {
     return statusMap[status] || '<span class="badge bg-secondary">' + status + '</span>';
 }
 
-function openCompanyStatusModal(requestId) {
-    // Reset form
-    $('#crRequestId').val(requestId);
-    $('#crStatus').val('');
+// ===== Accept/Reject Actions =====
+function acceptRequest(requestId) {
+    Swal.fire({
+        title: 'Accept Request?',
+        text: 'This will set the request status to In Progress.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, Accept'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: APP.baseUrl + 'AdminCompanyRequests/AcceptRequest',
+                type: 'POST',
+                data: { requestId: requestId },
+                success: function (res) {
+                    if (res.Errors && res.Errors.length > 0) {
+                        Swal.fire('Error', res.Message, 'error');
+                    } else {
+                        Swal.fire('Success', res.Message, 'success');
+                        loadCompanyRequests(companyCurrentPage);
+                    }
+                },
+                error: function () {
+                    Swal.fire('Error', 'Failed to accept request', 'error');
+                }
+            });
+        }
+    });
+}
+
+function rejectRequest(requestId) {
+    Swal.fire({
+        title: 'Reject Request?',
+        text: 'This action cannot be undone.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, Reject'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: APP.baseUrl + 'AdminCompanyRequests/RejectRequest',
+                type: 'POST',
+                data: { requestId: requestId },
+                success: function (res) {
+                    if (res.Errors && res.Errors.length > 0) {
+                        Swal.fire('Error', res.Message, 'error');
+                    } else {
+                        Swal.fire('Rejected', res.Message, 'success');
+                        loadCompanyRequests(companyCurrentPage);
+                    }
+                },
+                error: function () {
+                    Swal.fire('Error', 'Failed to reject request', 'error');
+                }
+            });
+        }
+    });
+}
+
+// ===== Database Assignment =====
+function openAssignDatabaseModal(requestId) {
+    $('#adRequestId').val(requestId);
+
+    // Reset sections
+    $('#dbConfigSection').show();
+    $('#noConfigSection').hide();
+    $('#assignDatabaseBtn').prop('disabled', false);
 
     // Load request info
     $.get(APP.baseUrl + 'AdminCompanyRequests/GetCompanyRequest', { id: requestId }, function (res) {
         if (res.Data) {
             var req = res.Data;
-            $('#crUserName').text(req.UserName);
-            $('#crUserEmail').text(req.UserEmail);
-            $('#crEmployeeName').text(req.EmployeeName);
-            $('#crCompanyName').text(req.CompanyName);
-            $('#crToolName').text(req.ToolName);
-            $('#crStatus').val(req.Status);
+            $('#adUserName').text(req.UserName);
+            $('#adEmployeeName').text(req.EmployeeName);
+            $('#adCompanyName').text(req.CompanyName);
+            $('#adToolName').text(req.ToolName);
         }
     });
 
-    var modal = new bootstrap.Modal(document.getElementById('updateCompanyStatusModal'));
+    // Load database configuration for this request's company
+    $.get(APP.baseUrl + 'AdminCompanyRequests/GetDatabaseConfigForRequest', { requestId: requestId }, function (res) {
+        if (res.Errors && res.Errors.length > 0) {
+            // No config found
+            $('#dbConfigSection').hide();
+            $('#noConfigSection').show();
+            $('#noConfigMessage').text(res.Message);
+            $('#assignDatabaseBtn').prop('disabled', true);
+        } else if (res.Data) {
+            var config = res.Data;
+            $('#adDatabaseIP').text(config.DatabaseIP);
+            $('#adDatabaseName').text(config.DatabaseName);
+            $('#adDatabaseUserId').text(config.DatabaseUserId);
+        }
+    });
+
+    var modal = new bootstrap.Modal(document.getElementById('assignDatabaseModal'));
     modal.show();
 }
 
-function updateCompanyStatus() {
-    var requestId = parseInt($('#crRequestId').val());
-    var status = $('#crStatus').val();
+function assignDatabase() {
+    var requestId = parseInt($('#adRequestId').val());
 
-    if (!status) {
-        Swal.fire('Validation Error', 'Please select a status', 'warning');
-        return;
-    }
-
-    $.ajax({
-        url: APP.baseUrl + 'AdminCompanyRequests/UpdateCompanyRequestStatus',
-        type: 'POST',
-        data: {
-            requestId: requestId,
-            status: status
-        },
-        success: function (res) {
-            if (res.Errors && res.Errors.length > 0) {
-                Swal.fire('Error', res.Message, 'error');
-            } else {
-                Swal.fire('Success', res.Message, 'success');
-                bootstrap.Modal.getInstance(document.getElementById('updateCompanyStatusModal')).hide();
-                loadCompanyRequests(companyCurrentPage);
-            }
-        },
-        error: function () {
-            Swal.fire('Error', 'Failed to update status', 'error');
+    Swal.fire({
+        title: 'Confirm Assignment',
+        text: 'Are you sure you want to assign this database configuration? The request will be marked as completed.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, Assign'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: APP.baseUrl + 'AdminCompanyRequests/AssignDatabase',
+                type: 'POST',
+                data: { requestId: requestId },
+                success: function (res) {
+                    if (res.Errors && res.Errors.length > 0) {
+                        Swal.fire('Error', res.Message, 'error');
+                    } else {
+                        Swal.fire('Success', res.Message, 'success');
+                        bootstrap.Modal.getInstance(document.getElementById('assignDatabaseModal')).hide();
+                        loadCompanyRequests(companyCurrentPage);
+                    }
+                },
+                error: function () {
+                    Swal.fire('Error', 'Failed to assign database', 'error');
+                }
+            });
         }
     });
 }
@@ -147,3 +290,10 @@ function renderCompanyPagination(totalRecords, page, pageSize) {
         );
     }
 }
+
+// Cleanup on page unload
+$(window).on('beforeunload', function () {
+    if (pollingInterval) {
+        clearInterval(pollingInterval);
+    }
+});

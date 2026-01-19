@@ -5,13 +5,13 @@
 }
 
 <div class="database-config-management">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4>Configuration Records</h4>
+        <button class="btn btn-primary" onclick="openCreateModal()">
+            <i class="fas fa-plus"></i> Add New Configuration
+        </button>
+    </div>
     <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h4>Configuration Records</h4>
-            <button class="btn btn-primary" onclick="openCreateModal()">
-                <i class="fas fa-plus"></i> Add New Configuration
-            </button>
-        </div>
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-bordered table-striped" id="configsTable">

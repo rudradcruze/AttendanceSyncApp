@@ -20,13 +20,13 @@
                 <li class="@(ViewBag.ActiveMenu == "Dashboard" ? "active" : "")">
                     <a href="@Url.Action("Index", "AdminDashboard")">Dashboard</a>
                 </li>
-                <li class="@(ViewBag.ActiveMenu == "Requests" ? "active" : "")">
-                    <a href="#requestsSubmenu" data-bs-toggle="collapse" aria-expanded="@(ViewBag.ActiveMenu == "Requests" ? "true" : "false")" class="dropdown-toggle">Requests</a>
-                    <ul class="collapse list-unstyled @(ViewBag.ActiveMenu == "Requests" ? "show" : "")" id="requestsSubmenu" style="padding-left: 20px;">
-                        <li>
+                <li class="@((ViewBag.ActiveMenu == "SyncRequests" || ViewBag.ActiveMenu == "CompanyRequests") ? "active" : "")">
+                    <a href="#requestsSubmenu" data-bs-toggle="collapse" aria-expanded="@((ViewBag.ActiveMenu == "SyncRequests" || ViewBag.ActiveMenu == "CompanyRequests") ? "true" : "false")" class="dropdown-toggle">Requests</a>
+                    <ul class="collapse list-unstyled @((ViewBag.ActiveMenu == "SyncRequests" || ViewBag.ActiveMenu == "CompanyRequests") ? "show" : "")" id="requestsSubmenu" style="padding-left: 20px;">
+                        <li class="@(ViewBag.ActiveMenu == "SyncRequests" ? "active" : "")">
                             <a href="@Url.Action("SyncRequests", "AdminRequests")" style="color: #adb5bd; font-size: 0.9em;">Sync Request</a>
                         </li>
-                        <li>
+                        <li class="@(ViewBag.ActiveMenu == "CompanyRequests" ? "active" : "")">
                             <a href="@Url.Action("Index", "AdminCompanyRequests")" style="color: #adb5bd; font-size: 0.9em;">Company Request</a>
                         </li>
                     </ul>
@@ -43,13 +43,13 @@
                 <li class="@(ViewBag.ActiveMenu == "Tools" ? "active" : "")">
                     <a href="@Url.Action("Index", "AdminTools")">Tools</a>
                 </li>
-                <li class="@(ViewBag.ActiveMenu == "Databases" ? "active" : "")">
-                    <a href="#databasesSubmenu" data-bs-toggle="collapse" aria-expanded="@(ViewBag.ActiveMenu == "Databases" ? "true" : "false")" class="dropdown-toggle">Databases</a>
-                    <ul class="collapse list-unstyled @(ViewBag.ActiveMenu == "Databases" ? "show" : "")" id="databasesSubmenu" style="padding-left: 20px;">
-                        <li>
+                <li class="@((ViewBag.ActiveMenu == "DatabaseConfigs" || ViewBag.ActiveMenu == "Assignments") ? "active" : "")">
+                    <a href="#databasesSubmenu" data-bs-toggle="collapse" aria-expanded="@((ViewBag.ActiveMenu == "DatabaseConfigs" || ViewBag.ActiveMenu == "Assignments") ? "true" : "false")" class="dropdown-toggle">Databases</a>
+                    <ul class="collapse list-unstyled @((ViewBag.ActiveMenu == "DatabaseConfigs" || ViewBag.ActiveMenu == "Assignments") ? "show" : "")" id="databasesSubmenu" style="padding-left: 20px;">
+                        <li class="@(ViewBag.ActiveMenu == "DatabaseConfigs" ? "active" : "")">
                             <a href="@Url.Action("Index", "AdminDatabaseConfigurations")" style="color: #adb5bd; font-size: 0.9em;">Database Configs</a>
                         </li>
-                        <li>
+                        <li class="@(ViewBag.ActiveMenu == "Assignments" ? "active" : "")">
                             <a href="@Url.Action("Index", "AdminDatabaseAssignments")" style="color: #adb5bd; font-size: 0.9em;">Database Assignments</a>
                         </li>
                     </ul>

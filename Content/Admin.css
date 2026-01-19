@@ -54,10 +54,16 @@
     padding-left: 25px;
 }
 
-.sidebar-menu li.active a {
+.sidebar-menu li.active > a {
     background: rgba(102, 126, 234, 0.3);
     color: white;
     border-left: 4px solid #667eea;
+}
+
+.sidebar-menu .collapse li.active > a {
+    background: rgba(255, 255, 255, 0.1);
+    border-left: none;
+    padding-left: 30px;
 }
 
 /* Main Content */

@@ -156,6 +156,26 @@ namespace AttandanceSyncApp.Controllers
         }
 
         [HttpPost]
+        public JsonResult CreateOnTheFlySynchronization(SyncRequestCreateDto dto)
+        {
+            var sessionId = CurrentSessionId;
+
+            if (CurrentUser == null || sessionId == 0)
+            {
+                return Json(ApiResponse<int>.Fail("Session expired"));
+            }
+
+            var result = _syncRequestService.CreateOnTheFlySynchronization(dto, CurrentUserId, sessionId);
+
+            if (!result.Success)
+            {
+                return Json(ApiResponse<int>.Fail(result.Message));
+            }
+
+            return Json(ApiResponse<int>.Success(result.Data, result.Message));
+        }
+
+        [HttpPost]
         public JsonResult CancelRequest(int id)
         {
             var result = _syncRequestService.CancelSyncRequest(id, CurrentUserId);

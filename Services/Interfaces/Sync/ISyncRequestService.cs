@@ -18,5 +18,6 @@ namespace AttandanceSyncApp.Services.Interfaces.Sync
         ServiceResult<IEnumerable<Tool>> GetActiveTools();
         ServiceResult<IEnumerable<EmployeeDto>> GetActiveEmployees();
         ServiceResult<IEnumerable<UserCompanyDatabaseDto>> GetUserCompanyDatabases(int userId);
+        ServiceResult<int> CreateOnTheFlySynchronization(SyncRequestCreateDto dto, int userId, int sessionId);
     }
 }

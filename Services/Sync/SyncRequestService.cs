@@ -291,12 +291,14 @@ namespace AttandanceSyncApp.Services.Sync
                 foreach (var request in userRequests)
                 {
                     // 4. EXPLICIT CHECK: Is the status "Completed" (CP)?
+                    // As requested: Check the company request status.
                     if (request.Status != "CP")
                     {
                         continue; // Skip if not completed
                     }
 
                     // 5. EXPLICIT CHECK: Does a database assignment exist for this request?
+                    // As requested: Using that request id go to DatabaseAssignments then check that it exist or not.
                     var dbAssign = _unitOfWork.DatabaseAssignments.GetByCompanyRequestId(request.Id);
                     
                     if (dbAssign == null)
@@ -306,6 +308,7 @@ namespace AttandanceSyncApp.Services.Sync
                     }
 
                     // 6. EXPLICIT CHECK: Is the assignment revoked?
+                    // As requested: If exist then it is revoked or not.
                     if (dbAssign.IsRevoked)
                     {
                         // Assignment exists but is revoked
@@ -337,6 +340,78 @@ namespace AttandanceSyncApp.Services.Sync
             catch (Exception ex)
             {
                 return ServiceResult<IEnumerable<UserCompanyDatabaseDto>>.FailureResult($"Failed to retrieve company databases: {ex.Message}");
+            }
+        }
+
+        public ServiceResult<int> CreateOnTheFlySynchronization(SyncRequestCreateDto dto, int userId, int sessionId)
+        {
+            try
+            {
+                // 1. Validate dates
+                if (!DateTime.TryParse(dto.FromDate, out DateTime fromDate) || !DateTime.TryParse(dto.ToDate, out DateTime toDate))
+                {
+                    return ServiceResult<int>.FailureResult("Invalid Date format");
+                }
+
+                if (fromDate > toDate)
+                {
+                    return ServiceResult<int>.FailureResult("From Date cannot be after To Date");
+                }
+
+                // 2. Get Database Configuration using the explicit logic we built earlier
+                // We need to find the valid assignment for this user/company/tool
+                var userDatabases = GetUserCompanyDatabases(userId);
+                if (!userDatabases.Success)
+                {
+                    return ServiceResult<int>.FailureResult("Failed to retrieve database configurations");
+                }
+
+                var targetDb = userDatabases.Data.FirstOrDefault(d => d.CompanyId == dto.CompanyId);
+                if (targetDb == null)
+                {
+                    return ServiceResult<int>.FailureResult("No active database assignment found for this company");
+                }
+
+                var dbConfig = _unitOfWork.DatabaseConfigurations.GetById(targetDb.DatabaseConfigurationId);
+                if (dbConfig == null)
+                {
+                    return ServiceResult<int>.FailureResult("Database configuration not found");
+                }
+
+                // 3. Connect to External DB and Create Record
+                int? externalId = Helpers.DynamicDbHelper.CreateSyncInExternalDb(dbConfig, fromDate, toDate, dto.CompanyId);
+                
+                // If external creation fails, we might still want to record the attempt locally but mark as failed?
+                // Or fail completely? User said "it will connect... and show below view". 
+                // Let's assume if it fails to connect, the request fails.
+                if (externalId == null)
+                {
+                    return ServiceResult<int>.FailureResult("Failed to connect to company database or create record");
+                }
+
+                // 4. Create Local Request Record
+                var request = new AttandanceSyncRequest
+                {
+                    UserId = userId,
+                    EmployeeId = dto.EmployeeId,
+                    CompanyId = dto.CompanyId,
+                    ToolId = dto.ToolId, // Should match the tool ID passed in DTO
+                    SessionId = sessionId,
+                    FromDate = fromDate,
+                    ToDate = toDate,
+                    ExternalSyncId = externalId,
+                    IsSuccessful = true, // It was successfully created in external DB
+                    CreatedAt = DateTime.Now
+                };
+
+                _unitOfWork.AttandanceSyncRequests.Add(request);
+                _unitOfWork.SaveChanges();
+
+                return ServiceResult<int>.SuccessResult(request.Id, "Synchronization created successfully");
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<int>.FailureResult($"Error: {ex.Message}");
             }
         }
 

@@ -16,13 +16,19 @@ namespace AttandanceSyncApp.Services.Admin
         // Define which tools are implemented
         private readonly HashSet<string> _implementedTools = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            "Attendance Sync"
+            "Attendance Sync",
+            "Attandance Sync",
+            "Attendance Tool",
+            "Attandance Tool"
         };
 
         // Map tool names to their route URLs
         private readonly Dictionary<string, string> _toolRoutes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
-            { "Attendance Sync", "~/Attandance/Index" }
+            { "Attendance Sync", "~/Attandance/Index" },
+            { "Attandance Sync", "~/Attandance/Index" },
+            { "Attendance Tool", "~/Attandance/Index" },
+            { "Attandance Tool", "~/Attandance/Index" }
         };
 
         public UserToolService(IAuthUnitOfWork unitOfWork)

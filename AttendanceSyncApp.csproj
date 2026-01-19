@@ -204,6 +204,10 @@
     <Compile Include="Migrations\202601190642195_AddRevokeToDatabaseAssign.designer.cs">
       <DependentUpon>202601190642195_AddRevokeToDatabaseAssign.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202601191038297_AddToolsAssginDB.cs" />
+    <Compile Include="Migrations\202601191038297_AddToolsAssginDB.Designer.cs">
+      <DependentUpon>202601191038297_AddToolsAssginDB.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AppDbContext.cs" />
     <Compile Include="Models\AttandanceSynchronization.cs" />
@@ -218,6 +222,8 @@
     <Compile Include="Models\DTOs\Admin\DatabaseAssignListDto.cs" />
     <Compile Include="Models\DTOs\Admin\DatabaseConfigDto.cs" />
     <Compile Include="Models\DTOs\Admin\EmployeeDto.cs" />
+    <Compile Include="Models\DTOs\Admin\ProcessRequestDto.cs" />
+    <Compile Include="Models\DTOs\Admin\RequestFilterDto.cs" />
     <Compile Include="Models\DTOs\Admin\RequestListDto.cs" />
     <Compile Include="Models\DTOs\Admin\ToolDto.cs" />
     <Compile Include="Models\DTOs\Admin\UserListDto.cs" />
@@ -388,6 +394,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202601190642195_AddRevokeToDatabaseAssign.resx">
       <DependentUpon>202601190642195_AddRevokeToDatabaseAssign.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202601191038297_AddToolsAssginDB.resx">
+      <DependentUpon>202601191038297_AddToolsAssginDB.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

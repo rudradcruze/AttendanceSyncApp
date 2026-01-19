@@ -13,10 +13,32 @@ namespace AttandanceSyncApp
         {
             routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
 
+            // Specific route for Root to go to Dashboard
+            routes.MapRoute(
+                name: "Dashboard",
+                url: "",
+                defaults: new { controller = "Attandance", action = "Dashboard" }
+            );
+
+            // Specific route for AdminDashboard
+            routes.MapRoute(
+                name: "AdminDashboard",
+                url: "AdminDashboard/{action}/{id}",
+                defaults: new { controller = "AdminDashboard", action = "Index", id = UrlParameter.Optional }
+            );
+
+            // Specific route for Attandance Tool
+            routes.MapRoute(
+                name: "AttandanceTool",
+                url: "Attandance/{action}/{id}",
+                defaults: new { controller = "Attandance", action = "Index", id = UrlParameter.Optional }
+            );
+
+            // Default route
             routes.MapRoute(
                 name: "Default",
                 url: "{controller}/{action}/{id}",
-                defaults: new { controller = "Attandance", action = "Index", id = UrlParameter.Optional }
+                defaults: new { controller = "Attandance", action = "Dashboard", id = UrlParameter.Optional }
             );
         }
     }

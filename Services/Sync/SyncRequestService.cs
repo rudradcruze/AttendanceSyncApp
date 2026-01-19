@@ -261,72 +261,75 @@ namespace AttandanceSyncApp.Services.Sync
         {
             try
             {
-                // Get user's completed company requests that have database assignments
-                // AND where user has the "Attendance Sync" tool assigned
+                var result = new List<UserCompanyDatabaseDto>();
+
+                // 1. Find the "Attendance Sync" tool (or variations)
+                var validToolNames = new[] { "Attendance Sync", "Attandance Sync", "Attendance Tool", "Attandance Tool" };
                 var attendanceSyncTool = _unitOfWork.Tools.GetAll()
-                    .FirstOrDefault(t => t.Name == "Attendance Sync" && t.IsActive);
+                    .FirstOrDefault(t => validToolNames.Contains(t.Name) && t.IsActive);
 
                 if (attendanceSyncTool == null)
                 {
-                    return ServiceResult<IEnumerable<UserCompanyDatabaseDto>>.SuccessResult(new List<UserCompanyDatabaseDto>());
+                    return ServiceResult<IEnumerable<UserCompanyDatabaseDto>>.SuccessResult(result);
                 }
 
-                // Check if user has the Attendance Sync tool assigned
+                // 2. Check if user has this tool assigned explicitly
                 var hasToolAccess = _unitOfWork.UserTools.HasActiveAssignment(userId, attendanceSyncTool.Id);
                 if (!hasToolAccess)
                 {
-                    return ServiceResult<IEnumerable<UserCompanyDatabaseDto>>.SuccessResult(new List<UserCompanyDatabaseDto>());
+                    return ServiceResult<IEnumerable<UserCompanyDatabaseDto>>.SuccessResult(result);
                 }
 
-                // Get completed company requests for user with the same tool
-                var companyRequests = _unitOfWork.CompanyRequests.Find(cr =>
+                // 3. Get ALL company requests for this user and tool that are NOT cancelled
+                // We fetch all non-cancelled ones first to then explicitly check status as requested
+                var userRequests = _unitOfWork.CompanyRequests.Find(cr =>
                     cr.UserId == userId &&
-                    cr.Status == "CP" &&
                     !cr.IsCancelled &&
                     cr.ToolId == attendanceSyncTool.Id)
                     .ToList();
 
-                if (!companyRequests.Any())
+                foreach (var request in userRequests)
                 {
-                    return ServiceResult<IEnumerable<UserCompanyDatabaseDto>>.SuccessResult(new List<UserCompanyDatabaseDto>());
-                }
-
-                var result = new List<UserCompanyDatabaseDto>();
-
-                foreach (var cr in companyRequests)
-                {
-                    // Get database assignment for this company request
-                    var dbAssign = _unitOfWork.DatabaseAssignments.GetByCompanyRequestId(cr.Id);
-                    if (dbAssign == null || dbAssign.IsRevoked)
+                    // 4. EXPLICIT CHECK: Is the status "Completed" (CP)?
+                    if (request.Status != "CP")
                     {
+                        continue; // Skip if not completed
+                    }
+
+                    // 5. EXPLICIT CHECK: Does a database assignment exist for this request?
+                    var dbAssign = _unitOfWork.DatabaseAssignments.GetByCompanyRequestId(request.Id);
+                    
+                    if (dbAssign == null)
+                    {
+                        // Assignment does not exist
+                        continue; 
+                    }
+
+                    // 6. EXPLICIT CHECK: Is the assignment revoked?
+                    if (dbAssign.IsRevoked)
+                    {
+                        // Assignment exists but is revoked
                         continue;
                     }
 
-                    // Get database configuration
+                    // 7. Get Configuration and Company details if valid
                     var dbConfig = _unitOfWork.DatabaseConfigurations.GetById(dbAssign.DatabaseConfigurationId);
-                    if (dbConfig == null)
-                    {
-                        continue;
-                    }
+                    var company = _unitOfWork.SyncCompanies.GetById(request.CompanyId);
 
-                    // Get company
-                    var company = _unitOfWork.SyncCompanies.GetById(cr.CompanyId);
-                    if (company == null)
+                    if (dbConfig != null && company != null)
                     {
-                        continue;
+                        result.Add(new UserCompanyDatabaseDto
+                        {
+                            CompanyRequestId = request.Id,
+                            DatabaseAssignmentId = dbAssign.Id,
+                            CompanyId = company.Id,
+                            CompanyName = company.Name,
+                            DatabaseName = dbConfig.DatabaseName,
+                            DatabaseConfigurationId = dbConfig.Id,
+                            ToolId = attendanceSyncTool.Id,
+                            ToolName = attendanceSyncTool.Name
+                        });
                     }
-
-                    result.Add(new UserCompanyDatabaseDto
-                    {
-                        CompanyRequestId = cr.Id,
-                        DatabaseAssignmentId = dbAssign.Id,
-                        CompanyId = company.Id,
-                        CompanyName = company.Name,
-                        DatabaseName = dbConfig.DatabaseName,
-                        DatabaseConfigurationId = dbConfig.Id,
-                        ToolId = attendanceSyncTool.Id,
-                        ToolName = attendanceSyncTool.Name
-                    });
                 }
 
                 return ServiceResult<IEnumerable<UserCompanyDatabaseDto>>.SuccessResult(result);

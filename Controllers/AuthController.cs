@@ -32,7 +32,7 @@ namespace AttandanceSyncApp.Controllers
                 {
                     return RedirectToAction("Index", "AdminDashboard");
                 }
-                return RedirectToAction("Index", "Attandance");
+                return RedirectToAction("Dashboard", "Attandance");
             }
 
             ViewBag.GoogleClientId = ConfigurationManager.AppSettings["GoogleClientId"];
@@ -44,7 +44,7 @@ namespace AttandanceSyncApp.Controllers
         {
             if (IsAuthenticated)
             {
-                return RedirectToAction("Index", "Attandance");
+                return RedirectToAction("Dashboard", "Attandance");
             }
 
             ViewBag.GoogleClientId = ConfigurationManager.AppSettings["GoogleClientId"];

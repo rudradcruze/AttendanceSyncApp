@@ -31,9 +31,9 @@ namespace AttandanceSyncApp.Controllers
 
         // GET: AdminRequests/GetAllRequests
         [HttpGet]
-        public JsonResult GetAllRequests(int page = 1, int pageSize = 20)
+        public JsonResult GetAllRequests(RequestFilterDto filter)
         {
-            var result = _adminRequestService.GetAllRequestsPaged(page, pageSize);
+            var result = _adminRequestService.GetRequestsFiltered(filter);
 
             if (!result.Success)
             {
@@ -41,6 +41,20 @@ namespace AttandanceSyncApp.Controllers
             }
 
             return Json(ApiResponse<object>.Success(result.Data), JsonRequestBehavior.AllowGet);
+        }
+
+        // POST: AdminRequests/ProcessRequest
+        [HttpPost]
+        public JsonResult ProcessRequest(ProcessRequestDto dto)
+        {
+            var result = _adminRequestService.ProcessRequest(dto.RequestId, dto.ExternalSyncId, dto.IsSuccessful);
+
+            if (!result.Success)
+            {
+                return Json(ApiResponse.Fail(result.Message));
+            }
+
+            return Json(ApiResponse.Success(result.Message));
         }
 
         // GET: AdminRequests/GetRequest

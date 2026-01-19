@@ -7,45 +7,69 @@ var pageSize = 20;
 $(function () {
     loadRequests(1);
 
-    // Test Connection Button
-    $('#testConnectionBtn').on('click', testConnection);
+    // Filter Buttons
+    $('#applyFiltersBtn').on('click', function() {
+        loadRequests(1);
+    });
 
-    // Assign Database Button
-    $('#assignDatabaseBtn').on('click', assignDatabase);
+    $('#resetFiltersBtn').on('click', function() {
+        $('#filterUser').val('');
+        $('#filterCompany').val('');
+        $('#filterStatus').val('');
+        $('#filterFromDate').val('');
+        $('#filterToDate').val('');
+        loadRequests(1);
+    });
+
+    // Process Save Button
+    $('#saveProcessBtn').on('click', saveProcess);
 });
 
 function loadRequests(page) {
     currentPage = page;
 
-    $.get(APP.baseUrl + 'AdminRequests/GetAllRequests', {
-        page: page,
-        pageSize: pageSize
-    }, function (res) {
+    var filter = {
+        Page: page,
+        PageSize: pageSize,
+        UserSearch: $('#filterUser').val(),
+        CompanyId: $('#filterCompany').val() ? parseInt($('#filterCompany').val()) : null,
+        Status: $('#filterStatus').val(),
+        FromDate: $('#filterFromDate').val(),
+        ToDate: $('#filterToDate').val()
+    };
+
+    $.get(APP.baseUrl + 'AdminRequests/GetAllRequests', filter, function (res) {
         var tbody = $('#requestsTable tbody').empty();
 
         if (res.Errors && res.Errors.length > 0) {
-            tbody.append('<tr><td colspan="7" class="text-danger">' + res.Message + '</td></tr>');
+            tbody.append('<tr><td colspan="9" class="text-danger">' + res.Message + '</td></tr>');
             return;
         }
 
         var data = res.Data;
         if (!data.Data || !data.Data.length) {
-            tbody.append('<tr><td colspan="7">No requests found</td></tr>');
+            tbody.append('<tr><td colspan="9" class="text-center">No requests found</td></tr>');
             return;
         }
 
         $.each(data.Data, function (_, item) {
-            var statusBadge = getStatusBadge(item.Status);
-            var actionBtn = item.Status !== 'CP'
-                ? '<button class="btn btn-sm btn-primary" onclick="openAssignModal(' + item.Id + ')">Assign DB</button>'
-                : '<span class="text-success">Assigned</span>';
+            var statusBadge = getStatusBadge(item.IsSuccessful);
+            var externalIdDisplay = item.ExternalSyncId ? item.ExternalSyncId : '<span class="text-muted">-</span>';
+            
+            var actionBtn = '';
+            if (item.IsSuccessful === null) {
+                actionBtn = '<button class="btn btn-sm btn-primary" onclick="openProcessModal(' + item.Id + ')">Process</button>';
+            } else {
+                 actionBtn = '<button class="btn btn-sm btn-outline-secondary" onclick="openProcessModal(' + item.Id + ', ' + item.ExternalSyncId + ', ' + item.IsSuccessful + ')">Edit</button>';
+            }
 
             tbody.append(
                 '<tr>' +
                 '<td>' + item.Id + '</td>' +
-                '<td>' + item.UserName + '</td>' +
+                '<td>' + item.UserName + '<br><small class="text-muted">' + item.UserEmail + '</small></td>' +
                 '<td>' + item.CompanyName + '</td>' +
                 '<td>' + item.ToolName + '</td>' +
+                '<td>' + externalIdDisplay + '</td>' +
                 '<td>' + statusBadge + '</td>' +
                 '<td>' + formatDateTime(item.CreatedAt) + '</td>' +
                 '<td>' + formatDateTime(item.UpdatedAt) + '</td>' +
@@ -58,102 +82,58 @@ function loadRequests(page) {
     });
 }
 
-function openAssignModal(requestId) {
-    // Reset form
-    $('#requestId').val(requestId);
-    $('#databaseIP').val('.');
-    $('#databaseName').val('');
-    $('#databaseUserId').val('');
-    $('#databasePassword').val('');
-    $('#connectionStatus').text('');
+function openProcessModal(requestId, currentExtId, currentSuccess) {
+    $('#processRequestId').val(requestId);
+    
+    if (currentExtId !== undefined) {
+        $('#externalSyncId').val(currentExtId);
+        $('#processOutcome').val(currentSuccess.toString());
+    } else {
+        $('#externalSyncId').val('');
+        $('#processOutcome').val('true');
+    }
 
-    // Load request info
-    $.get(APP.baseUrl + 'AdminRequests/GetRequest', { id: requestId }, function (res) {
-        if (res.Data) {
-            var req = res.Data;
-            $('#reqUserName').text(req.UserName);
-            $('#reqUserEmail').text(req.UserEmail);
-            $('#reqCompanyName').text(req.CompanyName);
-            $('#reqToolName').text(req.ToolName);
-        }
-    });
-
-    var modal = new bootstrap.Modal(document.getElementById('assignDatabaseModal'));
+    var modal = new bootstrap.Modal(document.getElementById('processRequestModal'));
     modal.show();
 }
 
-function testConnection() {
+function saveProcess() {
     var data = {
-        DatabaseIP: $('#databaseIP').val(),
-        DatabaseName: $('#databaseName').val(),
-        DatabaseUserId: $('#databaseUserId').val(),
-        DatabasePassword: $('#databasePassword').val()
+        RequestId: parseInt($('#processRequestId').val()),
+        ExternalSyncId: $('#externalSyncId').val() ? parseInt($('#externalSyncId').val()) : null,
+        IsSuccessful: $('#processOutcome').val() === 'true'
     };
 
-    if (!data.DatabaseIP || !data.DatabaseName || !data.DatabaseUserId || !data.DatabasePassword) {
-        $('#connectionStatus').html('<span class="text-danger">All fields are required</span>');
-        return;
-    }
-
-    $('#connectionStatus').html('<span class="text-info">Testing...</span>');
-
-    $.ajax({
-        url: APP.baseUrl + 'AdminRequests/TestDatabaseConnection',
-        type: 'POST',
-        data: data,
-        success: function (res) {
-            if (res.Errors && res.Errors.length > 0) {
-                $('#connectionStatus').html('<span class="text-danger">Failed: ' + res.Message + '</span>');
-            } else {
-                $('#connectionStatus').html('<span class="text-success">Connection successful!</span>');
-            }
-        },
-        error: function () {
-            $('#connectionStatus').html('<span class="text-danger">Connection failed</span>');
-        }
-    });
-}
-
-function assignDatabase() {
-    var data = {
-        RequestId: parseInt($('#requestId').val()),
-        DatabaseIP: $('#databaseIP').val(),
-        DatabaseName: $('#databaseName').val(),
-        DatabaseUserId: $('#databaseUserId').val(),
-        DatabasePassword: $('#databasePassword').val()
-    };
-
-    if (!data.DatabaseIP || !data.DatabaseName || !data.DatabaseUserId || !data.DatabasePassword) {
-        alert('All fields are required');
-        return;
+    if (!data.ExternalSyncId) {
+        // Optional? User asked to "set ExternalSyncId". Assume required or at least warned.
+        // Let's make it optional if they just want to mark as failed? 
+        // But usually sync implies an external ID.
+        // I'll leave it valid if empty, passing null.
     }
 
     $.ajax({
-        url: APP.baseUrl + 'AdminRequests/AssignDatabase',
+        url: APP.baseUrl + 'AdminRequests/ProcessRequest',
         type: 'POST',
         data: data,
         success: function (res) {
             if (res.Errors && res.Errors.length > 0) {
                 alert('Error: ' + res.Message);
             } else {
-                alert('Database assigned successfully! Request marked as Completed.');
-                bootstrap.Modal.getInstance(document.getElementById('assignDatabaseModal')).hide();
+                alert('Request processed successfully!');
+                bootstrap.Modal.getInstance(document.getElementById('processRequestModal')).hide();
                 loadRequests(currentPage);
             }
         },
         error: function () {
-            alert('Failed to assign database');
+            alert('Failed to process request');
         }
     });
 }
 
-function getStatusBadge(status) {
-    var statusMap = {
-        'NR': '<span class="badge bg-warning">New Request</span>',
-        'IP': '<span class="badge bg-info">In Progress</span>',
-        'CP': '<span class="badge bg-success">Completed</span>'
-    };
-    return statusMap[status] || status;
+function getStatusBadge(isSuccessful) {
+    if (isSuccessful === true) return '<span class="badge bg-success">Completed</span>';
+    if (isSuccessful === false) return '<span class="badge bg-danger">Failed</span>';
+    return '<span class="badge bg-warning text-dark">Pending</span>';
 }
 
 function renderPagination(totalRecords, page, pageSize) {

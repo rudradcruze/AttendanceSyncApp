@@ -12,5 +12,6 @@ namespace AttandanceSyncApp.Repositories.Interfaces.Sync
         AttandanceSyncRequest GetWithConfiguration(int id);
         int GetTotalCount();
         int GetTotalCountByUserId(int userId);
+        IEnumerable<AttandanceSyncRequest> GetFiltered(string userSearch, int? companyId, string status, System.DateTime? fromDate, System.DateTime? toDate, int page, int pageSize, out int totalCount);
     }
 }

@@ -18,37 +18,51 @@ namespace AttandanceSyncApp.Services.Admin
 
         public ServiceResult<PagedResultDto<RequestListDto>> GetAllRequestsPaged(int page, int pageSize)
         {
+            return GetRequestsFiltered(new RequestFilterDto { Page = page, PageSize = pageSize });
+        }
+
+        public ServiceResult<PagedResultDto<RequestListDto>> GetRequestsFiltered(RequestFilterDto filter)
+        {
             try
             {
-                var totalCount = _unitOfWork.AttandanceSyncRequests.GetTotalCount();
-                var requests = _unitOfWork.AttandanceSyncRequests.GetPaged(page, pageSize)
-                    .Select(r => new RequestListDto
-                    {
-                        Id = r.Id,
-                        UserId = r.UserId,
-                        UserName = r.User?.Name ?? "Unknown",
-                        UserEmail = r.User?.Email ?? "Unknown",
-                        EmployeeId = r.EmployeeId,
-                        EmployeeName = r.Employee?.Name ?? "Unknown",
-                        CompanyId = r.CompanyId,
-                        CompanyName = r.Company?.Name ?? "Unknown",
-                        ToolId = r.ToolId,
-                        ToolName = r.Tool?.Name ?? "Unknown",
-                        ExternalSyncId = r.ExternalSyncId,
-                        IsSuccessful = r.IsSuccessful,
-                        Status = GetStatusText(r.IsSuccessful),
-                        FromDate = r.FromDate,
-                        ToDate = r.ToDate,
-                        CreatedAt = r.CreatedAt,
-                        HasDatabaseConfig = r.DatabaseConfiguration != null
-                    })
-                    .ToList();
+                int totalCount;
+                var requests = _unitOfWork.AttandanceSyncRequests.GetFiltered(
+                    filter.UserSearch,
+                    filter.CompanyId,
+                    filter.Status,
+                    filter.FromDate,
+                    filter.ToDate,
+                    filter.Page,
+                    filter.PageSize,
+                    out totalCount
+                )
+                .Select(r => new RequestListDto
+                {
+                    Id = r.Id,
+                    UserId = r.UserId,
+                    UserName = r.User?.Name ?? "Unknown",
+                    UserEmail = r.User?.Email ?? "Unknown",
+                    EmployeeId = r.EmployeeId,
+                    EmployeeName = r.Employee?.Name ?? "Unknown",
+                    CompanyId = r.CompanyId,
+                    CompanyName = r.Company?.Name ?? "Unknown",
+                    ToolId = r.ToolId,
+                    ToolName = r.Tool?.Name ?? "Unknown",
+                    ExternalSyncId = r.ExternalSyncId,
+                    IsSuccessful = r.IsSuccessful,
+                    Status = GetStatusText(r.IsSuccessful),
+                    FromDate = r.FromDate,
+                    ToDate = r.ToDate,
+                    CreatedAt = r.CreatedAt,
+                    HasDatabaseConfig = r.DatabaseConfiguration != null
+                })
+                .ToList();
 
                 var result = new PagedResultDto<RequestListDto>
                 {
                     TotalRecords = totalCount,
-                    Page = page,
-                    PageSize = pageSize,
+                    Page = filter.Page,
+                    PageSize = filter.PageSize,
                     Data = requests
                 };
 
@@ -142,6 +156,31 @@ namespace AttandanceSyncApp.Services.Admin
             catch (Exception ex)
             {
                 return ServiceResult.FailureResult($"Failed to update request: {ex.Message}");
+            }
+        }
+
+        public ServiceResult ProcessRequest(int requestId, int? externalSyncId, bool isSuccessful)
+        {
+            try
+            {
+                var request = _unitOfWork.AttandanceSyncRequests.GetById(requestId);
+                if (request == null)
+                {
+                    return ServiceResult.FailureResult("Request not found");
+                }
+
+                request.ExternalSyncId = externalSyncId;
+                request.IsSuccessful = isSuccessful;
+                request.UpdatedAt = DateTime.Now;
+
+                _unitOfWork.AttandanceSyncRequests.Update(request);
+                _unitOfWork.SaveChanges();
+
+                return ServiceResult.SuccessResult("Request processed successfully");
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult.FailureResult($"Failed to process request: {ex.Message}");
             }
         }
 

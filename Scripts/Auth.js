@@ -17,7 +17,7 @@ function handleGoogleSignIn(response) {
                     if (res.Data.Role === 'ADMIN') {
                         window.location.href = APP.baseUrl + 'AdminDashboard';
                     } else {
-                        window.location.href = APP.baseUrl + 'Attandance';
+                        window.location.href = APP.baseUrl;
                     }
                 }, 1000);
             }
@@ -44,7 +44,7 @@ function handleGoogleSignUp(response) {
             } else if (res.Data) {
                 showMessage('Registration successful! Redirecting...', 'success');
                 setTimeout(function () {
-                    window.location.href = APP.baseUrl + 'Attandance';
+                    window.location.href = APP.baseUrl;
                 }, 1000);
             }
         },

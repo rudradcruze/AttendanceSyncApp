@@ -20,6 +20,7 @@ namespace AttandanceSyncApp.Repositories
         private ICompanyRequestRepository _companyRequestRepository;
         private IDatabaseConfigurationRepository _dbConfigRepository;
         private IDatabaseAssignRepository _databaseAssignRepository;
+        private IUserToolRepository _userToolRepository;
 
         public AuthUnitOfWork()
         {
@@ -57,6 +58,9 @@ namespace AttandanceSyncApp.Repositories
 
         public IDatabaseAssignRepository DatabaseAssignments =>
             _databaseAssignRepository ?? (_databaseAssignRepository = new DatabaseAssignRepository(_context));
+
+        public IUserToolRepository UserTools =>
+            _userToolRepository ?? (_userToolRepository = new UserToolRepository(_context));
 
         public int SaveChanges()
         {

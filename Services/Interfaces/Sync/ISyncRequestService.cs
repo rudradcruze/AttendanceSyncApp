@@ -17,5 +17,6 @@ namespace AttandanceSyncApp.Services.Interfaces.Sync
         ServiceResult<IEnumerable<SyncCompany>> GetActiveCompanies();
         ServiceResult<IEnumerable<Tool>> GetActiveTools();
         ServiceResult<IEnumerable<EmployeeDto>> GetActiveEmployees();
+        ServiceResult<IEnumerable<UserCompanyDatabaseDto>> GetUserCompanyDatabases(int userId);
     }
 }

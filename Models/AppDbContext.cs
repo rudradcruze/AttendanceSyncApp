@@ -12,6 +12,13 @@ namespace AttandanceSyncApp.Models
         {
         }
 
+        /// <summary>
+        /// Constructor for dynamic connection strings (external databases)
+        /// </summary>
+        public AppDbContext(string connectionString) : base(connectionString)
+        {
+        }
+
         public DbSet<Company> Companies { get; set; }
         public DbSet<AttandanceSynchronization> AttandanceSynchronizations { get; set; }
 

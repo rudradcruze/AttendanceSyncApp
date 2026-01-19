@@ -131,7 +131,9 @@
     <Content Include="Scripts\Admin\SyncRequests.js" />
     <Content Include="Scripts\Admin\Tools.js" />
     <Content Include="Scripts\Admin\Users.js" />
+    <Content Include="Scripts\Admin\UserTools.js" />
     <Content Include="Scripts\Attandance.js" />
+    <Content Include="Scripts\Attandance\AttandanceSync.js" />
     <Content Include="Scripts\Attandance\Requests.js" />
     <Content Include="Scripts\Auth.js" />
     <Content Include="Scripts\bootstrap.bundle.js" />
@@ -147,6 +149,7 @@
     <Content Include="Scripts\jquery-3.7.1.slim.js" />
     <Content Include="Scripts\jquery-3.7.1.slim.min.js" />
     <Content Include="Scripts\sweetalert2%4011.js" />
+    <Content Include="Scripts\User\Dashboard.js" />
     <Content Include="Scripts\User\User.js" />
     <Content Include="Scripts\CompanyRequest\CompanyRequest.js" />
     <Content Include="Web.config" />
@@ -165,6 +168,7 @@
     <Compile Include="Controllers\AdminRequestsController.cs" />
     <Compile Include="Controllers\AdminToolsController.cs" />
     <Compile Include="Controllers\AdminUsersController.cs" />
+    <Compile Include="Controllers\AdminUserToolsController.cs" />
     <Compile Include="Controllers\AttandanceController.cs" />
     <Compile Include="Controllers\AuthController.cs" />
     <Compile Include="Controllers\BaseController.cs" />
@@ -174,6 +178,7 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Helpers\DynamicDbHelper.cs" />
     <Compile Include="Helpers\EncryptionHelper.cs" />
     <Compile Include="Migrations\202601180421452_AddEmployeeAndUpdateSyncRequest.cs" />
     <Compile Include="Migrations\202601180421452_AddEmployeeAndUpdateSyncRequest.designer.cs">
@@ -216,6 +221,7 @@
     <Compile Include="Models\DTOs\Admin\RequestListDto.cs" />
     <Compile Include="Models\DTOs\Admin\ToolDto.cs" />
     <Compile Include="Models\DTOs\Admin\UserListDto.cs" />
+    <Compile Include="Models\DTOs\Admin\UserToolDto.cs" />
     <Compile Include="Models\DTOs\ApiResponse.cs" />
     <Compile Include="Models\DTOs\AttandanceSynchronizationDto.cs" />
     <Compile Include="Models\DTOs\Auth\GoogleAuthDto.cs" />
@@ -228,6 +234,7 @@
     <Compile Include="Models\DTOs\Sync\DatabaseConnectionDto.cs" />
     <Compile Include="Models\DTOs\Sync\SyncRequestCreateDto.cs" />
     <Compile Include="Models\DTOs\Sync\SyncRequestDto.cs" />
+    <Compile Include="Models\DTOs\Sync\UserCompanyDatabaseDto.cs" />
     <Compile Include="Models\DynamicDbContext.cs" />
     <Compile Include="Models\Sync\AttandanceSyncRequest.cs" />
     <Compile Include="Models\Sync\DatabaseAssign.cs" />
@@ -239,6 +246,7 @@
     <Compile Include="Models\DTOs\CompanyRequest\CompanyRequestDto.cs" />
     <Compile Include="Models\DTOs\CompanyRequest\CompanyRequestCreateDto.cs" />
     <Compile Include="Models\DTOs\CompanyRequest\CompanyRequestListDto.cs" />
+    <Compile Include="Models\Sync\UserTool.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Repositories\AttandanceSynchronizationRepository.cs" />
     <Compile Include="Repositories\AuthUnitOfWork.cs" />
@@ -259,6 +267,7 @@
     <Compile Include="Repositories\Interfaces\Sync\ISyncCompanyRepository.cs" />
     <Compile Include="Repositories\Interfaces\Sync\IToolRepository.cs" />
     <Compile Include="Repositories\Interfaces\Sync\ICompanyRequestRepository.cs" />
+    <Compile Include="Repositories\Interfaces\Sync\IUserToolRepository.cs" />
     <Compile Include="Repositories\Repository.cs" />
     <Compile Include="Repositories\Sync\AttandanceSyncRequestRepository.cs" />
     <Compile Include="Repositories\Sync\DatabaseAssignRepository.cs" />
@@ -267,6 +276,7 @@
     <Compile Include="Repositories\Sync\SyncCompanyRepository.cs" />
     <Compile Include="Repositories\Sync\ToolRepository.cs" />
     <Compile Include="Repositories\Sync\CompanyRequestRepository.cs" />
+    <Compile Include="Repositories\Sync\UserToolRepository.cs" />
     <Compile Include="Repositories\UnitOfWork.cs" />
     <Compile Include="Services\Admin\AdminDatabaseAssignmentService.cs" />
     <Compile Include="Services\Admin\AdminDatabaseConfigService.cs" />
@@ -277,6 +287,7 @@
     <Compile Include="Services\Admin\EmployeeService.cs" />
     <Compile Include="Services\Admin\ToolManagementService.cs" />
     <Compile Include="Services\Admin\AdminCompanyRequestService.cs" />
+    <Compile Include="Services\Admin\UserToolService.cs" />
     <Compile Include="Services\AttandanceSynchronizationService.cs" />
     <Compile Include="Services\Auth\AuthService.cs" />
     <Compile Include="Services\Auth\GoogleAuthService.cs" />
@@ -291,6 +302,7 @@
     <Compile Include="Services\Interfaces\Admin\IEmployeeService.cs" />
     <Compile Include="Services\Interfaces\Admin\IToolManagementService.cs" />
     <Compile Include="Services\Interfaces\Admin\IAdminCompanyRequestService.cs" />
+    <Compile Include="Services\Interfaces\Admin\IUserToolService.cs" />
     <Compile Include="Services\Interfaces\Auth\IAuthService.cs" />
     <Compile Include="Services\Interfaces\Auth\IGoogleAuthService.cs" />
     <Compile Include="Services\Interfaces\Auth\ISessionService.cs" />
@@ -346,6 +358,8 @@
     <Content Include="Views\Admin\DatabaseConfigurations.cshtml" />
     <Content Include="Views\Admin\DatabaseAssignments.cshtml" />
     <Content Include="Views\Shared\AccessDenied.cshtml" />
+    <Content Include="Views\Admin\UserTools.cshtml" />
+    <Content Include="Views\Attandance\Dashboard.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

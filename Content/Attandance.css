@@ -59,3 +59,44 @@
     overflow-x: auto;
     padding: 10px 0;
 }
+
+/* Filter Section Styling */
+.filter-section {
+    background: #f8f9fa;
+    padding: 20px 25px;
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+}
+
+.filter-section .form-label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #495057;
+    margin-bottom: 5px;
+}
+
+.filter-section .form-control,
+.filter-section .form-select {
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+}
+
+.filter-section .btn {
+    border-radius: 8px;
+}
+
+/* Additional Status Badges */
+.status-pending {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.status-completed {
+    background-color: #28a745;
+    color: #fff;
+}
+
+.status-failed {
+    background-color: #dc3545;
+    color: #fff;
+}

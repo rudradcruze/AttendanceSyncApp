@@ -44,6 +44,7 @@ namespace AttandanceSyncApp.Models.Auth
         public virtual ICollection<AttandanceSyncRequest> SyncRequests { get; set; }
         public virtual ICollection<CompanyRequest> CompanyRequests { get; set; }
         public virtual ICollection<DatabaseConfiguration> AssignedConfigurations { get; set; }
+        public virtual ICollection<UserTool> UserTools { get; set; }
 
         public User()
         {
@@ -51,6 +52,7 @@ namespace AttandanceSyncApp.Models.Auth
             SyncRequests = new HashSet<AttandanceSyncRequest>();
             CompanyRequests = new HashSet<CompanyRequest>();
             AssignedConfigurations = new HashSet<DatabaseConfiguration>();
+            UserTools = new HashSet<UserTool>();
         }
     }
 }

@@ -3,9 +3,12 @@ using System.Linq;
 using System.Web.Mvc;
 using AttandanceSyncApp.Controllers.Filters;
 using AttandanceSyncApp.Models.DTOs;
+using AttandanceSyncApp.Models.DTOs.Admin;
 using AttandanceSyncApp.Models.DTOs.Sync;
 using AttandanceSyncApp.Repositories;
 using AttandanceSyncApp.Repositories.Interfaces;
+using AttandanceSyncApp.Services.Admin;
+using AttandanceSyncApp.Services.Interfaces.Admin;
 using AttandanceSyncApp.Services.Interfaces.Sync;
 using AttandanceSyncApp.Services.Sync;
 
@@ -18,18 +21,21 @@ namespace AttandanceSyncApp.Controllers
     public class AttandanceController : BaseController
     {
         private readonly ISyncRequestService _syncRequestService;
+        private readonly IUserToolService _userToolService;
         private readonly IAuthUnitOfWork _authUnitOfWork;
 
         public AttandanceController() : base()
         {
             _authUnitOfWork = new AuthUnitOfWork();
             _syncRequestService = new SyncRequestService(_authUnitOfWork);
+            _userToolService = new UserToolService(_authUnitOfWork);
         }
 
-        public AttandanceController(ISyncRequestService syncRequestService, IAuthUnitOfWork unitOfWork)
+        public AttandanceController(ISyncRequestService syncRequestService, IUserToolService userToolService, IAuthUnitOfWork unitOfWork)
             : base()
         {
             _syncRequestService = syncRequestService;
+            _userToolService = userToolService;
             _authUnitOfWork = unitOfWork;
         }
 
@@ -37,7 +43,9 @@ namespace AttandanceSyncApp.Controllers
         {
             if (IsAdmin)
             {
-                if (filterContext.ActionDescriptor.ActionName.Equals("Index", System.StringComparison.OrdinalIgnoreCase))
+                var actionName = filterContext.ActionDescriptor.ActionName;
+                if (actionName.Equals("Index", System.StringComparison.OrdinalIgnoreCase) ||
+                    actionName.Equals("Dashboard", System.StringComparison.OrdinalIgnoreCase))
                 {
                     filterContext.Result = new RedirectResult("~/AdminDashboard");
                     return;
@@ -50,10 +58,44 @@ namespace AttandanceSyncApp.Controllers
             base.OnActionExecuting(filterContext);
         }
 
-        // GET: Attandance/Index - Main dashboard
+        // GET: Attandance/Dashboard - User dashboard with tool cards (NEW LANDING PAGE)
+        public ActionResult Dashboard()
+        {
+            return View();
+        }
+
+        // GET: Attandance/Index - Attendance sync page
         public ActionResult Index()
         {
             return View();
+        }
+
+        // GET: Attandance/GetMyTools - Get user's assigned tools
+        [HttpGet]
+        public JsonResult GetMyTools()
+        {
+            var result = _userToolService.GetUserAssignedTools(CurrentUserId);
+
+            if (!result.Success)
+            {
+                return Json(ApiResponse<IEnumerable<AssignedToolDto>>.Fail(result.Message), JsonRequestBehavior.AllowGet);
+            }
+
+            return Json(ApiResponse<IEnumerable<AssignedToolDto>>.Success(result.Data), JsonRequestBehavior.AllowGet);
+        }
+
+        // GET: Attandance/GetMyCompanyDatabases - Get user's assigned company databases
+        [HttpGet]
+        public JsonResult GetMyCompanyDatabases()
+        {
+            var result = _syncRequestService.GetUserCompanyDatabases(CurrentUserId);
+
+            if (!result.Success)
+            {
+                return Json(ApiResponse<IEnumerable<UserCompanyDatabaseDto>>.Fail(result.Message), JsonRequestBehavior.AllowGet);
+            }
+
+            return Json(ApiResponse<IEnumerable<UserCompanyDatabaseDto>>.Success(result.Data), JsonRequestBehavior.AllowGet);
         }
 
         // GET: Attandance/Requests - User's requests page (CompanyRequest)

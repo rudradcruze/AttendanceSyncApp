@@ -257,6 +257,86 @@ namespace AttandanceSyncApp.Services.Sync
             }
         }
 
+        public ServiceResult<IEnumerable<UserCompanyDatabaseDto>> GetUserCompanyDatabases(int userId)
+        {
+            try
+            {
+                // Get user's completed company requests that have database assignments
+                // AND where user has the "Attendance Sync" tool assigned
+                var attendanceSyncTool = _unitOfWork.Tools.GetAll()
+                    .FirstOrDefault(t => t.Name == "Attendance Sync" && t.IsActive);
+
+                if (attendanceSyncTool == null)
+                {
+                    return ServiceResult<IEnumerable<UserCompanyDatabaseDto>>.SuccessResult(new List<UserCompanyDatabaseDto>());
+                }
+
+                // Check if user has the Attendance Sync tool assigned
+                var hasToolAccess = _unitOfWork.UserTools.HasActiveAssignment(userId, attendanceSyncTool.Id);
+                if (!hasToolAccess)
+                {
+                    return ServiceResult<IEnumerable<UserCompanyDatabaseDto>>.SuccessResult(new List<UserCompanyDatabaseDto>());
+                }
+
+                // Get completed company requests for user with the same tool
+                var companyRequests = _unitOfWork.CompanyRequests.Find(cr =>
+                    cr.UserId == userId &&
+                    cr.Status == "CP" &&
+                    !cr.IsCancelled &&
+                    cr.ToolId == attendanceSyncTool.Id)
+                    .ToList();
+
+                if (!companyRequests.Any())
+                {
+                    return ServiceResult<IEnumerable<UserCompanyDatabaseDto>>.SuccessResult(new List<UserCompanyDatabaseDto>());
+                }
+
+                var result = new List<UserCompanyDatabaseDto>();
+
+                foreach (var cr in companyRequests)
+                {
+                    // Get database assignment for this company request
+                    var dbAssign = _unitOfWork.DatabaseAssignments.GetByCompanyRequestId(cr.Id);
+                    if (dbAssign == null || dbAssign.IsRevoked)
+                    {
+                        continue;
+                    }
+
+                    // Get database configuration
+                    var dbConfig = _unitOfWork.DatabaseConfigurations.GetById(dbAssign.DatabaseConfigurationId);
+                    if (dbConfig == null)
+                    {
+                        continue;
+                    }
+
+                    // Get company
+                    var company = _unitOfWork.SyncCompanies.GetById(cr.CompanyId);
+                    if (company == null)
+                    {
+                        continue;
+                    }
+
+                    result.Add(new UserCompanyDatabaseDto
+                    {
+                        CompanyRequestId = cr.Id,
+                        DatabaseAssignmentId = dbAssign.Id,
+                        CompanyId = company.Id,
+                        CompanyName = company.Name,
+                        DatabaseName = dbConfig.DatabaseName,
+                        DatabaseConfigurationId = dbConfig.Id,
+                        ToolId = attendanceSyncTool.Id,
+                        ToolName = attendanceSyncTool.Name
+                    });
+                }
+
+                return ServiceResult<IEnumerable<UserCompanyDatabaseDto>>.SuccessResult(result);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<IEnumerable<UserCompanyDatabaseDto>>.FailureResult($"Failed to retrieve company databases: {ex.Message}");
+            }
+        }
+
         private static string GetStatusText(bool? isSuccessful)
         {
             if (isSuccessful == null) return "Pending";

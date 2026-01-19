@@ -1,0 +1,14 @@
+namespace AttandanceSyncApp.Models.DTOs.Sync
+{
+    public class UserCompanyDatabaseDto
+    {
+        public int CompanyRequestId { get; set; }
+        public int DatabaseAssignmentId { get; set; }
+        public int CompanyId { get; set; }
+        public string CompanyName { get; set; }
+        public string DatabaseName { get; set; }
+        public int DatabaseConfigurationId { get; set; }
+        public int ToolId { get; set; }
+        public string ToolName { get; set; }
+    }
+}

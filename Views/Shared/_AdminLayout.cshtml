@@ -43,6 +43,9 @@
                 <li class="@(ViewBag.ActiveMenu == "Tools" ? "active" : "")">
                     <a href="@Url.Action("Index", "AdminTools")">Tools</a>
                 </li>
+                <li class="@(ViewBag.ActiveMenu == "UserTools" ? "active" : "")">
+                    <a href="@Url.Action("Index", "AdminUserTools")">User Tools</a>
+                </li>
                 <li class="@((ViewBag.ActiveMenu == "DatabaseConfigs" || ViewBag.ActiveMenu == "Assignments") ? "active" : "")">
                     <a href="#databasesSubmenu" data-bs-toggle="collapse" aria-expanded="@((ViewBag.ActiveMenu == "DatabaseConfigs" || ViewBag.ActiveMenu == "Assignments") ? "true" : "false")" class="dropdown-toggle">Databases</a>
                     <ul class="collapse list-unstyled @((ViewBag.ActiveMenu == "DatabaseConfigs" || ViewBag.ActiveMenu == "Assignments") ? "show" : "")" id="databasesSubmenu" style="padding-left: 20px;">

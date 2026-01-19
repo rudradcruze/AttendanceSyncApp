@@ -25,6 +25,7 @@ namespace AttandanceSyncApp.Models
         public DbSet<CompanyRequest> CompanyRequests { get; set; }
         public DbSet<DatabaseConfiguration> DatabaseConfigurations { get; set; }
         public DbSet<DatabaseAssign> DatabaseAssignments { get; set; }
+        public DbSet<UserTool> UserTools { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -158,6 +159,31 @@ namespace AttandanceSyncApp.Models
             modelBuilder.Entity<DatabaseAssign>()
                 .HasIndex(da => da.CompanyRequestId)
                 .IsUnique();
+
+            // UserTool - User relationship (one-to-many)
+            modelBuilder.Entity<UserTool>()
+                .HasRequired(ut => ut.User)
+                .WithMany(u => u.UserTools)
+                .HasForeignKey(ut => ut.UserId)
+                .WillCascadeOnDelete(false);
+
+            // UserTool - Tool relationship (one-to-many)
+            modelBuilder.Entity<UserTool>()
+                .HasRequired(ut => ut.Tool)
+                .WithMany(t => t.UserTools)
+                .HasForeignKey(ut => ut.ToolId)
+                .WillCascadeOnDelete(false);
+
+            // UserTool - AssignedByUser relationship
+            modelBuilder.Entity<UserTool>()
+                .HasRequired(ut => ut.AssignedByUser)
+                .WithMany()
+                .HasForeignKey(ut => ut.AssignedBy)
+                .WillCascadeOnDelete(false);
+
+            // Composite index on UserTool (UserId, ToolId) for active assignments
+            modelBuilder.Entity<UserTool>()
+                .HasIndex(ut => new { ut.UserId, ut.ToolId });
 
             base.OnModelCreating(modelBuilder);
         }

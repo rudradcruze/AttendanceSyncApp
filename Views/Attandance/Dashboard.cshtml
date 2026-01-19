@@ -1,0 +1,115 @@
+@using System.Configuration
+@{
+    ViewBag.Title = "Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <h2 class="text-center mb-2">My Tools Dashboard</h2>
+    <hr class="w-25 mx-auto mb-4" style="border-top: 2px solid #667eea;" />
+
+    <div class="row" id="toolsContainer">
+        <div class="col-12 text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- No Tools Message -->
+    <div id="noToolsMessage" class="d-none">
+        <div class="alert alert-info text-center">
+            <h5>No Tools Assigned</h5>
+            <p>You don't have any tools assigned yet. Please contact your administrator to request tool access.</p>
+            <a href="@Url.Action("Index", "CompanyRequest")" class="btn btn-primary">Request Company Access</a>
+        </div>
+    </div>
+</div>
+
+<!-- Under Development Modal -->
+<div class="modal fade" id="underDevelopmentModal" tabindex="-1" aria-labelledby="underDevelopmentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title" id="underDevelopmentModalLabel">Under Development</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div style="font-size: 4rem; color: #ffc107;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-tools" viewBox="0 0 16 16">
+                        <path d="M1 0 0 1l2.2 3.081a1 1 0 0 0 .815.419h.07a1 1 0 0 1 .708.293l2.675 2.675-2.617 2.654A3.003 3.003 0 0 0 0 13a3 3 0 1 0 5.878-.851l2.654-2.617.968.968-.305.914a1 1 0 0 0 .242 1.023l3.356 3.356a1 1 0 0 0 1.414 0l1.586-1.586a1 1 0 0 0 0-1.414l-3.356-3.356a1 1 0 0 0-1.023-.242l-.914.305-.968-.968 2.617-2.654A3.003 3.003 0 0 0 16 3c0-.269-.035-.53-.102-.777l-2.14 2.141L12 4l-.364-1.757L13.777.102a3 3 0 0 0-3.675 3.68L7.462 6.46 4.793 3.793a1 1 0 0 1-.293-.707v-.071a1 1 0 0 0-.419-.814L1 0zm9.646 10.646a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708zM3 11l.471.242.529.026.287.445.445.287.026.529L5 13l-.242.471-.026.529-.445.287-.287.445-.529.026L3 15l-.471-.242L2 14.732l-.287-.445L1.268 14l-.026-.529L1 13l.242-.471.026-.529.445-.287.287-.445.529-.026L3 11z"/>
+                    </svg>
+                </div>
+                <h4 class="mt-3" id="underDevToolName">Tool Name</h4>
+                <p class="text-muted">This tool is currently under development and will be available soon.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .tool-card {
+        border: none;
+        border-radius: 15px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        cursor: pointer;
+        min-height: 200px;
+        position: relative;
+        overflow: hidden;
+    }
+    .tool-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+    .tool-card.implemented {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    .tool-card.under-development {
+        background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+        color: #333;
+    }
+    .tool-card .card-body {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 30px 20px;
+    }
+    .tool-card .tool-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    .tool-card .tool-name {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    .tool-card .tool-description {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    .tool-card .badge-development {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(0,0,0,0.2);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 10px;
+        font-size: 0.75rem;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        window.APP = {
+            baseUrl: '@Url.Content(ConfigurationManager.AppSettings["AppBaseUrl"])'
+        };
+    </script>
+    <script src="~/Scripts/User/Dashboard.js"></script>
+}

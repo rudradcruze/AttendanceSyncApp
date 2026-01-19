@@ -124,7 +124,12 @@ namespace AttandanceSyncApp.Controllers.Filters
             }
             else
             {
-                filterContext.Result = new HttpStatusCodeResult(403, "Admin access required");
+                var result = new ViewResult
+                {
+                    ViewName = "AccessDenied"
+                };
+                result.ViewBag.Message = "Admin access required to view this page.";
+                filterContext.Result = result;
             }
         }
     }

@@ -12,6 +12,8 @@ namespace AttandanceSyncApp.Models.DTOs.CompanyRequest
         public string Status { get; set; }
         public string StatusText { get; set; }
         public bool IsCancelled { get; set; }
+        public bool IsRevoked { get; set; }
+        public DateTime? RevokedAt { get; set; }
         public bool CanCancel { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }

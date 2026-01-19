@@ -9,91 +9,85 @@ var pollingInterval = null;
 $(function () {
     loadCompanyRequests(1);
 
-    // Start polling for new requests
+    // Start polling for updates every 2 seconds
     startPolling();
 
     // Event handlers
     $('#assignDatabaseBtn').on('click', assignDatabase);
 });
 
-// ===== Polling for New Requests =====
+// ===== Polling for Updates =====
 function startPolling() {
-    // First, get the newest request ID
-    $.get(APP.baseUrl + 'AdminCompanyRequests/GetNewestRequestId', function (res) {
-        if (res.Data) {
-            lastKnownRequestId = res.Data;
-        }
-    });
-
-    // Poll every 2 seconds
-    pollingInterval = setInterval(checkForNewRequests, 2000);
+    // Poll every 2 seconds to refresh data
+    pollingInterval = setInterval(function() {
+        // Silent reload (keep current page)
+        loadCompanyRequests(companyCurrentPage, true);
+    }, 2000);
 }
 
-function checkForNewRequests() {
-    $.get(APP.baseUrl + 'AdminCompanyRequests/CheckForNewRequests', {
-        lastKnownId: lastKnownRequestId
-    }, function (res) {
-        if (res.Data && res.Data > 0) {
-            $('#newRequestsBadge').text(res.Data + ' new request(s)').show();
-            // Auto-refresh if on page 1
-            if (companyCurrentPage === 1) {
-                loadCompanyRequests(1);
-            }
-        }
-    });
-}
-
-function loadCompanyRequests(page) {
-    companyCurrentPage = page;
+function loadCompanyRequests(page, isPolling) {
+    // If manually called (not polling), update current page
+    if (!isPolling) {
+        companyCurrentPage = page;
+    }
 
     $.get(APP.baseUrl + 'AdminCompanyRequests/GetAllCompanyRequests', {
-        page: page,
+        page: companyCurrentPage,
         pageSize: companyPageSize
     }, function (res) {
-        var tbody = $('#companyRequestsTable tbody').empty();
-        $('#newRequestsBadge').hide();
+        var tbody = $('#companyRequestsTable tbody');
+        
+        // If not polling, we empty first to show loading potentially, but for polling we just replace content
+        if (!isPolling) {
+            tbody.empty();
+            $('#newRequestsBadge').hide();
+        }
 
         if (res.Errors && res.Errors.length > 0) {
-            tbody.append('<tr><td colspan="10" class="text-danger">' + res.Message + '</td></tr>');
+            if (!isPolling) tbody.append('<tr><td colspan="10" class="text-danger">' + res.Message + '</td></tr>');
             return;
         }
 
         var data = res.Data;
+        
+        // Rebuild table content
+        var rows = '';
         if (!data.Data || !data.Data.length) {
-            tbody.append('<tr><td colspan="10">No company requests found</td></tr>');
-            return;
+            rows = '<tr><td colspan="10">No company requests found</td></tr>';
+        } else {
+            // Update lastKnownRequestId if needed
+            if (data.Data.length > 0 && data.Data[0].Id > lastKnownRequestId) {
+                lastKnownRequestId = data.Data[0].Id;
+            }
+
+            $.each(data.Data, function (_, item) {
+                var statusBadge = getCompanyStatusBadge(item);
+                var cancelledBadge = item.IsCancelled
+                    ? '<span class="badge bg-secondary">Yes</span>'
+                    : '<span class="badge bg-light text-dark">No</span>';
+
+                var actionBtns = buildActionButtons(item);
+
+                rows += '<tr>' +
+                    '<td>' + item.Id + '</td>' +
+                    '<td>' + item.UserName + '</td>' +
+                    '<td>' + item.EmployeeName + '</td>' +
+                    '<td>' + item.CompanyName + '</td>' +
+                    '<td>' + item.ToolName + '</td>' +
+                    '<td>' + statusBadge + '</td>' +
+                    '<td>' + cancelledBadge + '</td>' +
+                    '<td>' + formatDateTime(item.CreatedAt) + '</td>' +
+                    '<td>' + formatDateTime(item.UpdatedAt) + '</td>' +
+                    '<td>' + actionBtns + '</td>' +
+                    '</tr>';
+            });
         }
+        
+        tbody.html(rows);
 
-        // Update lastKnownRequestId
-        if (data.Data.length > 0 && data.Data[0].Id > lastKnownRequestId) {
-            lastKnownRequestId = data.Data[0].Id;
+        if (!isPolling) {
+            renderCompanyPagination(data.TotalRecords, data.Page, data.PageSize);
         }
-
-        $.each(data.Data, function (_, item) {
-            var statusBadge = getCompanyStatusBadge(item.Status, item.IsCancelled);
-            var cancelledBadge = item.IsCancelled
-                ? '<span class="badge bg-secondary">Yes</span>'
-                : '<span class="badge bg-light text-dark">No</span>';
-
-            var actionBtns = buildActionButtons(item);
-
-            tbody.append(
-                '<tr>' +
-                '<td>' + item.Id + '</td>' +
-                '<td>' + item.UserName + '</td>' +
-                '<td>' + item.EmployeeName + '</td>' +
-                '<td>' + item.CompanyName + '</td>' +
-                '<td>' + item.ToolName + '</td>' +
-                '<td>' + statusBadge + '</td>' +
-                '<td>' + cancelledBadge + '</td>' +
-                '<td>' + formatDateTime(item.CreatedAt) + '</td>' +
-                '<td>' + formatDateTime(item.UpdatedAt) + '</td>' +
-                '<td>' + actionBtns + '</td>' +
-                '</tr>'
-            );
-        });
-
-        renderCompanyPagination(data.TotalRecords, data.Page, data.PageSize);
     });
 }
 
@@ -103,9 +97,19 @@ function buildActionButtons(item) {
         return '<span class="badge bg-secondary">Locked</span>';
     }
 
-    // If rejected or completed - no actions
-    if (item.Status === 'RR' || item.Status === 'CP') {
+    // If Revoked
+    if (item.IsRevoked) {
+        return '<span class="badge bg-secondary">Revoked</span>';
+    }
+
+    // If rejected
+    if (item.Status === 'RR') {
         return '<span class="text-muted">-</span>';
+    }
+    
+    // If Completed - Show Revoke
+    if (item.Status === 'CP') {
+        return '<button class="btn btn-sm btn-dark" onclick="revokeRequest(' + item.Id + ')">Revoke</button>';
     }
 
     var buttons = '';
@@ -125,9 +129,13 @@ function buildActionButtons(item) {
     return buttons || '<span class="text-muted">-</span>';
 }
 
-function getCompanyStatusBadge(status, isCancelled) {
-    if (isCancelled) {
+function getCompanyStatusBadge(item) {
+    if (item.IsCancelled) {
         return '<span class="badge bg-secondary">Cancelled</span>';
+    }
+    
+    if (item.IsRevoked) {
+        return '<span class="badge bg-dark">Revoked</span>';
     }
 
     var statusMap = {
@@ -136,7 +144,39 @@ function getCompanyStatusBadge(status, isCancelled) {
         'CP': '<span class="badge bg-success">Completed</span>',
         'RR': '<span class="badge bg-danger">Rejected</span>'
     };
-    return statusMap[status] || '<span class="badge bg-secondary">' + status + '</span>';
+    return statusMap[item.Status] || '<span class="badge bg-secondary">' + item.Status + '</span>';
+}
+
+// ===== Revoke Action =====
+function revokeRequest(requestId) {
+    Swal.fire({
+        title: 'Revoke Connection?',
+        text: 'This will revoke the database connection for this request.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#343a40',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, Revoke'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: APP.baseUrl + 'AdminCompanyRequests/RevokeConnection',
+                type: 'POST',
+                data: { requestId: requestId },
+                success: function (res) {
+                    if (res.Errors && res.Errors.length > 0) {
+                        Swal.fire('Error', res.Message, 'error');
+                    } else {
+                        Swal.fire('Revoked', res.Message, 'success');
+                        loadCompanyRequests(companyCurrentPage);
+                    }
+                },
+                error: function () {
+                    Swal.fire('Error', 'Failed to revoke connection', 'error');
+                }
+            });
+        }
+    });
 }
 
 // ===== Accept/Reject Actions =====

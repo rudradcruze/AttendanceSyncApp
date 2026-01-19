@@ -11,6 +11,7 @@ namespace AttandanceSyncApp.Services.Interfaces.Admin
         ServiceResult UpdateRequestStatus(int requestId, string status);
         ServiceResult AcceptRequest(int requestId);
         ServiceResult RejectRequest(int requestId);
+        ServiceResult RevokeConnection(int requestId);
         ServiceResult AssignDatabase(int requestId, int adminUserId);
         ServiceResult<DatabaseConfigDto> GetDatabaseConfigForRequest(int requestId);
         ServiceResult<int> GetNewRequestsCount(int lastKnownId);

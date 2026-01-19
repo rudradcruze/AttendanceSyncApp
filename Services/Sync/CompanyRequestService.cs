@@ -35,6 +35,8 @@ namespace AttandanceSyncApp.Services.Sync
                         Status = r.Status,
                         StatusText = GetStatusText(r.Status),
                         IsCancelled = r.IsCancelled,
+                        IsRevoked = r.IsRevoked,
+                        RevokedAt = r.RevokedAt,
                         CanCancel = r.Status == "NR" && !r.IsCancelled,
                         CreatedAt = r.CreatedAt,
                         UpdatedAt = r.UpdatedAt

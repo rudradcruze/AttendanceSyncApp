@@ -4,6 +4,7 @@
 var currentPage = 1;
 var pageSize = 20;
 var createModal = null;
+var pollingInterval = null;
 
 $(function () {
     createModal = new bootstrap.Modal(document.getElementById('createRequestModal'));
@@ -11,8 +12,17 @@ $(function () {
     loadDropdowns();
     loadRequests(1);
 
+    // Start polling
+    startPolling();
+
     $('#submitRequestBtn').on('click', submitRequest);
 });
+
+function startPolling() {
+    pollingInterval = setInterval(function() {
+        loadRequests(currentPage, true);
+    }, 2000);
+}
 
 function loadDropdowns() {
     // Load employees
@@ -49,62 +59,74 @@ function loadDropdowns() {
     });
 }
 
-function loadRequests(page) {
-    currentPage = page;
+function loadRequests(page, isPolling) {
+    if (!isPolling) {
+        currentPage = page;
+    }
 
     $.get(APP.baseUrl + 'CompanyRequest/GetMyRequests', {
-        page: page,
+        page: currentPage,
         pageSize: pageSize
     }, function (res) {
-        var tbody = $('#requestsTable tbody').empty();
+        var tbody = $('#requestsTable tbody');
+        if (!isPolling) tbody.empty();
 
         if (res.Errors && res.Errors.length > 0) {
-            tbody.append('<tr><td colspan="7" class="text-danger">' + res.Message + '</td></tr>');
+            if (!isPolling) tbody.append('<tr><td colspan="8" class="text-danger">' + res.Message + '</td></tr>');
             return;
         }
 
         var data = res.Data;
+        var rows = '';
+
         if (!data.Data || !data.Data.length) {
-            tbody.append('<tr><td colspan="7">No requests found</td></tr>');
-            return;
+            rows = '<tr><td colspan="8">No requests found</td></tr>';
+        } else {
+            $.each(data.Data, function (_, item) {
+                var statusBadge = getStatusBadge(item);
+                var actions = '';
+
+                if (item.IsCancelled) {
+                    actions = '<span class="badge bg-secondary">Cancelled</span>';
+                } else if (item.IsRevoked) {
+                    actions = '<span class="badge bg-secondary">Revoked</span>';
+                } else if (item.CanCancel) {
+                    actions = '<button class="btn btn-sm btn-danger" onclick="cancelRequest(' + item.Id + ')">Cancel</button>';
+                } else {
+                    actions = '<span class="text-muted">-</span>';
+                }
+
+                rows += '<tr>' +
+                    '<td>' + item.Id + '</td>' +
+                    '<td>' + item.EmployeeName + '</td>' +
+                    '<td>' + item.CompanyName + '</td>' +
+                    '<td>' + item.ToolName + '</td>' +
+                    '<td>' + statusBadge + '</td>' +
+                    '<td>' + formatDateTime(item.CreatedAt) + '</td>' +
+                    '<td>' + formatDateTime(item.UpdatedAt) + '</td>' +
+                    '<td>' + actions + '</td>' +
+                    '</tr>';
+            });
         }
+        
+        tbody.html(rows);
 
-        $.each(data.Data, function (_, item) {
-            var statusBadge = getStatusBadge(item.Status, item.IsCancelled);
-            var actions = '';
-
-            if (item.IsCancelled) {
-                actions = '<span class="badge bg-secondary">Cancelled</span>';
-            } else if (item.CanCancel) {
-                actions = '<button class="btn btn-sm btn-danger" onclick="cancelRequest(' + item.Id + ')">Cancel</button>';
-            } else {
-                actions = '<span class="text-muted">-</span>';
-            }
-
-            tbody.append(
-                '<tr>' +
-                '<td>' + item.Id + '</td>' +
-                '<td>' + item.EmployeeName + '</td>' +
-                '<td>' + item.CompanyName + '</td>' +
-                '<td>' + item.ToolName + '</td>' +
-                '<td>' + statusBadge + '</td>' +
-                '<td>' + formatDateTime(item.CreatedAt) + '</td>' +
-                '<td>' + formatDateTime(item.UpdatedAt) + '</td>' +
-                '<td>' + actions + '</td>' +
-                '</tr>'
-            );
-        });
-
-        renderPagination(data.TotalRecords, data.Page, data.PageSize);
+        if (!isPolling) {
+            renderPagination(data.TotalRecords, data.Page, data.PageSize);
+        }
     });
 }
 
-function getStatusBadge(status, isCancelled) {
-    if (isCancelled) {
+function getStatusBadge(item) {
+    if (item.IsCancelled) {
         return '<span class="badge bg-secondary">Cancelled</span>';
     }
+    
+    if (item.IsRevoked) {
+        return '<span class="badge bg-dark">Revoked</span>';
+    }
 
-    switch (status) {
+    switch (item.Status) {
         case 'NR':
             return '<span class="badge bg-warning text-dark">New Request</span>';
         case 'IP':
@@ -114,9 +136,11 @@ function getStatusBadge(status, isCancelled) {
         case 'RR':
             return '<span class="badge bg-danger">Rejected</span>';
         default:
-            return '<span class="badge bg-secondary">' + status + '</span>';
+            return '<span class="badge bg-secondary">' + item.Status + '</span>';
     }
 }
+
+// ... existing code ...
 
 function showCreateModal() {
     $('#createRequestForm')[0].reset();

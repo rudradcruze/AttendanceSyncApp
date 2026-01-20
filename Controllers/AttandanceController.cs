@@ -123,9 +123,9 @@ namespace AttandanceSyncApp.Controllers
         }
 
         [HttpGet]
-        public JsonResult GetMyRequests(int? companyId, int page = 1, int pageSize = 20)
+        public JsonResult GetMyRequests(int? companyId, int page = 1, int pageSize = 20, string sortColumn = "ToDate", string sortDirection = "DESC")
         {
-            var result = _syncRequestService.GetUserRequestsPaged(CurrentUserId, companyId, page, pageSize);
+            var result = _syncRequestService.GetUserRequestsPaged(CurrentUserId, companyId, page, pageSize, sortColumn, sortDirection);
 
             if (!result.Success)
             {
@@ -192,6 +192,19 @@ namespace AttandanceSyncApp.Controllers
         public JsonResult GetStatusesByIds(int[] ids)
         {
             var result = _syncRequestService.GetStatusesByIds(ids);
+
+            if (!result.Success)
+            {
+                return Json(ApiResponse<IEnumerable<StatusDto>>.Fail(result.Message));
+            }
+
+            return Json(ApiResponse<IEnumerable<StatusDto>>.Success(result.Data));
+        }
+
+        [HttpPost]
+        public JsonResult GetExternalStatusesByIds(int companyId, int[] ids)
+        {
+            var result = _syncRequestService.GetExternalStatusesByIds(CurrentUserId, companyId, ids);
 
             if (!result.Success)
             {

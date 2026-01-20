@@ -20,7 +20,7 @@ namespace AttandanceSyncApp.Services.Sync
             _unitOfWork = unitOfWork;
         }
 
-        public ServiceResult<PagedResultDto<SyncRequestDto>> GetUserRequestsPaged(int userId, int? companyId, int page, int pageSize)
+        public ServiceResult<PagedResultDto<SyncRequestDto>> GetUserRequestsPaged(int userId, int? companyId, int page, int pageSize, string sortColumn = "ToDate", string sortDirection = "DESC")
         {
             try
             {
@@ -38,34 +38,64 @@ namespace AttandanceSyncApp.Services.Sync
                             if (dbConfig != null)
                             {
                                 // 2. Connect and Query External DB
-                                try 
+                                try
                                 {
                                     using (var context = Helpers.DynamicDbHelper.CreateExternalDbContext(dbConfig))
                                     {
-                                        var query = context.AttandanceSynchronizations
-                                            .Where(s => s.CompanyId == companyId.Value)
-                                            .OrderByDescending(s => s.Id);
+                                        // Get ALL AttandanceSynchronizations (no CompanyId filter)
+                                        var baseQuery = context.AttandanceSynchronizations.AsQueryable();
 
-                                        var totalExternal = query.Count();
-                                        var externalRequests = query
+                                        // Apply sorting
+                                        bool isDescending = string.Equals(sortDirection, "DESC", StringComparison.OrdinalIgnoreCase);
+                                        switch (sortColumn?.ToLower())
+                                        {
+                                            case "fromdate":
+                                                baseQuery = isDescending
+                                                    ? baseQuery.OrderByDescending(s => s.FromDate)
+                                                    : baseQuery.OrderBy(s => s.FromDate);
+                                                break;
+                                            case "todate":
+                                                baseQuery = isDescending
+                                                    ? baseQuery.OrderByDescending(s => s.ToDate)
+                                                    : baseQuery.OrderBy(s => s.ToDate);
+                                                break;
+                                            case "id":
+                                            default:
+                                                baseQuery = isDescending
+                                                    ? baseQuery.OrderByDescending(s => s.Id)
+                                                    : baseQuery.OrderBy(s => s.Id);
+                                                break;
+                                        }
+
+                                        var totalExternal = baseQuery.Count();
+                                        var attendanceRecords = baseQuery
                                             .Skip((page - 1) * pageSize)
                                             .Take(pageSize)
-                                            .ToList()
-                                            .Select(r => new SyncRequestDto
-                                            {
-                                                Id = r.Id,
-                                                UserName = "External", // Or map from local user if needed
-                                                EmployeeName = targetDb.EmployeeName, // Use stored employee name
-                                                CompanyName = targetDb.CompanyName,
-                                                ToolName = targetDb.ToolName,
-                                                ExternalSyncId = r.Id,
-                                                IsSuccessful = r.Status == "CP", // Assuming CP is success
-                                                Status = r.Status,
-                                                FromDate = r.FromDate,
-                                                ToDate = r.ToDate,
-                                                CreatedAt = DateTime.Now // Or add CreatedAt to external model if it exists
-                                            })
                                             .ToList();
+
+                                        // Get all company IDs from the attendance records
+                                        var companyIds = attendanceRecords.Select(a => a.CompanyId).Distinct().ToList();
+
+                                        // Fetch companies from external DB to get company names
+                                        var companies = context.Companies
+                                            .Where(c => companyIds.Contains(c.Id))
+                                            .ToDictionary(c => c.Id, c => c.CompanyName);
+
+                                        // Map to DTOs with company names
+                                        var externalRequests = attendanceRecords.Select(r => new SyncRequestDto
+                                        {
+                                            Id = r.Id,
+                                            UserName = "External",
+                                            EmployeeName = targetDb.EmployeeName,
+                                            CompanyName = companies.ContainsKey(r.CompanyId) ? companies[r.CompanyId] : "N/A",
+                                            ToolName = targetDb.ToolName,
+                                            ExternalSyncId = r.Id,
+                                            IsSuccessful = r.Status == "CP",
+                                            Status = r.Status,
+                                            FromDate = r.FromDate,
+                                            ToDate = r.ToDate,
+                                            CreatedAt = DateTime.Now
+                                        }).ToList();
 
                                         return ServiceResult<PagedResultDto<SyncRequestDto>>.SuccessResult(new PagedResultDto<SyncRequestDto>
                                         {
@@ -89,6 +119,7 @@ namespace AttandanceSyncApp.Services.Sync
                 // Fallback to Local DB (Original Logic)
                 var totalCount = _unitOfWork.AttandanceSyncRequests.GetTotalCountByUserId(userId);
                 var requests = _unitOfWork.AttandanceSyncRequests.GetPagedByUserId(userId, page, pageSize)
+                    .ToList()
                     .Select(r => new SyncRequestDto
                     {
                         Id = r.Id,
@@ -233,7 +264,9 @@ namespace AttandanceSyncApp.Services.Sync
                     return ServiceResult<IEnumerable<StatusDto>>.SuccessResult(new List<StatusDto>());
                 }
 
+                // Materialize the data first, then apply the GetStatusText method
                 var requests = _unitOfWork.AttandanceSyncRequests.Find(r => ids.Contains(r.Id))
+                    .ToList()
                     .Select(r => new StatusDto
                     {
                         Id = r.Id,
@@ -242,6 +275,55 @@ namespace AttandanceSyncApp.Services.Sync
                     .ToList();
 
                 return ServiceResult<IEnumerable<StatusDto>>.SuccessResult(requests);
+            }
+            catch (Exception ex)
+            {
+                return ServiceResult<IEnumerable<StatusDto>>.FailureResult($"Failed to retrieve statuses: {ex.Message}");
+            }
+        }
+
+        public ServiceResult<IEnumerable<StatusDto>> GetExternalStatusesByIds(int userId, int companyId, int[] ids)
+        {
+            try
+            {
+                if (ids == null || !ids.Any())
+                {
+                    return ServiceResult<IEnumerable<StatusDto>>.SuccessResult(new List<StatusDto>());
+                }
+
+                // Get the DB Config for this company
+                var userDatabases = GetUserCompanyDatabases(userId);
+                if (!userDatabases.Success)
+                {
+                    return ServiceResult<IEnumerable<StatusDto>>.FailureResult("Failed to retrieve database configurations");
+                }
+
+                var targetDb = userDatabases.Data.FirstOrDefault(d => d.CompanyId == companyId);
+                if (targetDb == null)
+                {
+                    return ServiceResult<IEnumerable<StatusDto>>.FailureResult("No database assignment found for this company");
+                }
+
+                var dbConfig = _unitOfWork.DatabaseConfigurations.GetById(targetDb.DatabaseConfigurationId);
+                if (dbConfig == null)
+                {
+                    return ServiceResult<IEnumerable<StatusDto>>.FailureResult("Database configuration not found");
+                }
+
+                // Query external database for statuses
+                using (var context = Helpers.DynamicDbHelper.CreateExternalDbContext(dbConfig))
+                {
+                    var statuses = context.AttandanceSynchronizations
+                        .Where(s => ids.Contains(s.Id))
+                        .Select(s => new StatusDto
+                        {
+                            Id = s.Id,
+                            Status = s.Status
+                        })
+                        .ToList();
+
+                    return ServiceResult<IEnumerable<StatusDto>>.SuccessResult(statuses);
+                }
             }
             catch (Exception ex)
             {

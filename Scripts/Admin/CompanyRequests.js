@@ -94,7 +94,7 @@ function loadCompanyRequests(page, isPolling) {
 function buildActionButtons(item) {
     // If cancelled - show locked
     if (item.IsCancelled) {
-        return '<span class="badge bg-secondary">Locked</span>';
+        return '<span class="text-muted">-</span>';
     }
 
     // If rejected or completed - no actions

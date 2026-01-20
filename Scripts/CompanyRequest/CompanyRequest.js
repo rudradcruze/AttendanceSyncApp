@@ -87,7 +87,7 @@ function loadRequests(page, isPolling) {
                 var actions = '';
 
                 if (item.IsCancelled) {
-                    actions = '<span class="badge bg-secondary">Cancelled</span>';
+                    actions = '<span class="text-muted">-</span>';
                 } else if (item.CanCancel) {
                     actions = '<button class="btn btn-sm btn-danger" onclick="cancelRequest(' + item.Id + ')">Cancel</button>';
                 } else {

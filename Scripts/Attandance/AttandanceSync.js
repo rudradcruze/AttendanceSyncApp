@@ -1,22 +1,28 @@
-/* Attandance Synchronization - Updated with Modal, Filters, and Company Database Selection */
+/* ============================
+   Global State
+============================ */
 var currentPage = 1;
 var pageSize = 20;
-var currentUser = null;
 var selectedCompanyData = null;
-var currentFilters = {};
 var companyDatabases = [];
 
+// DEFAULT SORT (Initial Load)
+var sortColumn = 'ToDate';
+var sortDirection = 'DESC';
+
+/* ============================
+   Document Ready
+============================ */
 $(function () {
-    loadCurrentUser();
     loadCompanyDatabases();
 
     // Company database change
     $('#companyDatabaseSelect').on('change', function () {
         var selectedId = parseInt($(this).val());
-        
+
         if (selectedId) {
             // Find the selected company data by ID
-            selectedCompanyData = companyDatabases.find(function(item) {
+            selectedCompanyData = companyDatabases.find(function (item) {
                 return item.DatabaseAssignmentId === selectedId;
             });
 
@@ -24,62 +30,55 @@ $(function () {
                 $('#syncContent').removeClass('d-none');
                 $('#noAccessMessage').addClass('d-none');
 
-                // Update modal with selected company info
-                $('#selectedCompanyName').val(selectedCompanyData.CompanyName);
+                // Store selected company data in hidden fields
                 $('#selectedCompanyId').val(selectedCompanyData.CompanyId);
                 $('#selectedToolId').val(selectedCompanyData.ToolId);
                 $('#selectedDbConfigId').val(selectedCompanyData.DatabaseConfigurationId);
-                
-                // Auto-populate employee
                 $('#employeeId').val(selectedCompanyData.EmployeeId);
-                $('#employeeName').val(selectedCompanyData.EmployeeName);
 
                 loadSynchronizations(1);
                 return;
             }
         }
-        
+
         // Default / Reset
         selectedCompanyData = null;
         $('#syncContent').addClass('d-none');
     });
 
-    // Sync dates
+    // Sync toDate when fromDate changes
     $('#fromDate').on('change', function () {
         $('#toDate').val($(this).val());
     });
 
-    // Auto-refresh statuses
-    setInterval(updateStatusesOnly, 3000);
+    // Sort direction buttons
+    $(document).on('click', '.sort-dir-btn', function () {
+        $('.sort-dir-btn').removeClass('active btn-primary').addClass('btn-outline-secondary');
+        $(this).addClass('active btn-primary').removeClass('btn-outline-secondary');
+        $('#sortDirection').val($(this).data('value'));
+    });
+
+    // Poll statuses every 2 seconds
+    setInterval(updateStatusesOnly, 2000);
 });
 
-function loadCurrentUser() {
-    $.get(APP.baseUrl + 'Auth/CurrentUser', function (res) {
-        if (res.Data) {
-            currentUser = res.Data;
-            $('#userEmail').val(currentUser.Email);
-        }
-    }).fail(function (xhr) {
-        if (xhr.status === 401) {
-            window.location.href = APP.baseUrl + 'Auth/Login';
-        }
-    });
-}
-
+/* ============================
+   Load Company Databases
+============================ */
 function loadCompanyDatabases() {
     $.get(APP.baseUrl + 'Attandance/GetMyCompanyDatabases', function (res) {
         var $select = $('#companyDatabaseSelect');
-        
+
         // Clear existing options except the first one
         $select.find('option:not(:first)').remove();
 
         if (res.Data && Array.isArray(res.Data) && res.Data.length > 0) {
             companyDatabases = res.Data;
-            
+
             for (var i = 0; i < res.Data.length; i++) {
                 var item = res.Data[i];
                 var optionText = (item.CompanyName || '') + ' - ' + (item.DatabaseName || '');
-                var $option = $('<option>', { 
+                var $option = $('<option>', {
                     value: item.DatabaseAssignmentId,
                     text: optionText
                 });
@@ -97,78 +96,157 @@ function loadCompanyDatabases() {
     });
 }
 
+/* ============================
+   Load Paged Data
+============================ */
 function loadSynchronizations(page) {
     currentPage = page;
     var tbody = $('#syncTableBody');
-    tbody.html('<tr><td colspan="8" class="text-center">Loading...</td></tr>');
+    tbody.html('<tr><td colspan="5" class="text-center">Loading...</td></tr>');
 
     if (!selectedCompanyData) {
-        tbody.html('<tr><td colspan="8" class="text-center">Select a company database to view requests</td></tr>');
+        tbody.html('<tr><td colspan="5" class="text-center">Select a company database to view requests</td></tr>');
         return;
     }
 
     $.get(APP.baseUrl + 'Attandance/GetMyRequests', {
         page: page,
         pageSize: pageSize,
-        companyId: selectedCompanyData.CompanyId
+        companyId: selectedCompanyData.CompanyId,
+        sortColumn: sortColumn,
+        sortDirection: sortDirection
     }, function (res) {
         tbody.empty();
 
+        // Check for errors
         if (res.Errors && res.Errors.length > 0) {
-            tbody.append('<tr><td colspan="8" class="text-center text-danger">' + res.Message + '</td></tr>');
+            tbody.append('<tr><td colspan="5" class="text-center text-danger">' + res.Message + '</td></tr>');
             $('#pagination').empty();
             return;
         }
 
-        if (!res.Data || !res.Data.Data || !res.Data.Data.length) {
-            tbody.append('<tr><td colspan="8" class="text-center">No records found</td></tr>');
+        var pagedData = res.Data;
+        if (!pagedData || !pagedData.Data || !pagedData.Data.length) {
+            tbody.append('<tr><td colspan="5" class="text-center">No records found</td></tr>');
             $('#pagination').empty();
             return;
         }
 
-        // Filter by selected company if needed
-        var filteredData = res.Data.Data;
-        if (selectedCompanyData) {
-            filteredData = filteredData.filter(function(item) {
-                // Filter by company name since we may not have CompanyId in response
-                return item.CompanyName === selectedCompanyData.CompanyName;
-            });
-        }
-
-        if (filteredData.length === 0) {
-            tbody.append('<tr><td colspan="8" class="text-center">No records found for selected company</td></tr>');
-            $('#pagination').empty();
-            return;
-        }
-
-        $.each(filteredData, function (_, item) {
-            var statusClass = getStatusClass(item.Status);
-            var externalId = item.ExternalSyncId || '-';
-
+        $.each(pagedData.Data, function (_, item) {
             tbody.append(
                 '<tr data-id="' + item.Id + '">' +
                 '<td>' + item.Id + '</td>' +
-                '<td>' + escapeHtml(item.EmployeeName) + '</td>' +
-                '<td>' + escapeHtml(item.CompanyName) + '</td>' +
-                '<td>' + escapeHtml(item.ToolName) + '</td>' +
                 '<td>' + formatDate(item.FromDate) + '</td>' +
                 '<td>' + formatDate(item.ToDate) + '</td>' +
-                '<td><span class="status-badge ' + statusClass + '">' + item.Status + '</span></td>' +
-                '<td>' + externalId + '</td>' +
+                '<td>' + escapeHtml(item.CompanyName) + '</td>' +
+                '<td class="status-cell">' +
+                '<span class="status-badge ' + getStatusClass(item.Status) + '">' +
+                getStatusText(item.Status) +
+                '</span>' +
+                '</td>' +
                 '</tr>'
             );
         });
 
-        renderPagination(res.Data.TotalRecords, res.Data.Page, res.Data.PageSize);
+        renderPagination(pagedData.TotalRecords, pagedData.Page, pagedData.PageSize);
     }).fail(function (xhr) {
         if (xhr.status === 401) {
             window.location.href = APP.baseUrl + 'Auth/Login';
         } else {
-            tbody.html('<tr><td colspan="8" class="text-center text-danger">Failed to load requests</td></tr>');
+            tbody.html('<tr><td colspan="5" class="text-center text-danger">Failed to load requests</td></tr>');
         }
     });
 }
 
+/* ============================
+   Pagination Renderer
+============================ */
+function renderPagination(totalRecords, page, pageSize) {
+    var totalPages = Math.ceil(totalRecords / pageSize);
+    var pagination = $('#pagination').empty();
+
+    if (totalPages <= 1) return;
+
+    // Previous button
+    if (page > 1) {
+        pagination.append(
+            '<li class="page-item">' +
+            '<a href="javascript:void(0)" class="page-link" onclick="loadSynchronizations(' + (page - 1) + ')">Previous</a>' +
+            '</li>'
+        );
+    }
+
+    // Page numbers
+    for (var i = 1; i <= totalPages; i++) {
+        pagination.append(
+            '<li class="page-item ' + (i === page ? 'active' : '') + '">' +
+            '<a href="javascript:void(0)" class="page-link" onclick="loadSynchronizations(' + i + ')">' + i + '</a>' +
+            '</li>'
+        );
+    }
+
+    // Next button
+    if (page < totalPages) {
+        pagination.append(
+            '<li class="page-item">' +
+            '<a href="javascript:void(0)" class="page-link" onclick="loadSynchronizations(' + (page + 1) + ')">Next</a>' +
+            '</li>'
+        );
+    }
+}
+
+/* ============================
+   Sorting
+============================ */
+function applySorting() {
+    sortColumn = $('#sortColumn').val();
+    sortDirection = $('#sortDirection').val();
+    loadSynchronizations(1);
+}
+
+/* ============================
+   Status Polling (Every 2 sec)
+============================ */
+function updateStatusesOnly() {
+    if (!selectedCompanyData) return;
+
+    var ids = [];
+    $('#syncTableBody tr[data-id]').each(function () {
+        ids.push(parseInt($(this).data('id')));
+    });
+
+    if (ids.length === 0) return;
+
+    // Use external status endpoint for external DB records
+    $.post(APP.baseUrl + 'Attandance/GetExternalStatusesByIds', {
+        companyId: selectedCompanyData.CompanyId,
+        ids: ids
+    }, function (res) {
+        // Check for errors
+        if (res.Errors && res.Errors.length > 0) {
+            return;
+        }
+
+        if (!res.Data) return;
+
+        $.each(res.Data, function (_, item) {
+            var row = $('tr[data-id="' + item.Id + '"]');
+            var badge = row.find('.status-badge');
+            var newText = getStatusText(item.Status);
+
+            if (badge.text().trim() !== newText) {
+                badge
+                    .removeClass('status-nr status-ip status-cp')
+                    .addClass(getStatusClass(item.Status))
+                    .text(newText);
+            }
+        });
+    });
+}
+
+/* ============================
+   Modal Functions
+============================ */
 function showCreateModal() {
     if (!selectedCompanyData) {
         Swal.fire('Error', 'Please select a company database first.', 'error');
@@ -187,11 +265,6 @@ function createSynchronization() {
     var employeeId = parseInt($('#employeeId').val());
     var fromDate = $('#fromDate').val();
     var toDate = $('#toDate').val();
-
-    if (!employeeId) {
-        Swal.fire('Error', 'Employee information is missing. Please re-select the database.', 'error');
-        return;
-    }
 
     if (!fromDate || !toDate) {
         Swal.fire('Error', 'Please select date range.', 'error');
@@ -240,68 +313,44 @@ function createSynchronization() {
     });
 }
 
-function setSortDirection(dir) {
-    $('#sortDirection').val(dir);
-    $('.sort-dir-btn').removeClass('active');
-    $('.sort-dir-btn[data-value="' + dir + '"]').addClass('active');
-}
+/* ============================
+   Helpers
+============================ */
 
-function updateStatusesOnly() {
-    if (!selectedCompanyData) return;
-
-    var ids = [];
-    $('#syncTableBody tr[data-id]').each(function () {
-        ids.push(parseInt($(this).data('id')));
-    });
-
-    if (ids.length === 0) return;
-
-    $.post(APP.baseUrl + 'Attandance/GetStatusesByIds', { ids: ids }, function (res) {
-        if (!res.Data) return;
-
-        $.each(res.Data, function (_, item) {
-            var $row = $('#syncTableBody tr[data-id="' + item.Id + '"]');
-            var $badge = $row.find('.status-badge');
-            var newClass = getStatusClass(item.Status);
-
-            if ($badge.text().trim() !== item.Status) {
-                $badge.removeClass('status-pending status-completed status-failed status-nr status-ip status-cp')
-                    .addClass(newClass)
-                    .text(item.Status);
-            }
-        });
-    });
-}
-
+// Format /Date(...)/
 function formatDate(value) {
-    if (!value) return '-';
-    if (typeof value === 'string' && value.indexOf('/Date(') > -1) {
-        var timestamp = parseInt(value.replace('/Date(', '').replace(')/', ''));
-        var date = new Date(timestamp);
-        return formatDateObj(date);
-    }
-    var date = new Date(value);
-    if (isNaN(date.getTime())) return '-';
-    return formatDateObj(date);
-}
+    if (!value) return 'N/A';
 
-function formatDateObj(date) {
+    var date;
+
+    if (typeof value === 'string' && value.indexOf('/Date(') === 0) {
+        var ts = parseInt(value.replace(/\/Date\((\d+)\)\//, '$1'));
+        date = new Date(ts);
+    } else {
+        date = new Date(value);
+    }
+
+    if (isNaN(date.getTime())) return 'Invalid Date';
+
     var y = date.getFullYear();
     var m = String(date.getMonth() + 1).padStart(2, '0');
     var d = String(date.getDate()).padStart(2, '0');
+
     return y + '-' + m + '-' + d;
 }
 
-function getStatusClass(status) {
-    var classMap = {
-        'Pending': 'status-pending',
-        'Completed': 'status-completed',
-        'Failed': 'status-failed',
-        'NR': 'status-nr',
-        'IP': 'status-ip',
-        'CP': 'status-cp'
-    };
-    return classMap[status] || '';
+function getStatusText(s) {
+    return s === 'NR' ? 'New Request'
+        : s === 'IP' ? 'In Progress'
+            : s === 'CP' ? 'Completed'
+                : s;
+}
+
+function getStatusClass(s) {
+    return s === 'NR' ? 'status-nr'
+        : s === 'IP' ? 'status-ip'
+            : s === 'CP' ? 'status-cp'
+                : '';
 }
 
 function escapeHtml(text) {
@@ -309,24 +358,4 @@ function escapeHtml(text) {
     var div = document.createElement('div');
     div.appendChild(document.createTextNode(text));
     return div.innerHTML;
-}
-
-function renderPagination(totalRecords, page, pageSize) {
-    var totalPages = Math.ceil(totalRecords / pageSize);
-    var pagination = $('#pagination').empty();
-
-    if (totalPages <= 1) return;
-
-    if (page > 1) {
-        pagination.append('<li class="page-item"><a class="page-link" href="#" onclick="loadSynchronizations(' + (page - 1) + '); return false;">Previous</a></li>');
-    }
-
-    for (var i = 1; i <= totalPages; i++) {
-        var activeClass = i === page ? 'active' : '';
-        pagination.append('<li class="page-item ' + activeClass + '"><a class="page-link" href="#" onclick="loadSynchronizations(' + i + '); return false;">' + i + '</a></li>');
-    }
-
-    if (page < totalPages) {
-        pagination.append('<li class="page-item"><a class="page-link" href="#" onclick="loadSynchronizations(' + (page + 1) + '); return false;">Next</a></li>');
-    }
 }

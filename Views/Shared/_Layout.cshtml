@@ -18,9 +18,12 @@
         </footer>
     </div>
 
+    <!-- ✅ jQuery MUST be before scripts section -->
     <script src="~/Scripts/jquery-3.7.1.min.js"></script>
     <script src="~/Scripts/bootstrap.min.js"></script>
 
-    @RenderSection("Scripts", required: false)
+    <!-- ✅ section name must match: scripts (small s) -->
+    @RenderSection("scripts", required: false)
+
 </body>
 </html>

@@ -1,0 +1,53 @@
+﻿@{
+    ViewBag.Title = "Branch Reprocess";
+}
+
+<h3>Branch Period End Status</h3>
+
+<div class="row mt-3">
+    <div class="col-md-4">
+        <label>Month Start Date</label>
+        <input type="date" id="monthStartDate"
+               class="form-control"
+               value="@(((DateTime)ViewBag.LastMonth).ToString("yyyy-MM-dd"))" />
+    </div>
+
+    <div class="col-md-4">
+        <label>Location ID (optional)</label>
+        <input type="text" id="locationId" class="form-control" />
+    </div>
+
+    <div class="col-md-4 mt-4">
+        <button class="btn btn-primary" onclick="loadData()">Load</button>
+    </div>
+</div>
+
+<div id="resultArea"></div>
+
+@section Scripts{
+    <script>
+    function loadData() {
+
+        var month = $('#monthStartDate').val();
+        var loc = $('#locationId').val();
+
+        $.ajax({
+            url: '@Url.Action("LoadProblemBranches","BranchReprocess")',
+            type: 'POST',
+            data: { monthStartDate: month, locationId: loc },
+            success: function (res) {
+                $('#resultArea').html(res);
+            },
+            error: function () {
+                alert('Error loading data');
+            }
+        });
+    }
+    </script>
+}
+
+
+
+
+
+

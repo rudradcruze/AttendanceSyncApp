@@ -1,0 +1,39 @@
+﻿@model List<AttendanceSyncApp.Models.ProblemBranchVM>
+
+@if (Model == null || Model.Count == 0)
+{
+    <div class="alert alert-info mt-3">
+        No problematic branch found.
+    </div>
+}
+else
+{
+    <table class="table table-bordered table-striped mt-3">
+        <thead class="table-dark">
+            <tr>
+                <th>Branch Code</th>
+                <th>Branch Name</th>
+                <th>Remarks</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var b in Model)
+            {
+                <tr>
+                    <td>@b.BranchCode</td>
+                    <td>@b.BranchName</td>
+                    <td>
+                        @if (string.IsNullOrEmpty(b.Remarks))
+                        {
+                            <span class="text-success fw-bold">No Problem</span>
+                        }
+                        else
+                        {
+                            <span class="text-danger fw-bold">@b.Remarks</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

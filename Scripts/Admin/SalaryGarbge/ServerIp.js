@@ -71,7 +71,7 @@ function revealPassword(element, id) {
 
     // If already revealed, hide it
     if ($el.data('revealed')) {
-        $el.html('****** <small class="text-muted">(click to reveal)</small>');
+        $el.html('******');
         $el.data('revealed', false);
         return;
     }
@@ -84,7 +84,7 @@ function revealPassword(element, id) {
         }
 
         var password = res.Data.DatabasePassword;
-        $el.html('<code>' + escapeHtml(password) + '</code> <small class="text-muted">(click to hide)</small>');
+        $el.html('<code>' + escapeHtml(password) + '</code>');
         $el.data('revealed', true);
     });
 }

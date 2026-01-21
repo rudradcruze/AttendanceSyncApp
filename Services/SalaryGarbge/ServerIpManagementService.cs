@@ -32,7 +32,7 @@ namespace AttandanceSyncApp.Services.SalaryGarbge
                         Id = s.Id,
                         IpAddress = s.IpAddress,
                         DatabaseUser = s.DatabaseUser,
-                        DatabasePassword = s.DatabasePassword,
+                        DatabasePassword = null, // Don't expose password in list
                         Description = s.Description,
                         IsActive = s.IsActive,
                         CreatedAt = s.CreatedAt,
@@ -66,12 +66,23 @@ namespace AttandanceSyncApp.Services.SalaryGarbge
                     return ServiceResult<ServerIpDto>.FailureResult("Server IP not found");
                 }
 
+                // Decrypt the password for display
+                string decryptedPassword = null;
+                try
+                {
+                    decryptedPassword = EncryptionHelper.Decrypt(serverIp.DatabasePassword);
+                }
+                catch
+                {
+                    decryptedPassword = "[Decryption failed]";
+                }
+
                 var dto = new ServerIpDto
                 {
                     Id = serverIp.Id,
                     IpAddress = serverIp.IpAddress,
                     DatabaseUser = serverIp.DatabaseUser,
-                    DatabasePassword = serverIp.DatabasePassword,
+                    DatabasePassword = decryptedPassword,
                     Description = serverIp.Description,
                     IsActive = serverIp.IsActive,
                     CreatedAt = serverIp.CreatedAt,

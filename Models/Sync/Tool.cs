@@ -20,6 +20,8 @@ namespace AttandanceSyncApp.Models.Sync
 
         public bool IsActive { get; set; } = true;
 
+        public bool IsUnderDevelopment { get; set; } = true;
+
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         public DateTime? UpdatedAt { get; set; }

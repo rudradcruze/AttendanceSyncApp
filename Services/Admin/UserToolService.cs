@@ -13,24 +13,6 @@ namespace AttandanceSyncApp.Services.Admin
     {
         private readonly IAuthUnitOfWork _unitOfWork;
 
-        // Define which tools are implemented
-        private readonly HashSet<string> _implementedTools = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            "Attendance Sync",
-            "Attandance Sync",
-            "Attendance Tool",
-            "Attandance Tool"
-        };
-
-        // Map tool names to their route URLs
-        private readonly Dictionary<string, string> _toolRoutes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-        {
-            { "Attendance Sync", "~/Attandance/Index" },
-            { "Attandance Sync", "~/Attandance/Index" },
-            { "Attendance Tool", "~/Attandance/Index" },
-            { "Attandance Tool", "~/Attandance/Index" }
-        };
-
         public UserToolService(IAuthUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
@@ -77,16 +59,16 @@ namespace AttandanceSyncApp.Services.Admin
         {
             try
             {
-                var assignments = _unitOfWork.UserTools.GetActiveToolsByUserId(userId)
-                    .Select(ut => new AssignedToolDto
-                    {
-                        ToolId = ut.ToolId,
-                        ToolName = ut.Tool.Name,
-                        ToolDescription = ut.Tool.Description,
-                        RouteUrl = GetToolRouteUrl(ut.Tool.Name),
-                        IsImplemented = _implementedTools.Contains(ut.Tool.Name)
-                    })
-                    .ToList();
+                var userTools = _unitOfWork.UserTools.GetActiveToolsByUserId(userId).ToList();
+
+                var assignments = userTools.Select(ut => new AssignedToolDto
+                {
+                    ToolId = ut.ToolId,
+                    ToolName = ut.Tool.Name,
+                    ToolDescription = ut.Tool.Description,
+                    RouteUrl = GetToolRouteUrl(ut.Tool.Name),
+                    IsImplemented = !ut.Tool.IsUnderDevelopment
+                }).ToList();
 
                 return ServiceResult<IEnumerable<AssignedToolDto>>.SuccessResult(assignments);
             }
@@ -94,6 +76,22 @@ namespace AttandanceSyncApp.Services.Admin
             {
                 return ServiceResult<IEnumerable<AssignedToolDto>>.FailureResult($"Failed to retrieve tools: {ex.Message}");
             }
+        }
+
+        private string GetToolRouteUrl(string toolName)
+        {
+            if (string.IsNullOrWhiteSpace(toolName))
+                return null;
+
+            var normalizedName = toolName.ToLower().Replace(" ", "");
+
+            if (normalizedName.Contains("attendance") || normalizedName.Contains("attandance"))
+                return "~/Attandance/Index";
+
+            if (normalizedName.Contains("salary") || normalizedName.Contains("garbge") || normalizedName.Contains("garbage"))
+                return "~/SalaryGarbge/Index";
+
+            return null;
         }
 
         public ServiceResult AssignToolToUser(UserToolAssignDto dto, int assignedBy)
@@ -227,11 +225,6 @@ namespace AttandanceSyncApp.Services.Admin
         public bool UserHasToolAccess(int userId, int toolId)
         {
             return _unitOfWork.UserTools.HasActiveAssignment(userId, toolId);
-        }
-
-        private string GetToolRouteUrl(string toolName)
-        {
-            return _toolRoutes.TryGetValue(toolName, out var url) ? url : null;
         }
     }
 }

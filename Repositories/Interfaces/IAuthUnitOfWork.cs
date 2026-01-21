@@ -1,6 +1,7 @@
 using System;
 using AttandanceSyncApp.Repositories.Interfaces.Auth;
 using AttandanceSyncApp.Repositories.Interfaces.Sync;
+using AttandanceSyncApp.Repositories.Interfaces.SalaryGarbge;
 
 namespace AttandanceSyncApp.Repositories.Interfaces
 {
@@ -16,6 +17,10 @@ namespace AttandanceSyncApp.Repositories.Interfaces
         IDatabaseConfigurationRepository DatabaseConfigurations { get; }
         IDatabaseAssignRepository DatabaseAssignments { get; }
         IUserToolRepository UserTools { get; }
+
+        // SalaryGarbge repositories
+        IServerIpRepository ServerIps { get; }
+
         int SaveChanges();
     }
 }

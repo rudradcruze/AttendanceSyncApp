@@ -2,8 +2,10 @@ using AttandanceSyncApp.Models;
 using AttandanceSyncApp.Repositories.Interfaces;
 using AttandanceSyncApp.Repositories.Interfaces.Auth;
 using AttandanceSyncApp.Repositories.Interfaces.Sync;
+using AttandanceSyncApp.Repositories.Interfaces.SalaryGarbge;
 using AttandanceSyncApp.Repositories.Auth;
 using AttandanceSyncApp.Repositories.Sync;
+using AttandanceSyncApp.Repositories.SalaryGarbge;
 
 namespace AttandanceSyncApp.Repositories
 {
@@ -21,6 +23,9 @@ namespace AttandanceSyncApp.Repositories
         private IDatabaseConfigurationRepository _dbConfigRepository;
         private IDatabaseAssignRepository _databaseAssignRepository;
         private IUserToolRepository _userToolRepository;
+
+        // SalaryGarbge repositories
+        private IServerIpRepository _serverIpRepository;
 
         public AuthUnitOfWork()
         {
@@ -61,6 +66,10 @@ namespace AttandanceSyncApp.Repositories
 
         public IUserToolRepository UserTools =>
             _userToolRepository ?? (_userToolRepository = new UserToolRepository(_context));
+
+        // SalaryGarbge repositories
+        public IServerIpRepository ServerIps =>
+            _serverIpRepository ?? (_serverIpRepository = new ServerIpRepository(_context));
 
         public int SaveChanges()
         {

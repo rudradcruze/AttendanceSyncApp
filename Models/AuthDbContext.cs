@@ -1,6 +1,7 @@
 using System.Data.Entity;
 using AttandanceSyncApp.Models.Auth;
 using AttandanceSyncApp.Models.Sync;
+using AttandanceSyncApp.Models.SalaryGarbge;
 
 namespace AttandanceSyncApp.Models
 {
@@ -26,6 +27,9 @@ namespace AttandanceSyncApp.Models
         public DbSet<DatabaseConfiguration> DatabaseConfigurations { get; set; }
         public DbSet<DatabaseAssign> DatabaseAssignments { get; set; }
         public DbSet<UserTool> UserTools { get; set; }
+
+        // SalaryGarbge entities
+        public DbSet<ServerIp> ServerIps { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -184,6 +188,11 @@ namespace AttandanceSyncApp.Models
             // Composite index on UserTool (UserId, ToolId) for active assignments
             modelBuilder.Entity<UserTool>()
                 .HasIndex(ut => new { ut.UserId, ut.ToolId });
+
+            // Unique constraint on ServerIp.IpAddress
+            modelBuilder.Entity<ServerIp>()
+                .HasIndex(s => s.IpAddress)
+                .IsUnique();
 
             base.OnModelCreating(modelBuilder);
         }

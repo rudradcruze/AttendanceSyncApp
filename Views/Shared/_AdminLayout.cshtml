@@ -57,6 +57,14 @@
                         </li>
                     </ul>
                 </li>
+                <li class="@((ViewBag.ActiveMenu == "ServerIps") ? "active" : "")">
+                    <a href="#salaryGarbgeSubmenu" data-bs-toggle="collapse" aria-expanded="@((ViewBag.ActiveMenu == "ServerIps") ? "true" : "false")" class="dropdown-toggle">Salary Issue</a>
+                    <ul class="collapse list-unstyled @((ViewBag.ActiveMenu == "ServerIps") ? "show" : "")" id="salaryGarbgeSubmenu" style="padding-left: 20px;">
+                        <li class="@(ViewBag.ActiveMenu == "ServerIps" ? "active" : "")">
+                            <a href="@Url.Action("Index", "AdminServerIp")" style="color: #adb5bd; font-size: 0.9em;">Server IPs</a>
+                        </li>
+                    </ul>
+                </li>
                 <li class="divider"></li>
                 <li>
                     <a href="#" onclick="logout(); return false;">Logout</a>

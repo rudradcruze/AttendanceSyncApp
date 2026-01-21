@@ -32,6 +32,7 @@ namespace AttandanceSyncApp.Services.Admin
                         Name = t.Name,
                         Description = t.Description,
                         IsActive = t.IsActive,
+                        IsUnderDevelopment = t.IsUnderDevelopment,
                         CreatedAt = t.CreatedAt,
                         UpdatedAt = t.UpdatedAt
                     })
@@ -69,6 +70,7 @@ namespace AttandanceSyncApp.Services.Admin
                     Name = tool.Name,
                     Description = tool.Description,
                     IsActive = tool.IsActive,
+                    IsUnderDevelopment = tool.IsUnderDevelopment,
                     CreatedAt = tool.CreatedAt,
                     UpdatedAt = tool.UpdatedAt
                 };
@@ -95,6 +97,7 @@ namespace AttandanceSyncApp.Services.Admin
                     Name = dto.Name.Trim(),
                     Description = dto.Description?.Trim(),
                     IsActive = dto.IsActive,
+                    IsUnderDevelopment = dto.IsUnderDevelopment,
                     CreatedAt = DateTime.Now
                 };
 
@@ -127,6 +130,7 @@ namespace AttandanceSyncApp.Services.Admin
                 tool.Name = dto.Name.Trim();
                 tool.Description = dto.Description?.Trim();
                 tool.IsActive = dto.IsActive;
+                tool.IsUnderDevelopment = dto.IsUnderDevelopment;
                 tool.UpdatedAt = DateTime.Now;
 
                 _unitOfWork.Tools.Update(tool);

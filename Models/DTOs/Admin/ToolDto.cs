@@ -8,6 +8,7 @@ namespace AttandanceSyncApp.Models.DTOs.Admin
         public string Name { get; set; }
         public string Description { get; set; }
         public bool IsActive { get; set; }
+        public bool IsUnderDevelopment { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
     }
@@ -17,6 +18,7 @@ namespace AttandanceSyncApp.Models.DTOs.Admin
         public string Name { get; set; }
         public string Description { get; set; }
         public bool IsActive { get; set; } = true;
+        public bool IsUnderDevelopment { get; set; } = true;
     }
 
     public class ToolUpdateDto
@@ -25,5 +27,6 @@ namespace AttandanceSyncApp.Models.DTOs.Admin
         public string Name { get; set; }
         public string Description { get; set; }
         public bool IsActive { get; set; }
+        public bool IsUnderDevelopment { get; set; }
     }
 }

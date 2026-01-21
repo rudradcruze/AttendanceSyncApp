@@ -22,13 +22,13 @@ function loadTools(page) {
         var tbody = $('#toolsTable tbody').empty();
 
         if (res.Errors && res.Errors.length > 0) {
-            tbody.append('<tr><td colspan="6" class="text-danger">' + res.Message + '</td></tr>');
+            tbody.append('<tr><td colspan="7" class="text-danger">' + res.Message + '</td></tr>');
             return;
         }
 
         var data = res.Data;
         if (!data.Data || !data.Data.length) {
-            tbody.append('<tr><td colspan="6">No tools found</td></tr>');
+            tbody.append('<tr><td colspan="7">No tools found</td></tr>');
             return;
         }
 
@@ -36,6 +36,10 @@ function loadTools(page) {
             var statusBadge = item.IsActive
                 ? '<span class="badge bg-success">Active</span>'
                 : '<span class="badge bg-danger">Inactive</span>';
+
+            var devBadge = item.IsUnderDevelopment
+                ? '<span class="badge bg-warning text-dark">Under Development</span>'
+                : '<span class="badge bg-info">Ready</span>';
 
             var actions =
                 '<button class="btn btn-sm btn-primary me-1" onclick="editTool(' + item.Id + ')">Edit</button>' +
@@ -47,11 +51,11 @@ function loadTools(page) {
             tbody.append(
                 '<tr>' +
                 '<td>' + item.Id + '</td>' +
-                '<td>' + item.Name + '</td>' +
-                '<td>' + (item.Description || 'N/A') + '</td>' +
+                '<td>' + escapeHtml(item.Name) + '</td>' +
+                '<td>' + escapeHtml(item.Description || 'N/A') + '</td>' +
                 '<td>' + statusBadge + '</td>' +
+                '<td>' + devBadge + '</td>' +
                 '<td>' + formatDateTime(item.CreatedAt) + '</td>' +
-                '<td>' + formatDateTime(item.UpdatedAt) + '</td>' +
                 '<td>' + actions + '</td>' +
                 '</tr>'
             );
@@ -67,6 +71,7 @@ function showCreateModal() {
     $('#toolName').val('');
     $('#toolDescription').val('');
     $('#toolActive').prop('checked', true);
+    $('#toolUnderDevelopment').prop('checked', true);
     toolModal.show();
 }
 
@@ -83,6 +88,7 @@ function editTool(id) {
         $('#toolName').val(tool.Name);
         $('#toolDescription').val(tool.Description || '');
         $('#toolActive').prop('checked', tool.IsActive);
+        $('#toolUnderDevelopment').prop('checked', tool.IsUnderDevelopment);
         toolModal.show();
     });
 }
@@ -92,6 +98,7 @@ function saveTool() {
     var name = $('#toolName').val().trim();
     var description = $('#toolDescription').val().trim();
     var isActive = $('#toolActive').prop('checked');
+    var isUnderDevelopment = $('#toolUnderDevelopment').prop('checked');
 
     if (!name) {
         Swal.fire('Validation Error', 'Tool name is required', 'warning');
@@ -100,8 +107,8 @@ function saveTool() {
 
     var url = id ? APP.baseUrl + 'AdminTools/UpdateTool' : APP.baseUrl + 'AdminTools/CreateTool';
     var data = id
-        ? { Id: parseInt(id), Name: name, Description: description, IsActive: isActive }
-        : { Name: name, Description: description, IsActive: isActive };
+        ? { Id: parseInt(id), Name: name, Description: description, IsActive: isActive, IsUnderDevelopment: isUnderDevelopment }
+        : { Name: name, Description: description, IsActive: isActive, IsUnderDevelopment: isUnderDevelopment };
 
     $.ajax({
         url: url,
@@ -197,4 +204,11 @@ function renderPagination(totalRecords, page, pageSize) {
             '" onclick="loadTools(' + i + ')">' + i + '</button>'
         );
     }
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(text));
+    return div.innerHTML;
 }

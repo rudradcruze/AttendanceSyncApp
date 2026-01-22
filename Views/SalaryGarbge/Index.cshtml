@@ -9,22 +9,21 @@
         padding: 20px 0;
     }
 
-    .confirm-card {
+    .tool-card {
         border: none;
         border-radius: 15px;
-        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
         color: white;
         cursor: pointer;
         transition: transform 0.3s ease, box-shadow 0.3s ease;
         min-height: 180px;
     }
 
-    .confirm-card:hover {
+    .tool-card:hover {
         transform: translateY(-5px);
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     }
 
-    .confirm-card .card-body {
+    .tool-card .card-body {
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -32,20 +31,28 @@
         text-align: center;
     }
 
-    .confirm-card .card-icon {
+    .tool-card .card-icon {
         font-size: 48px;
         margin-bottom: 15px;
     }
 
-    .confirm-card .card-title {
+    .tool-card .card-title {
         font-size: 1.5rem;
         font-weight: 600;
         margin-bottom: 5px;
     }
 
-    .confirm-card .card-text {
+    .tool-card .card-text {
         font-size: 0.9rem;
         opacity: 0.9;
+    }
+
+    .confirm-card {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+    }
+
+    .problematic-card {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
     }
 
     .scan-progress {
@@ -150,6 +157,32 @@
     .back-btn {
         margin-bottom: 20px;
     }
+
+    .issue-badge {
+        font-size: 0.8rem;
+        padding: 5px 10px;
+        border-radius: 15px;
+    }
+
+    .issue-promotion {
+        background-color: #6f42c1;
+        color: #fff;
+    }
+
+    .issue-confirmation {
+        background-color: #20c997;
+        color: #fff;
+    }
+
+    .salary-mismatch {
+        color: #dc3545;
+        font-weight: bold;
+    }
+
+    .salary-expected {
+        color: #28a745;
+        font-weight: bold;
+    }
 </style>
 
 <div class="garbage-container">
@@ -163,11 +196,11 @@
         </a>
     </div>
 
-    <!-- Confirm Garbage Card -->
+    <!-- Tool Cards -->
     <div id="cardSection">
         <div class="row">
-            <div class="col-md-4 col-lg-3">
-                <div class="card confirm-card shadow" id="confirmGarbageCard">
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="card tool-card confirm-card shadow" id="confirmGarbageCard">
                     <div class="card-body">
                         <div class="card-icon">
                             <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
@@ -175,7 +208,21 @@
                             </svg>
                         </div>
                         <div class="card-title">Confirm Garbage</div>
-                        <div class="card-text">Click to scan all databases for employee issues</div>
+                        <div class="card-text">Scan for employees with GradeScaleId or BasicSalary issues</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="card tool-card problematic-card shadow" id="problematicGarbageCard">
+                    <div class="card-body">
+                        <div class="card-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-exclamation-triangle" viewBox="0 0 16 16">
+                                <path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.146.146 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.163.163 0 0 1-.054.06.116.116 0 0 1-.066.017H1.146a.115.115 0 0 1-.066-.017.163.163 0 0 1-.054-.06.176.176 0 0 1 .002-.183L7.884 2.073a.147.147 0 0 1 .054-.057zm1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566z"/>
+                                <path d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995z"/>
+                            </svg>
+                        </div>
+                        <div class="card-title">Problematic Garbage</div>
+                        <div class="card-text">Scan for salary mismatches between tables</div>
                     </div>
                 </div>
             </div>
@@ -250,6 +297,67 @@
                 </svg>
                 <h5>No Garbage Data Found</h5>
                 <p>All employee records have valid GradeScaleId and BasicSalary values.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Problematic Results Section (Hidden initially) -->
+    <div id="problematicResultsSection" style="display: none;">
+        <!-- Summary Card -->
+        <div class="summary-card" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);">
+            <div class="row">
+                <div class="col-md-3 summary-stat">
+                    <div class="number" id="problematicTotalServers">0</div>
+                    <div class="label">Servers Scanned</div>
+                </div>
+                <div class="col-md-3 summary-stat">
+                    <div class="number" id="problematicTotalDatabases">0</div>
+                    <div class="label">Databases Scanned</div>
+                </div>
+                <div class="col-md-3 summary-stat">
+                    <div class="number" id="totalProblematic">0</div>
+                    <div class="label">Problematic Records</div>
+                </div>
+                <div class="col-md-3 summary-stat">
+                    <button class="btn btn-light" onclick="resetAndShowCard()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-repeat me-1" viewBox="0 0 16 16">
+                            <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z"/>
+                            <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z"/>
+                        </svg>
+                        Scan Again
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Problematic Results Table -->
+        <div class="results-container">
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover" id="problematicTable">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>#</th>
+                            <th>Server IP</th>
+                            <th>Database Name</th>
+                            <th>Employee ID</th>
+                            <th>Employee Name</th>
+                            <th>Issue Table</th>
+                            <th>Current Basic Salary</th>
+                            <th>Expected Basic Salary</th>
+                        </tr>
+                    </thead>
+                    <tbody id="problematicTableBody">
+                        <!-- Results will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="noProblematicDataMessage" class="no-data-message" style="display: none;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-check-circle text-success mb-3" viewBox="0 0 16 16">
+                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                    <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+                </svg>
+                <h5>No Problematic Data Found</h5>
+                <p>All employee basic salaries match their PromotionIncrements and Confirmations records.</p>
             </div>
         </div>
     </div>

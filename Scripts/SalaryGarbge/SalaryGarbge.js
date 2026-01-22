@@ -3,19 +3,32 @@
    Real-time Database Scanning
 ============================ */
 
+var currentScanType = 'confirm'; // 'confirm' or 'problematic'
+
 $(function () {
-    // Bind click event to Confirm Garbage card
-    $('#confirmGarbageCard').on('click', startScan);
+    // Bind click events to tool cards
+    $('#confirmGarbageCard').on('click', startConfirmScan);
+    $('#problematicGarbageCard').on('click', startProblematicScan);
 });
 
-function startScan() {
+function startConfirmScan() {
+    currentScanType = 'confirm';
+    startScan('Confirm Garbage Scan', 'This will scan all configured server databases for employee records with GradeScaleId or BasicSalary issues. Continue?');
+}
+
+function startProblematicScan() {
+    currentScanType = 'problematic';
+    startScan('Problematic Garbage Scan', 'This will scan all configured server databases for salary mismatches between Employees and PromotionIncrements/Confirmations tables. Continue?');
+}
+
+function startScan(title, text) {
     // Show confirmation dialog
     Swal.fire({
-        title: 'Confirm Garbage Scan',
-        text: 'This will scan all configured server databases for employee records with GradeScaleId or BasicSalary issues. Continue?',
+        title: title,
+        text: text,
         icon: 'question',
         showCancelButton: true,
-        confirmButtonColor: '#ee5a24',
+        confirmButtonColor: currentScanType === 'confirm' ? '#ee5a24' : '#f5576c',
         cancelButtonColor: '#6c757d',
         confirmButtonText: 'Yes, Start Scan',
         cancelButtonText: 'Cancel'
@@ -30,6 +43,7 @@ function performScan() {
     // Hide card section, show progress section
     $('#cardSection').hide();
     $('#resultsSection').hide();
+    $('#problematicResultsSection').hide();
     $('#progressSection').show();
     $('#progressList').empty();
 
@@ -104,8 +118,13 @@ function scanDatabasesSequentially(server, databases, dbIndex, garbageData, prog
     var dbName = databases[dbIndex];
     updateProgressItem(progressId, server.IpAddress, 'Scanning: ' + dbName + ' (' + (dbIndex + 1) + '/' + databases.length + ')', 'scanning');
 
+    // Use appropriate endpoint based on scan type
+    var scanUrl = currentScanType === 'confirm'
+        ? APP.baseUrl + 'SalaryGarbge/ScanDatabase'
+        : APP.baseUrl + 'SalaryGarbge/ScanProblematicDatabase';
+
     $.ajax({
-        url: APP.baseUrl + 'SalaryGarbge/ScanDatabase',
+        url: scanUrl,
         type: 'POST',
         data: { serverIpId: server.Id, databaseName: dbName },
         success: function (res) {
@@ -158,17 +177,29 @@ function showResults(totalServers, garbageData) {
     // Hide progress section
     $('#progressSection').hide();
 
-    // Update summary
-    $('#totalServers').text(totalServers);
-
     // Count unique databases
     var uniqueDatabases = {};
     garbageData.forEach(function (item) {
         var key = item.ServerIp + '|' + item.DatabaseName;
         uniqueDatabases[key] = true;
     });
-    $('#totalDatabases').text(Object.keys(uniqueDatabases).length);
+    var totalDbs = Object.keys(uniqueDatabases).length;
+
+    if (currentScanType === 'confirm') {
+        showConfirmResults(totalServers, totalDbs, garbageData);
+    } else {
+        showProblematicResults(totalServers, totalDbs, garbageData);
+    }
+}
+
+function showConfirmResults(totalServers, totalDatabases, garbageData) {
+    // Update summary
+    $('#totalServers').text(totalServers);
+    $('#totalDatabases').text(totalDatabases);
     $('#totalGarbage').text(garbageData.length);
+
+    // Sort data by Server IP (numerically) then by Database name (alphabetically)
+    garbageData = sortGarbageData(garbageData);
 
     // Populate table
     var tbody = $('#garbageTableBody').empty();
@@ -198,6 +229,60 @@ function showResults(totalServers, garbageData) {
     $('#resultsSection').show();
 }
 
+function showProblematicResults(totalServers, totalDatabases, problematicData) {
+    // Update summary
+    $('#problematicTotalServers').text(totalServers);
+    $('#problematicTotalDatabases').text(totalDatabases);
+    $('#totalProblematic').text(problematicData.length);
+
+    // Sort data by Server IP (numerically) then by Database name (alphabetically)
+    problematicData = sortGarbageData(problematicData);
+
+    // Populate table
+    var tbody = $('#problematicTableBody').empty();
+    if (problematicData.length === 0) {
+        $('#problematicTable').hide();
+        $('#noProblematicDataMessage').show();
+    } else {
+        $('#problematicTable').show();
+        $('#noProblematicDataMessage').hide();
+
+        var rowNum = 1;
+        problematicData.forEach(function (item) {
+            var issueBadge = getIssueBadge(item.IssueTableName);
+            var row = '<tr>' +
+                '<td>' + rowNum++ + '</td>' +
+                '<td>' + escapeHtml(item.ServerIp) + '</td>' +
+                '<td>' + escapeHtml(item.DatabaseName) + '</td>' +
+                '<td>' + item.EmployeeId + '</td>' +
+                '<td>' + escapeHtml(item.EmployeeName) + '</td>' +
+                '<td>' + issueBadge + '</td>' +
+                '<td class="salary-mismatch">' + formatCurrency(item.CurrentBasicSalary) + '</td>' +
+                '<td class="salary-expected">' + formatCurrency(item.ExpectedBasicSalary) + '</td>' +
+                '</tr>';
+            tbody.append(row);
+        });
+    }
+
+    // Show results section
+    $('#problematicResultsSection').show();
+}
+
+function getIssueBadge(issueTableName) {
+    var badgeClass = 'issue-badge ';
+    if (issueTableName === 'PromotionIncrements') {
+        badgeClass += 'issue-promotion';
+    } else if (issueTableName === 'Confirmations') {
+        badgeClass += 'issue-confirmation';
+    }
+    return '<span class="' + badgeClass + '">' + escapeHtml(issueTableName) + '</span>';
+}
+
+function formatCurrency(value) {
+    if (value === null || value === undefined) return '0.00';
+    return parseFloat(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 function getProblemBadge(problem) {
     var badgeClass = 'problem-badge ';
     if (problem.indexOf('GradeScaleId is 0') >= 0) {
@@ -214,6 +299,7 @@ function getProblemBadge(problem) {
 
 function resetAndShowCard() {
     $('#resultsSection').hide();
+    $('#problematicResultsSection').hide();
     $('#progressSection').hide();
     $('#cardSection').show();
 }
@@ -247,4 +333,31 @@ function escapeHtml(text) {
     var div = document.createElement('div');
     div.appendChild(document.createTextNode(text));
     return div.innerHTML;
+}
+
+// Parse IP address to numeric value for sorting
+function ipToNumber(ip) {
+    if (!ip) return 0;
+    var parts = ip.split('.');
+    if (parts.length !== 4) return 0;
+    return ((parseInt(parts[0], 10) || 0) * 16777216) +
+           ((parseInt(parts[1], 10) || 0) * 65536) +
+           ((parseInt(parts[2], 10) || 0) * 256) +
+           (parseInt(parts[3], 10) || 0);
+}
+
+// Sort data by Server IP (numerically) then by Database name (alphabetically)
+function sortGarbageData(data) {
+    return data.sort(function (a, b) {
+        // First compare by Server IP numerically
+        var ipA = ipToNumber(a.ServerIp);
+        var ipB = ipToNumber(b.ServerIp);
+        if (ipA !== ipB) {
+            return ipA - ipB;
+        }
+        // Then compare by Database name alphabetically
+        var dbA = (a.DatabaseName || '').toLowerCase();
+        var dbB = (b.DatabaseName || '').toLowerCase();
+        return dbA.localeCompare(dbB);
+    });
 }

@@ -25,5 +25,15 @@ namespace AttandanceSyncApp.Services.Interfaces.SalaryGarbge
         /// Scans all databases across all server IPs and returns garbage data
         /// </summary>
         ServiceResult<GarbageScanResultDto> ScanAllDatabases();
+
+        /// <summary>
+        /// Scans a specific database for problematic salary mismatches
+        /// </summary>
+        ServiceResult<IEnumerable<ProblematicGarbageDto>> ScanDatabaseForProblematic(int serverIpId, string databaseName);
+
+        /// <summary>
+        /// Scans all databases across all server IPs for problematic salary mismatches
+        /// </summary>
+        ServiceResult<ProblematicScanResultDto> ScanAllProblematicDatabases();
     }
 }

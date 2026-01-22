@@ -15,6 +15,37 @@ namespace AttandanceSyncApp.Models.DTOs.SalaryGarbge
     }
 
     /// <summary>
+    /// DTO for problematic garbage data (salary mismatches between tables)
+    /// </summary>
+    public class ProblematicGarbageDto
+    {
+        public string ServerIp { get; set; }
+        public string DatabaseName { get; set; }
+        public int EmployeeId { get; set; }
+        public string EmployeeName { get; set; }
+        public string IssueTableName { get; set; }
+        public decimal CurrentBasicSalary { get; set; }
+        public decimal ExpectedBasicSalary { get; set; }
+    }
+
+    /// <summary>
+    /// DTO for problematic garbage scan result
+    /// </summary>
+    public class ProblematicScanResultDto
+    {
+        public List<ProblematicGarbageDto> ProblematicData { get; set; }
+        public int TotalServers { get; set; }
+        public int TotalDatabases { get; set; }
+        public int TotalProblematicRecords { get; set; }
+        public string Summary { get; set; }
+
+        public ProblematicScanResultDto()
+        {
+            ProblematicData = new List<ProblematicGarbageDto>();
+        }
+    }
+
+    /// <summary>
     /// DTO for scan progress updates
     /// </summary>
     public class ScanProgressDto

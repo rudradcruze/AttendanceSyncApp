@@ -91,6 +91,9 @@ namespace AttandanceSyncApp.Services.Admin
             if (normalizedName.Contains("salary") || normalizedName.Contains("garbge") || normalizedName.Contains("garbage"))
                 return "~/SalaryGarbge/Index";
 
+            if (normalizedName.Contains("concurrent") || normalizedName.Contains("simulation"))
+                return "~/ConcurrentSimulation/Index";
+
             return null;
         }
 

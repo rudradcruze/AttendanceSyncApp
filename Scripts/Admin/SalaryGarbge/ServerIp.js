@@ -39,7 +39,7 @@ function loadServerIps(page) {
                 ? '<span class="badge bg-success">Active</span>'
                 : '<span class="badge bg-danger">Inactive</span>';
 
-            var passwordCell = '<span class="password-masked" data-id="' + item.Id + '" style="cursor: pointer;" onclick="revealPassword(this, ' + item.Id + ')">****** <small class="text-muted">(click to reveal)</small></span>';
+            var passwordCell = '<span class="password-masked" data-id="' + item.Id + '" style="cursor: pointer;" onclick="revealPassword(this, ' + item.Id + ')">******</span>';
 
             var actions =
                 '<button class="btn btn-sm btn-primary me-1" onclick="editServerIp(' + item.Id + ')">Edit</button>' +

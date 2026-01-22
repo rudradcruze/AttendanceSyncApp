@@ -1,4 +1,5 @@
 using System.Configuration;
+using System.Linq;
 using System.Web.Mvc;
 using AttandanceSyncApp.Models.DTOs;
 using AttandanceSyncApp.Models.DTOs.Auth;
@@ -89,6 +90,46 @@ namespace AttandanceSyncApp.Controllers
         {
             var sessionInfo = GetSessionInfo();
             var result = _authService.LoginAdmin(email, password, sessionInfo);
+
+            if (result.Success)
+            {
+                SetSessionCookie(result.Data.SessionToken);
+                return Json(ApiResponse<UserDto>.Success(result.Data, result.Message));
+            }
+
+            return Json(ApiResponse<UserDto>.Fail(result.Message));
+        }
+
+        // POST: Auth/UserLogin
+        [HttpPost]
+        public JsonResult UserLogin(LoginDto loginDto)
+        {
+            var sessionInfo = GetSessionInfo();
+            var result = _authService.LoginUser(loginDto.Email, loginDto.Password, sessionInfo);
+
+            if (result.Success)
+            {
+                SetSessionCookie(result.Data.SessionToken);
+                return Json(ApiResponse<UserDto>.Success(result.Data, result.Message));
+            }
+
+            return Json(ApiResponse<UserDto>.Fail(result.Message));
+        }
+
+        // POST: Auth/Register
+        [HttpPost]
+        public JsonResult Register(RegisterDto registerDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = string.Join(", ", ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage));
+                return Json(ApiResponse<UserDto>.Fail(errors));
+            }
+
+            var sessionInfo = GetSessionInfo();
+            var result = _authService.RegisterUser(registerDto, sessionInfo);
 
             if (result.Success)
             {

@@ -55,17 +55,22 @@ function handleGoogleSignUp(response) {
 }
 
 /* ============================
-   Admin Login Form Handler
+   Email Login Form Handler
 ============================ */
 $(function () {
-    $('#adminLoginForm').on('submit', function (e) {
+    $('#emailLoginForm').on('submit', function (e) {
         e.preventDefault();
 
-        var email = $('#adminEmail').val();
-        var password = $('#adminPassword').val();
+        var email = $('#loginEmail').val();
+        var password = $('#loginPassword').val();
+
+        if (!email || !password) {
+            showMessage('Please enter both email and password.', 'warning');
+            return;
+        }
 
         $.ajax({
-            url: APP.baseUrl + 'Auth/AdminLogin',
+            url: APP.baseUrl + 'Auth/UserLogin',
             type: 'POST',
             data: {
                 email: email,
@@ -77,12 +82,75 @@ $(function () {
                 } else if (res.Data) {
                     showMessage('Login successful! Redirecting...', 'success');
                     setTimeout(function () {
-                        window.location.href = APP.baseUrl + 'AdminDashboard';
+                        if (res.Data.Role === 'ADMIN') {
+                            window.location.href = APP.baseUrl + 'AdminDashboard';
+                        } else {
+                            window.location.href = APP.baseUrl;
+                        }
                     }, 1000);
                 }
             },
             error: function () {
                 showMessage('Login failed. Please try again.', 'danger');
+            }
+        });
+    });
+});
+
+/* ============================
+   Email Registration Form Handler
+============================ */
+$(function () {
+    $('#emailRegisterForm').on('submit', function (e) {
+        e.preventDefault();
+
+        var name = $('#registerName').val().trim();
+        var email = $('#registerEmail').val().trim();
+        var password = $('#registerPassword').val();
+        var confirmPassword = $('#registerConfirmPassword').val();
+
+        // Client-side validation
+        if (!name || !email || !password || !confirmPassword) {
+            showMessage('Please fill in all fields.', 'warning');
+            return;
+        }
+
+        if (name.length < 2) {
+            showMessage('Name must be at least 2 characters.', 'warning');
+            return;
+        }
+
+        if (password.length < 8) {
+            showMessage('Password must be at least 8 characters.', 'warning');
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            showMessage('Passwords do not match.', 'warning');
+            return;
+        }
+
+        $.ajax({
+            url: APP.baseUrl + 'Auth/Register',
+            type: 'POST',
+            data: {
+                name: name,
+                email: email,
+                password: password,
+                confirmPassword: confirmPassword
+            },
+            success: function (res) {
+                if (res.Errors && res.Errors.length > 0) {
+                    showMessage(res.Message || res.Errors[0], 'danger');
+                } else if (res.Data) {
+                    showMessage('Registration successful! Redirecting...', 'success');
+                    setTimeout(function () {
+                        window.location.href = APP.baseUrl;
+                    }, 1000);
+                }
+            },
+            error: function () {
+                showMessage('Registration failed. Please try again.', 'danger');
             }
         });
     });

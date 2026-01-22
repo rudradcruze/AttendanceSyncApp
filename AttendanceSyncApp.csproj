@@ -248,6 +248,7 @@
     <Compile Include="Models\DTOs\AttandanceSynchronizationDto.cs" />
     <Compile Include="Models\DTOs\Auth\GoogleAuthDto.cs" />
     <Compile Include="Models\DTOs\Auth\LoginDto.cs" />
+    <Compile Include="Models\DTOs\Auth\RegisterDto.cs" />
     <Compile Include="Models\DTOs\Auth\SessionDto.cs" />
     <Compile Include="Models\DTOs\Auth\UserDto.cs" />
     <Compile Include="Models\DTOs\PagedResultDto.cs" />

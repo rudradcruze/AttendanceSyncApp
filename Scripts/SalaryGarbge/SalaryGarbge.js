@@ -6,6 +6,7 @@
 var currentScanType = 'confirm'; // 'confirm' or 'problematic'
 var selectedServerIpId = null;
 var selectedDatabases = [];
+var currentGarbageData = []; // Store current results for export
 
 $(function () {
     // Bind click events to tool cards
@@ -43,6 +44,7 @@ function showSelectionSection() {
     // Reset selections
     selectedServerIpId = null;
     selectedDatabases = [];
+    currentGarbageData = [];
     $('#databaseSelectionDiv').hide();
     $('#startScanBtn').prop('disabled', true);
 
@@ -167,6 +169,7 @@ function cancelSelection() {
     $('#cardSection').show();
     selectedServerIpId = null;
     selectedDatabases = [];
+    currentGarbageData = [];
 }
 
 function startScanWithSelection() {
@@ -186,6 +189,7 @@ function performScan() {
     $('#problematicResultsSection').hide();
     $('#progressSection').show();
     $('#progressList').empty();
+    currentGarbageData = [];
 
     // Get selected server info
     $.get(APP.baseUrl + 'SalaryGarbge/GetActiveServers', function (res) {
@@ -334,6 +338,9 @@ function showResults(totalServers, garbageData) {
     // Hide progress section
     $('#progressSection').hide();
 
+    // Store results for export
+    currentGarbageData = garbageData;
+
     // Count unique databases
     var uniqueDatabases = {};
     garbageData.forEach(function (item) {
@@ -357,6 +364,7 @@ function showConfirmResults(totalServers, totalDatabases, garbageData) {
 
     // Sort data by Server IP (numerically) then by Database name (alphabetically)
     garbageData = sortGarbageData(garbageData);
+    currentGarbageData = garbageData; // Ensure stored data is also sorted
 
     // Populate table
     var tbody = $('#garbageTableBody').empty();
@@ -375,6 +383,7 @@ function showConfirmResults(totalServers, totalDatabases, garbageData) {
                 '<td>' + escapeHtml(item.ServerIp) + '</td>' +
                 '<td>' + escapeHtml(item.DatabaseName) + '</td>' +
                 '<td>' + item.EmployeeId + '</td>' +
+                '<td>' + item.EmployeeCode + '</td>' +
                 '<td>' + escapeHtml(item.EmployeeName) + '</td>' +
                 '<td>' + problemBadge + '</td>' +
                 '</tr>';
@@ -394,6 +403,7 @@ function showProblematicResults(totalServers, totalDatabases, problematicData) {
 
     // Sort data by Server IP (numerically) then by Database name (alphabetically)
     problematicData = sortGarbageData(problematicData);
+    currentGarbageData = problematicData; // Ensure stored data is also sorted
 
     // Populate table
     var tbody = $('#problematicTableBody').empty();
@@ -412,6 +422,7 @@ function showProblematicResults(totalServers, totalDatabases, problematicData) {
                 '<td>' + escapeHtml(item.ServerIp) + '</td>' +
                 '<td>' + escapeHtml(item.DatabaseName) + '</td>' +
                 '<td>' + item.EmployeeId + '</td>' +
+                '<td>' + item.EmployeeCode + '</td>' +
                 '<td>' + escapeHtml(item.EmployeeName) + '</td>' +
                 '<td>' + issueBadge + '</td>' +
                 '<td class="salary-mismatch">' + formatCurrency(item.CurrentBasicSalary) + '</td>' +
@@ -423,6 +434,89 @@ function showProblematicResults(totalServers, totalDatabases, problematicData) {
 
     // Show results section
     $('#problematicResultsSection').show();
+}
+
+function exportToExcel() {
+    if (!currentGarbageData || currentGarbageData.length === 0) {
+        Swal.fire('Warning', 'No data to export', 'warning');
+        return;
+    }
+
+    var tableContent = '';
+    var fileName = '';
+
+    if (currentScanType === 'confirm') {
+        fileName = 'Salary_Garbage_Report_' + new Date().toISOString().slice(0, 10) + '.xls';
+        tableContent = '<table>' +
+            '<thead>' +
+            '<tr>' +
+            '<th>Server IP</th>' +
+            '<th>Database Name</th>' +
+            '<th>Employee ID</th>' +
+            '<th>Employee Code</th>' +
+            '<th>Employee Name</th>' +
+            '<th>Problem</th>' +
+            '</tr>' +
+            '</thead>' +
+            '<tbody>';
+
+        currentGarbageData.forEach(function (item) {
+            tableContent += '<tr>' +
+                '<td>' + (item.ServerIp || '') + '</td>' +
+                '<td>' + (item.DatabaseName || '') + '</td>' +
+                '<td>' + (item.EmployeeId || '') + '</td>' +
+                '<td>' + (item.EmployeeCode || '') + '</td>' +
+                '<td>' + (item.EmployeeName || '') + '</td>' +
+                '<td>' + (item.Problem || '') + '</td>' +
+                '</tr>';
+        });
+    } else {
+        fileName = 'Problematic_Salary_Report_' + new Date().toISOString().slice(0, 10) + '.xls';
+        tableContent = '<table>' +
+            '<thead>' +
+            '<tr>' +
+            '<th>Server IP</th>' +
+            '<th>Database Name</th>' +
+            '<th>Employee ID</th>' +
+            '<th>Employee Code</th>' +
+            '<th>Employee Name</th>' +
+            '<th>Issue Table</th>' +
+            '<th>Current Basic Salary</th>' +
+            '<th>Expected Basic Salary</th>' +
+            '</tr>' +
+            '</thead>' +
+            '<tbody>';
+
+        currentGarbageData.forEach(function (item) {
+            tableContent += '<tr>' +
+                '<td>' + (item.ServerIp || '') + '</td>' +
+                '<td>' + (item.DatabaseName || '') + '</td>' +
+                '<td>' + (item.EmployeeId || '') + '</td>' +
+                '<td>' + (item.EmployeeCode || '') + '</td>' +
+                '<td>' + (item.EmployeeName || '') + '</td>' +
+                '<td>' + (item.IssueTableName || '') + '</td>' +
+                '<td>' + (item.CurrentBasicSalary || '0') + '</td>' +
+                '<td>' + (item.ExpectedBasicSalary || '0') + '</td>' +
+                '</tr>';
+        });
+    }
+
+    tableContent += '</tbody></table>';
+
+    // Create a Blob with the Excel MIME type
+    var blob = new Blob([tableContent], { type: 'application/vnd.ms-excel' });
+    
+    // Create a download link and trigger it
+    var url = window.URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    
+    // Cleanup
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
 }
 
 function getIssueBadge(issueTableName) {
@@ -459,6 +553,7 @@ function resetAndShowCard() {
     $('#problematicResultsSection').hide();
     $('#progressSection').hide();
     $('#cardSection').show();
+    currentGarbageData = []; // Clear data on reset
 }
 
 function showNoServersMessage() {

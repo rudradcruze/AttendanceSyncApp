@@ -151,6 +151,20 @@ namespace AttandanceSyncApp.Services.SalaryGarbge
             var databases = new List<string>();
             var connectionString = BuildConnectionString(serverIp, userId, encryptedPassword);
 
+            // Get ServerIp ID from IP address to check access
+            var serverIpRecord = _unitOfWork.ServerIps.GetByIpAddress(serverIp);
+            if (serverIpRecord == null)
+            {
+                return databases; // No filtering if server not found
+            }
+
+            // Get accessible databases from DatabaseAccess table
+            var accessibleDatabases = new HashSet<string>(
+                _unitOfWork.DatabaseAccess
+                    .GetAccessibleDatabasesByServerId(serverIpRecord.Id)
+                    .Select(da => da.DatabaseName)
+            );
+
             using (var connection = new SqlConnection(connectionString))
             {
                 connection.Open();
@@ -167,7 +181,12 @@ namespace AttandanceSyncApp.Services.SalaryGarbge
                     {
                         while (reader.Read())
                         {
-                            databases.Add(reader.GetString(0));
+                            var dbName = reader.GetString(0);
+                            // Only include if in accessible list
+                            if (accessibleDatabases.Contains(dbName))
+                            {
+                                databases.Add(dbName);
+                            }
                         }
                     }
                 }

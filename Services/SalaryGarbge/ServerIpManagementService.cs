@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Linq;
 using AttandanceSyncApp.Helpers;
 using AttandanceSyncApp.Models.DTOs;
@@ -138,6 +140,32 @@ namespace AttandanceSyncApp.Services.SalaryGarbge
                 _unitOfWork.ServerIps.Add(serverIp);
                 _unitOfWork.SaveChanges();
 
+                // Auto-populate DatabaseAccess table with all databases from this server
+                try
+                {
+                    var databases = GetDatabasesFromNewServer(serverIp.IpAddress, serverIp.DatabaseUser, serverIp.DatabasePassword);
+
+                    foreach (var dbName in databases)
+                    {
+                        var dbAccess = new DatabaseAccess
+                        {
+                            ServerIpId = serverIp.Id,
+                            DatabaseName = dbName,
+                            HasAccess = true, // Default to granted
+                            IsActive = true,
+                            CreatedAt = DateTime.Now
+                        };
+                        _unitOfWork.DatabaseAccess.Add(dbAccess);
+                    }
+
+                    _unitOfWork.SaveChanges();
+                }
+                catch (Exception ex)
+                {
+                    // Log error but don't fail ServerIp creation
+                    // Admin can manually add databases via Database Access page
+                }
+
                 return ServiceResult.SuccessResult("Server IP created successfully");
             }
             catch (Exception ex)
@@ -240,6 +268,47 @@ namespace AttandanceSyncApp.Services.SalaryGarbge
             {
                 return ServiceResult.FailureResult($"Failed to toggle server IP status: {ex.Message}");
             }
+        }
+
+        private List<string> GetDatabasesFromNewServer(string serverIp, string userId, string encryptedPassword)
+        {
+            var databases = new List<string>();
+            var decryptedPassword = EncryptionHelper.Decrypt(encryptedPassword);
+
+            var builder = new SqlConnectionStringBuilder
+            {
+                DataSource = serverIp,
+                InitialCatalog = "master",
+                UserID = userId,
+                Password = decryptedPassword,
+                IntegratedSecurity = false,
+                ConnectTimeout = 30,
+                Encrypt = false,
+                TrustServerCertificate = true
+            };
+
+            using (var connection = new SqlConnection(builder.ConnectionString))
+            {
+                connection.Open();
+                var query = @"
+                    SELECT name FROM sys.databases
+                    WHERE state_desc = 'ONLINE'
+                    AND name NOT IN ('master', 'tempdb', 'model', 'msdb')
+                    ORDER BY name";
+
+                using (var command = new SqlCommand(query, connection))
+                {
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            databases.Add(reader.GetString(0));
+                        }
+                    }
+                }
+            }
+
+            return databases;
         }
     }
 }

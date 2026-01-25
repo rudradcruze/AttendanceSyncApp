@@ -20,6 +20,7 @@ namespace AttandanceSyncApp.Repositories.Interfaces
 
         // SalaryGarbge repositories
         IServerIpRepository ServerIps { get; }
+        IDatabaseAccessRepository DatabaseAccess { get; }
 
         int SaveChanges();
     }

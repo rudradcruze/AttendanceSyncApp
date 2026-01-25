@@ -26,6 +26,7 @@ namespace AttandanceSyncApp.Repositories
 
         // SalaryGarbge repositories
         private IServerIpRepository _serverIpRepository;
+        private IDatabaseAccessRepository _databaseAccessRepository;
 
         public AuthUnitOfWork()
         {
@@ -70,6 +71,9 @@ namespace AttandanceSyncApp.Repositories
         // SalaryGarbge repositories
         public IServerIpRepository ServerIps =>
             _serverIpRepository ?? (_serverIpRepository = new ServerIpRepository(_context));
+
+        public IDatabaseAccessRepository DatabaseAccess =>
+            _databaseAccessRepository ?? (_databaseAccessRepository = new DatabaseAccessRepository(_context));
 
         public int SaveChanges()
         {

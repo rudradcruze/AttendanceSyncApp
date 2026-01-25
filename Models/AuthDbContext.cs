@@ -30,6 +30,7 @@ namespace AttandanceSyncApp.Models
 
         // SalaryGarbge entities
         public DbSet<ServerIp> ServerIps { get; set; }
+        public DbSet<DatabaseAccess> DatabaseAccess { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -192,6 +193,18 @@ namespace AttandanceSyncApp.Models
             // Unique constraint on ServerIp.IpAddress
             modelBuilder.Entity<ServerIp>()
                 .HasIndex(s => s.IpAddress)
+                .IsUnique();
+
+            // DatabaseAccess - ServerIp relationship (one-to-many)
+            modelBuilder.Entity<DatabaseAccess>()
+                .HasRequired(da => da.ServerIp)
+                .WithMany()
+                .HasForeignKey(da => da.ServerIpId)
+                .WillCascadeOnDelete(true);
+
+            // Unique constraint on DatabaseAccess (ServerIpId + DatabaseName)
+            modelBuilder.Entity<DatabaseAccess>()
+                .HasIndex(da => new { da.ServerIpId, da.DatabaseName })
                 .IsUnique();
 
             base.OnModelCreating(modelBuilder);

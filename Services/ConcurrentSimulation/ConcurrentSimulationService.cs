@@ -62,6 +62,19 @@ namespace AttandanceSyncApp.Services.ConcurrentSimulation
                     return ServiceResult<IEnumerable<DatabaseListDto>>.FailureResult("Server IP not found");
                 }
 
+                // Get accessible databases from DatabaseAccess table
+                var accessibleDatabases = new HashSet<string>(
+                    _unitOfWork.DatabaseAccess
+                        .GetAccessibleDatabasesByServerId(serverIpId)
+                        .Select(da => da.DatabaseName)
+                );
+
+                if (!accessibleDatabases.Any())
+                {
+                    return ServiceResult<IEnumerable<DatabaseListDto>>.SuccessResult(
+                        new List<DatabaseListDto>());
+                }
+
                 var decryptedPassword = EncryptionHelper.Decrypt(serverIp.DatabasePassword);
                 var connectionString = BuildConnectionString(serverIp.IpAddress, serverIp.DatabaseUser, decryptedPassword, "master");
 
@@ -76,10 +89,15 @@ namespace AttandanceSyncApp.Services.ConcurrentSimulation
                         {
                             while (reader.Read())
                             {
-                                databases.Add(new DatabaseListDto
+                                var dbName = reader.GetString(0);
+                                // Only include if in accessible list
+                                if (accessibleDatabases.Contains(dbName))
                                 {
-                                    DatabaseName = reader.GetString(0)
-                                });
+                                    databases.Add(new DatabaseListDto
+                                    {
+                                        DatabaseName = dbName
+                                    });
+                                }
                             }
                         }
                     }

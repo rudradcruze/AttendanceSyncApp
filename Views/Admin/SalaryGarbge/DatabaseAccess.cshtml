@@ -1,0 +1,103 @@
+@using System.Configuration
+@{
+    ViewBag.Title = "Database Access Management";
+    ViewBag.ActiveMenu = "DatabaseAccess";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .database-card {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-bottom: 10px;
+        background: white;
+        transition: all 0.2s ease;
+    }
+
+    .database-card:hover {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .database-card.new-database {
+        border-left: 4px solid #17a2b8;
+        background: #e7f7f9;
+    }
+
+    .database-card.has-access {
+        border-left: 4px solid #28a745;
+    }
+
+    .database-card.no-access {
+        border-left: 4px solid #dc3545;
+    }
+
+    .database-name {
+        font-weight: 500;
+        font-size: 1rem;
+    }
+
+    .access-badge {
+        font-size: 0.85rem;
+        padding: 4px 12px;
+        border-radius: 12px;
+    }
+
+    .new-badge {
+        background: #17a2b8;
+        color: white;
+    }
+
+    .granted-badge {
+        background: #28a745;
+        color: white;
+    }
+
+    .revoked-badge {
+        background: #dc3545;
+        color: white;
+    }
+
+    .server-selector {
+        margin-bottom: 25px;
+    }
+</style>
+
+<div class="database-access-management">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5>Database Access Management</h5>
+    </div>
+
+    <div class="server-selector">
+        <label for="serverIpSelect" class="form-label">Select Server IP:</label>
+        <select class="form-select" id="serverIpSelect">
+            <option value="">-- Select a Server IP --</option>
+        </select>
+    </div>
+
+    <div id="databaseListSection" style="display: none;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6>Databases on Selected Server</h6>
+            <button class="btn btn-sm btn-primary" onclick="refreshDatabases()">
+                <i class="bi bi-arrow-clockwise"></i> Refresh
+            </button>
+        </div>
+
+        <div id="databaseList">
+            <!-- Database cards will be populated here -->
+        </div>
+
+        <div id="noDatabasesMessage" style="display: none;" class="text-center text-muted py-4">
+            No databases found on this server
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        window.APP = {
+            baseUrl: '@Url.Content(ConfigurationManager.AppSettings["AppBaseUrl"])'
+        };
+    </script>
+    <script src="~/Scripts/Admin/SalaryGarbge/DatabaseAccess.js"></script>
+}

@@ -375,6 +375,7 @@ function showConfirmResults(totalServers, totalDatabases, garbageData) {
                 '<td>' + escapeHtml(item.ServerIp) + '</td>' +
                 '<td>' + escapeHtml(item.DatabaseName) + '</td>' +
                 '<td>' + item.EmployeeId + '</td>' +
+                '<td>' + item.EmployeeCode + '</td>' +
                 '<td>' + escapeHtml(item.EmployeeName) + '</td>' +
                 '<td>' + problemBadge + '</td>' +
                 '</tr>';
@@ -412,6 +413,7 @@ function showProblematicResults(totalServers, totalDatabases, problematicData) {
                 '<td>' + escapeHtml(item.ServerIp) + '</td>' +
                 '<td>' + escapeHtml(item.DatabaseName) + '</td>' +
                 '<td>' + item.EmployeeId + '</td>' +
+                '<td>' + item.EmployeeCode + '</td>' +
                 '<td>' + escapeHtml(item.EmployeeName) + '</td>' +
                 '<td>' + issueBadge + '</td>' +
                 '<td class="salary-mismatch">' + formatCurrency(item.CurrentBasicSalary) + '</td>' +

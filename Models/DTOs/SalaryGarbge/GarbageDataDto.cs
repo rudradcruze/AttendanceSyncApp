@@ -12,6 +12,7 @@ namespace AttandanceSyncApp.Models.DTOs.SalaryGarbge
         public int EmployeeId { get; set; }
         public string EmployeeName { get; set; }
         public string Problem { get; set; }
+        public string EmployeeCode { get; set; }
     }
 
     /// <summary>
@@ -26,6 +27,7 @@ namespace AttandanceSyncApp.Models.DTOs.SalaryGarbge
         public string IssueTableName { get; set; }
         public decimal CurrentBasicSalary { get; set; }
         public decimal ExpectedBasicSalary { get; set; }
+        public string EmployeeCode { get; set; }
     }
 
     /// <summary>

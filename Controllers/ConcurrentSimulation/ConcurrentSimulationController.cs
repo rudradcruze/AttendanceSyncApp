@@ -71,14 +71,21 @@ namespace AttandanceSyncApp.Controllers.ConcurrentSimulation
         [HttpPost]
         public JsonResult HitConcurrent(HitConcurrentRequestDto request)
         {
-            var result = _service.HitConcurrent(request);
-
-            if (!result.Success)
+            try
             {
-                return Json(ApiResponse<HitConcurrentResponseDto>.Fail(result.Message));
-            }
+                var result = _service.HitConcurrent(request);
 
-            return Json(ApiResponse<HitConcurrentResponseDto>.Success(result.Data, result.Message));
+                if (!result.Success)
+                {
+                    return Json(ApiResponse<HitConcurrentResponseDto>.Fail(result.Message));
+                }
+
+                return Json(ApiResponse<HitConcurrentResponseDto>.Success(result.Data, result.Message));
+            }
+            catch (System.Exception ex)
+            {
+                return Json(ApiResponse<HitConcurrentResponseDto>.Fail($"Error: {ex.Message}. Inner: {ex.InnerException?.Message}"));
+            }
         }
     }
 }

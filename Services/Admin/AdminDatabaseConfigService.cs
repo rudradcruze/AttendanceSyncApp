@@ -4,7 +4,7 @@ using System.Linq;
 using AttandanceSyncApp.Helpers; // Assumed for EncryptionHelper
 using AttandanceSyncApp.Models.DTOs;
 using AttandanceSyncApp.Models.DTOs.Admin;
-using AttandanceSyncApp.Models.Sync;
+using AttandanceSyncApp.Models.AttandanceSync;
 using AttandanceSyncApp.Repositories.Interfaces;
 using AttandanceSyncApp.Services.Interfaces.Admin;
 

@@ -1,6 +1,6 @@
 using System;
 
-namespace AttandanceSyncApp.Models.DTOs
+namespace AttandanceSyncApp.Models.DTOs.AttandanceSync
 {
     /// <summary>
     /// Data Transfer Object for AttandanceSynchronization

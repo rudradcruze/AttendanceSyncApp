@@ -1,6 +1,6 @@
 using System.Data.Entity;
 using AttandanceSyncApp.Models.Auth;
-using AttandanceSyncApp.Models.Sync;
+using AttandanceSyncApp.Models.AttandanceSync;
 using AttandanceSyncApp.Models.SalaryGarbge;
 
 namespace AttandanceSyncApp.Models

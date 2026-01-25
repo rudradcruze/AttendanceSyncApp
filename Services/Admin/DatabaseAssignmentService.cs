@@ -2,7 +2,7 @@ using System;
 using AttandanceSyncApp.Helpers;
 using AttandanceSyncApp.Models.DTOs;
 using AttandanceSyncApp.Models.DTOs.Admin;
-using AttandanceSyncApp.Models.Sync;
+using AttandanceSyncApp.Models.AttandanceSync;
 using AttandanceSyncApp.Repositories.Interfaces;
 using AttandanceSyncApp.Services.Interfaces.Admin;
 

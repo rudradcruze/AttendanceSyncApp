@@ -37,7 +37,6 @@ namespace AttandanceSyncApp.Models.DTOs.ConcurrentSimulation
     {
         public int ServerIpId { get; set; }
         public string DatabaseName { get; set; }
-        public List<PeriodEndProcessEntry> Entries { get; set; }
     }
 
     /// <summary>

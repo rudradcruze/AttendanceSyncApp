@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using AttandanceSyncApp.Models;
+using AttandanceSyncApp.Models.AttandanceSync;
 using AttandanceSyncApp.Models.DTOs;
 using AttandanceSyncApp.Models.DTOs.Sync;
 

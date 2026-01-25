@@ -5,15 +5,15 @@ using System.Web.Mvc;
 using AttandanceSyncApp.Controllers.Filters;
 using AttandanceSyncApp.Models.DTOs;
 using AttandanceSyncApp.Models.DTOs.Admin;
-using AttandanceSyncApp.Models.DTOs.Sync;
+using AttandanceSyncApp.Models.DTOs.AttandanceSync;
 using AttandanceSyncApp.Repositories;
 using AttandanceSyncApp.Repositories.Interfaces;
 using AttandanceSyncApp.Services.Admin;
 using AttandanceSyncApp.Services.Interfaces.Admin;
-using AttandanceSyncApp.Services.Interfaces.Sync;
-using AttandanceSyncApp.Services.Sync;
+using AttandanceSyncApp.Services.Interfaces.AttandanceSync;
+using AttandanceSyncApp.Services.AttandanceSync;
 
-namespace AttandanceSyncApp.Controllers
+namespace AttandanceSyncApp.Controllers.AttandanceSync
 {
     /// <summary>
     /// Controller for Attandance Synchronization - User-facing dashboard

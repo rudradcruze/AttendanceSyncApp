@@ -1,4 +1,5 @@
 using System;
+using AttandanceSyncApp.Repositories.Interfaces.AttandanceSync;
 
 namespace AttandanceSyncApp.Repositories.Interfaces
 {

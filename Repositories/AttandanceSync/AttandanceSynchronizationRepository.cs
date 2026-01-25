@@ -2,9 +2,10 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using AttandanceSyncApp.Models;
-using AttandanceSyncApp.Repositories.Interfaces;
+using AttandanceSyncApp.Models.AttandanceSync;
+using AttandanceSyncApp.Repositories.Interfaces.AttandanceSync;
 
-namespace AttandanceSyncApp.Repositories
+namespace AttandanceSyncApp.Repositories.AttandanceSync
 {
     /// <summary>
     /// Repository implementation for AttandanceSynchronization entity

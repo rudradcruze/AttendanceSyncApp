@@ -6,7 +6,7 @@ namespace AttandanceSyncApp.Models.ConcurrentSimulation
     /// </summary>
     public class PeriodEndProcessEntry
     {
-        public int UserId { get; set; }
+        public string UserId { get; set; }
         public int Branch_Id { get; set; }
         public int Location_Id { get; set; }
         public int CompanyId { get; set; }

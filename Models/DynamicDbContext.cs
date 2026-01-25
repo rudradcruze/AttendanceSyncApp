@@ -1,4 +1,5 @@
 using System.Data.Entity;
+using AttandanceSyncApp.Models.AttandanceSync;
 
 namespace AttandanceSyncApp.Models
 {

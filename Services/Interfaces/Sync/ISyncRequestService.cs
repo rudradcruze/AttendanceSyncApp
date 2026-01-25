@@ -3,7 +3,7 @@ using AttandanceSyncApp.Models.DTOs;
 using AttandanceSyncApp.Models.DTOs.Admin;
 using AttandanceSyncApp.Models.DTOs.Auth;
 using AttandanceSyncApp.Models.DTOs.Sync;
-using AttandanceSyncApp.Models.Sync;
+using AttandanceSyncApp.Models.AttandanceSync;
 
 namespace AttandanceSyncApp.Services.Interfaces.Sync
 {

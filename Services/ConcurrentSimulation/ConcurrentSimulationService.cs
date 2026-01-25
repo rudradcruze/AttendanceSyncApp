@@ -16,11 +16,17 @@ namespace AttandanceSyncApp.Services.ConcurrentSimulation
     public class ConcurrentSimulationService : IConcurrentSimulationService
     {
         private readonly IAuthUnitOfWork _unitOfWork;
-        private const string PERIOD_FROM_DATE = "2025-10-01";
 
         public ConcurrentSimulationService(IAuthUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
+        }
+
+        private string GetLastMonthDate()
+        {
+            var now = DateTime.Now;
+            var lastMonth = new DateTime(now.Year, now.Month, 1).AddMonths(-1);
+            return lastMonth.ToString("yyyy-MM-dd");
         }
 
         public ServiceResult<IEnumerable<ServerIpDto>> GetAllServerIps()
@@ -104,13 +110,13 @@ namespace AttandanceSyncApp.Services.ConcurrentSimulation
 
                 var query = @"
                     SELECT
-                        MIN(u.Id)        AS UserId,
-                        l.BranchID       AS Branch_Id,
-                        p.Location_Id,
-                        1                AS CompanyId,
-                        'NR'             AS Status,
-                        0                AS EmployeeId,
-                        'NA'             AS PostProcessStatus
+                        ISNULL(MIN(u.Id), '') AS UserId,
+                        ISNULL(l.BranchID, 0) AS Branch_Id,
+                        ISNULL(p.Location_Id, 0) AS Location_Id,
+                        1                     AS CompanyId,
+                        'NR'                  AS Status,
+                        0                     AS EmployeeId,
+                        'NA'                  AS PostProcessStatus
                     FROM far.tblperiodenddetails p
                     INNER JOIN far.tblLocation l
                             ON l.Id = p.Location_Id
@@ -126,7 +132,7 @@ namespace AttandanceSyncApp.Services.ConcurrentSimulation
                     connection.Open();
                     using (var command = new SqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@PeriodFrom", PERIOD_FROM_DATE);
+                        command.Parameters.AddWithValue("@PeriodFrom", GetLastMonthDate());
 
                         using (var reader = command.ExecuteReader())
                         {
@@ -134,7 +140,7 @@ namespace AttandanceSyncApp.Services.ConcurrentSimulation
                             {
                                 entries.Add(new PeriodEndProcessEntry
                                 {
-                                    UserId = reader.GetInt32(0),
+                                    UserId = reader.GetString(0),
                                     Branch_Id = reader.GetInt32(1),
                                     Location_Id = reader.GetInt32(2),
                                     CompanyId = reader.GetInt32(3),
@@ -159,7 +165,15 @@ namespace AttandanceSyncApp.Services.ConcurrentSimulation
         {
             try
             {
-                if (request.Entries == null || !request.Entries.Any())
+                // First, fetch the period end data from the database
+                var dataResult = GetPeriodEndData(request.ServerIpId, request.DatabaseName);
+                if (!dataResult.Success)
+                {
+                    return ServiceResult<HitConcurrentResponseDto>.FailureResult($"Failed to fetch data: {dataResult.Message}");
+                }
+
+                var entries = dataResult.Data.ToList();
+                if (!entries.Any())
                 {
                     return ServiceResult<HitConcurrentResponseDto>.FailureResult("No entries to insert");
                 }
@@ -183,7 +197,7 @@ namespace AttandanceSyncApp.Services.ConcurrentSimulation
                     (@CompanyId, @Status, @EmployeeId, @UserId, @Branch_Id, @Location_Id, @PostProcessStatus)";
 
                 // Execute all inserts concurrently
-                var tasks = request.Entries.Select(entry => Task.Run(() =>
+                var tasks = entries.Select(entry => Task.Run(() =>
                 {
                     try
                     {
@@ -193,12 +207,12 @@ namespace AttandanceSyncApp.Services.ConcurrentSimulation
                             using (var command = new SqlCommand(insertQuery, connection))
                             {
                                 command.Parameters.AddWithValue("@CompanyId", entry.CompanyId);
-                                command.Parameters.AddWithValue("@Status", entry.Status);
+                                command.Parameters.AddWithValue("@Status", entry.Status ?? "NR");
                                 command.Parameters.AddWithValue("@EmployeeId", entry.EmployeeId);
-                                command.Parameters.AddWithValue("@UserId", entry.UserId);
+                                command.Parameters.AddWithValue("@UserId", entry.UserId ?? "");
                                 command.Parameters.AddWithValue("@Branch_Id", entry.Branch_Id);
                                 command.Parameters.AddWithValue("@Location_Id", entry.Location_Id);
-                                command.Parameters.AddWithValue("@PostProcessStatus", entry.PostProcessStatus);
+                                command.Parameters.AddWithValue("@PostProcessStatus", entry.PostProcessStatus ?? "NA");
 
                                 command.ExecuteNonQuery();
                                 System.Threading.Interlocked.Increment(ref successCount);
@@ -207,7 +221,8 @@ namespace AttandanceSyncApp.Services.ConcurrentSimulation
                     }
                     catch (Exception ex)
                     {
-                        errors.Add($"Error inserting entry (Location_Id: {entry.Location_Id}): {ex.Message}");
+                        var innerMsg = ex.InnerException != null ? $" Inner: {ex.InnerException.Message}" : "";
+                        errors.Add($"Error inserting entry (Location_Id: {entry.Location_Id}, UserId: {entry.UserId}): {ex.Message}{innerMsg}");
                     }
                 })).ToArray();
 
@@ -215,7 +230,7 @@ namespace AttandanceSyncApp.Services.ConcurrentSimulation
 
                 var response = new HitConcurrentResponseDto
                 {
-                    TotalRecords = request.Entries.Count,
+                    TotalRecords = entries.Count,
                     SuccessCount = successCount,
                     FailedCount = errors.Count,
                     Errors = errors.ToList()

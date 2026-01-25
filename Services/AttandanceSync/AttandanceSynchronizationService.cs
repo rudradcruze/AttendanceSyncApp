@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using AttandanceSyncApp.Models;
+using AttandanceSyncApp.Models.AttandanceSync;
 using AttandanceSyncApp.Models.DTOs;
+using AttandanceSyncApp.Models.DTOs.AttandanceSync;
 using AttandanceSyncApp.Repositories.Interfaces;
 using AttandanceSyncApp.Services.Interfaces;
+using AttandanceSyncApp.Services.Interfaces.AttandanceSync;
 
-namespace AttandanceSyncApp.Services
+namespace AttandanceSyncApp.Services.AttandanceSync
 {
     /// <summary>
     /// Service implementation for AttandanceSynchronization business logic

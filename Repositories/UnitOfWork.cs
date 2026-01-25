@@ -1,6 +1,8 @@
 using System;
 using AttandanceSyncApp.Models;
+using AttandanceSyncApp.Repositories.AttandanceSync;
 using AttandanceSyncApp.Repositories.Interfaces;
+using AttandanceSyncApp.Repositories.Interfaces.AttandanceSync;
 
 namespace AttandanceSyncApp.Repositories
 {

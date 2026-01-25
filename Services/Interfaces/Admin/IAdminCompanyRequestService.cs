@@ -1,6 +1,6 @@
 using AttandanceSyncApp.Models.DTOs;
 using AttandanceSyncApp.Models.DTOs.Admin;
-using AttandanceSyncApp.Models.DTOs.CompanyRequest;
+using AttandanceSyncApp.Models.DTOs.AttandanceSync;
 
 namespace AttandanceSyncApp.Services.Interfaces.Admin
 {

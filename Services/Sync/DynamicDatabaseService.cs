@@ -4,6 +4,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using AttandanceSyncApp.Helpers;
 using AttandanceSyncApp.Models;
+using AttandanceSyncApp.Models.AttandanceSync;
 using AttandanceSyncApp.Models.DTOs;
 using AttandanceSyncApp.Models.DTOs.Sync;
 using AttandanceSyncApp.Repositories.Interfaces;

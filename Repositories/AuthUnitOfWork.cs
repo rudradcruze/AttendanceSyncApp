@@ -1,10 +1,10 @@
 using AttandanceSyncApp.Models;
 using AttandanceSyncApp.Repositories.Interfaces;
 using AttandanceSyncApp.Repositories.Interfaces.Auth;
-using AttandanceSyncApp.Repositories.Interfaces.Sync;
+using AttandanceSyncApp.Repositories.Interfaces.AttandanceSync;
 using AttandanceSyncApp.Repositories.Interfaces.SalaryGarbge;
 using AttandanceSyncApp.Repositories.Auth;
-using AttandanceSyncApp.Repositories.Sync;
+using AttandanceSyncApp.Repositories.AttandanceSync;
 using AttandanceSyncApp.Repositories.SalaryGarbge;
 
 namespace AttandanceSyncApp.Repositories

@@ -2,11 +2,11 @@ using System.Linq;
 using System.Web.Mvc;
 using AttandanceSyncApp.Controllers.Filters;
 using AttandanceSyncApp.Models.DTOs;
-using AttandanceSyncApp.Models.DTOs.CompanyRequest;
+using AttandanceSyncApp.Models.DTOs.AttandanceSync;
 using AttandanceSyncApp.Repositories;
 using AttandanceSyncApp.Repositories.Interfaces;
-using AttandanceSyncApp.Services.Interfaces.Sync;
-using AttandanceSyncApp.Services.Sync;
+using AttandanceSyncApp.Services.Interfaces.AttandanceSync;
+using AttandanceSyncApp.Services.AttandanceSync;
 
 namespace AttandanceSyncApp.Controllers
 {

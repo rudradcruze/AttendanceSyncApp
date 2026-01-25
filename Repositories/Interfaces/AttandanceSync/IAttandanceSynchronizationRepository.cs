@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using AttandanceSyncApp.Models;
+using AttandanceSyncApp.Models.AttandanceSync;
 
-namespace AttandanceSyncApp.Repositories.Interfaces
+namespace AttandanceSyncApp.Repositories.Interfaces.AttandanceSync
 {
     /// <summary>
     /// Repository interface for AttandanceSynchronization entity

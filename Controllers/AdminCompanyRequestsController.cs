@@ -1,7 +1,7 @@
 using System.Web.Mvc;
 using AttandanceSyncApp.Controllers.Filters;
 using AttandanceSyncApp.Models.DTOs;
-using AttandanceSyncApp.Models.DTOs.CompanyRequest;
+using AttandanceSyncApp.Models.DTOs.AttandanceSync;
 using AttandanceSyncApp.Repositories;
 using AttandanceSyncApp.Services.Admin;
 using AttandanceSyncApp.Services.Interfaces.Admin;

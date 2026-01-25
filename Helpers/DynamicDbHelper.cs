@@ -2,7 +2,7 @@ using System;
 using System.Data.Entity;
 using System.Data.SqlClient;
 using AttandanceSyncApp.Models;
-using AttandanceSyncApp.Models.Sync;
+using AttandanceSyncApp.Models.AttandanceSync;
 
 namespace AttandanceSyncApp.Helpers
 {

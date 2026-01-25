@@ -66,7 +66,7 @@
     // Load server IPs
     function loadServerIps() {
         $.ajax({
-            url: window.APP.baseUrl + '/ConcurrentSimulation/GetServerIps',
+            url: APP.baseUrl + 'ConcurrentSimulation/GetServerIps',
             type: 'GET',
             success: function (response) {
                 if (response.Errors && response.Errors.length > 0) {
@@ -141,7 +141,7 @@
         );
 
         $.ajax({
-            url: window.APP.baseUrl + '/ConcurrentSimulation/GetDatabases',
+            url: APP.baseUrl + 'ConcurrentSimulation/GetDatabases',
             type: 'GET',
             data: { serverIpId: serverIpId },
             success: function (response) {
@@ -216,7 +216,7 @@
         elements.resultContainer.html('');
 
         $.ajax({
-            url: window.APP.baseUrl + '/ConcurrentSimulation/GetPeriodEndData',
+            url: APP.baseUrl + 'ConcurrentSimulation/GetPeriodEndData',
             type: 'GET',
             data: {
                 serverIpId: state.selectedServerIpId,
@@ -289,12 +289,11 @@
 
         var requestData = {
             ServerIpId: state.selectedServerIpId,
-            DatabaseName: state.selectedDatabaseName,
-            Entries: state.periodEndData
+            DatabaseName: state.selectedDatabaseName
         };
 
         $.ajax({
-            url: window.APP.baseUrl + '/ConcurrentSimulation/HitConcurrent',
+            url: APP.baseUrl + 'ConcurrentSimulation/HitConcurrent',
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(requestData),

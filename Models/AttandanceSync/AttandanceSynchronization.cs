@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace AttandanceSyncApp.Models
+namespace AttandanceSyncApp.Models.AttandanceSync
 {
     [Table("AttandanceSynchronizations")]
     public class AttandanceSynchronization

@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using AttandanceSyncApp.Models.DTOs;
+using AttandanceSyncApp.Models.DTOs.AttandanceSync;
 
-namespace AttandanceSyncApp.Services.Interfaces
+namespace AttandanceSyncApp.Services.Interfaces.AttandanceSync
 {
     /// <summary>
     /// Service interface for AttandanceSynchronization business logic

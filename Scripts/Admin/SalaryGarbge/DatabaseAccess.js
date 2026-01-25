@@ -4,6 +4,19 @@
 ============================ */
 var currentServerIpId = null;
 
+// Toast configuration
+const Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 2000,
+    timerProgressBar: true,
+    didOpen: (toast) => {
+        toast.addEventListener('mouseenter', Swal.stopTimer)
+        toast.addEventListener('mouseleave', Swal.resumeTimer)
+    }
+});
+
 $(function () {
     loadServerIps();
     $('#serverIpSelect').on('change', onServerIpChange);
@@ -50,13 +63,16 @@ function onServerIpChange() {
 function loadDatabases() {
     if (!currentServerIpId) return;
 
+    // Save current scroll position
+    var scrollPosition = $(window).scrollTop();
+
     $('#databaseListSection').show();
-    $('#databaseList').html('<div class="text-center py-4"><div class="spinner-border" role="status"></div><div class="mt-2">Loading databases...</div></div>');
+    $('#databaseTableBody').html('<tr><td colspan="4" class="text-center py-4"><div class="spinner-border" role="status"></div><div class="mt-2">Loading databases...</div></td></tr>');
 
     $.get(APP.baseUrl + 'AdminDatabaseAccess/GetDatabasesWithAccess',
         { serverIpId: currentServerIpId },
         function (res) {
-            var container = $('#databaseList').empty();
+            var tbody = $('#databaseTableBody').empty();
 
             if (res.Errors && res.Errors.length > 0) {
                 Swal.fire('Error', res.Message, 'error');
@@ -67,47 +83,78 @@ function loadDatabases() {
             var databases = res.Data;
             if (!databases || databases.length === 0) {
                 $('#noDatabasesMessage').show();
+                $('#statsSection').hide();
+                $('#databaseTable').hide();
                 return;
             }
 
             $('#noDatabasesMessage').hide();
+            $('#statsSection').show();
+            $('#databaseTable').show();
 
-            $.each(databases, function (_, db) {
-                var cardClass = 'database-card';
+            // Calculate statistics
+            var stats = {
+                total: databases.length,
+                new: 0,
+                granted: 0,
+                revoked: 0
+            };
+
+            $.each(databases, function (index, db) {
+                if (!db.ExistsInAccessTable) {
+                    stats.new++;
+                } else if (db.HasAccess) {
+                    stats.granted++;
+                } else {
+                    stats.revoked++;
+                }
+            });
+
+            // Update statistics display
+            $('#statTotal').text(stats.total);
+            $('#statNew').text(stats.new);
+            $('#statGranted').text(stats.granted);
+            $('#statRevoked').text(stats.revoked);
+
+            // Render table rows
+            $.each(databases, function (index, db) {
+                var rowClass = '';
                 var badgeHtml = '';
                 var actionButton = '';
 
                 if (!db.ExistsInAccessTable) {
                     // New database not yet in access table
-                    cardClass += ' new-database';
-                    badgeHtml = '<span class="access-badge new-badge">NEW</span>';
+                    rowClass = 'row-new';
+                    badgeHtml = '<span class="badge-new">NEW</span>';
                     actionButton = '<button class="btn btn-sm btn-success" onclick="addDatabaseAccess(\'' + escapeHtml(db.DatabaseName) + '\')">Add Access</button>';
                 } else if (db.HasAccess) {
                     // Access granted
-                    cardClass += ' has-access';
-                    badgeHtml = '<span class="access-badge granted-badge">Access Granted</span>';
+                    rowClass = 'row-granted';
+                    badgeHtml = '<span class="badge-granted">Access Granted</span>';
                     actionButton = '<button class="btn btn-sm btn-warning me-1" onclick="toggleAccess(\'' + escapeHtml(db.DatabaseName) + '\', false)">Revoke Access</button>' +
                         '<button class="btn btn-sm btn-danger" onclick="removeDatabaseAccess(\'' + escapeHtml(db.DatabaseName) + '\')">Remove</button>';
                 } else {
                     // Access revoked
-                    cardClass += ' no-access';
-                    badgeHtml = '<span class="access-badge revoked-badge">Access Revoked</span>';
+                    rowClass = 'row-revoked';
+                    badgeHtml = '<span class="badge-revoked">Access Revoked</span>';
                     actionButton = '<button class="btn btn-sm btn-success me-1" onclick="toggleAccess(\'' + escapeHtml(db.DatabaseName) + '\', true)">Grant Access</button>' +
                         '<button class="btn btn-sm btn-danger" onclick="removeDatabaseAccess(\'' + escapeHtml(db.DatabaseName) + '\')">Remove</button>';
                 }
 
-                var card = '<div class="' + cardClass + '">' +
-                    '<div class="d-flex justify-content-between align-items-center">' +
-                    '<div>' +
-                    '<span class="database-name">' + escapeHtml(db.DatabaseName) + '</span>' +
-                    ' ' + badgeHtml +
-                    '</div>' +
-                    '<div>' + actionButton + '</div>' +
-                    '</div>' +
-                    '</div>';
+                var row = '<tr class="' + rowClass + '">' +
+                    '<td>' + (index + 1) + '</td>' +
+                    '<td><strong>' + escapeHtml(db.DatabaseName) + '</strong></td>' +
+                    '<td>' + badgeHtml + '</td>' +
+                    '<td>' + actionButton + '</td>' +
+                    '</tr>';
 
-                container.append(card);
+                tbody.append(row);
             });
+
+            // Restore scroll position after rendering
+            setTimeout(function() {
+                $(window).scrollTop(scrollPosition);
+            }, 0);
         }
     ).fail(function () {
         Swal.fire('Error', 'Failed to load databases', 'error');
@@ -116,78 +163,61 @@ function loadDatabases() {
 }
 
 function addDatabaseAccess(databaseName) {
-    Swal.fire({
-        title: 'Add Database Access',
-        text: 'Grant access to database "' + databaseName + '"?',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#28a745',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Yes, Add Access'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $.ajax({
-                url: APP.baseUrl + 'AdminDatabaseAccess/AddDatabaseAccess',
-                type: 'POST',
-                data: {
-                    serverIpId: currentServerIpId,
-                    databaseName: databaseName
-                },
-                success: function (res) {
-                    if (res.Errors && res.Errors.length > 0) {
-                        Swal.fire('Error', res.Message, 'error');
-                    } else {
-                        Swal.fire('Success', res.Message, 'success');
-                        loadDatabases();
-                    }
-                },
-                error: function () {
-                    Swal.fire('Error', 'Failed to add database access', 'error');
-                }
-            });
+    // No confirmation - add directly
+    $.ajax({
+        url: APP.baseUrl + 'AdminDatabaseAccess/AddDatabaseAccess',
+        type: 'POST',
+        data: {
+            serverIpId: currentServerIpId,
+            databaseName: databaseName
+        },
+        success: function (res) {
+            if (res.Errors && res.Errors.length > 0) {
+                Swal.fire('Error', res.Message, 'error');
+            } else {
+                Toast.fire({
+                    icon: 'success',
+                    title: 'Access added successfully'
+                });
+                loadDatabases();
+            }
+        },
+        error: function () {
+            Swal.fire('Error', 'Failed to add database access', 'error');
         }
     });
 }
 
 function toggleAccess(databaseName, hasAccess) {
-    var action = hasAccess ? 'grant' : 'revoke';
-    var actionTitle = hasAccess ? 'Grant Access' : 'Revoke Access';
-
-    Swal.fire({
-        title: actionTitle,
-        text: 'Are you sure you want to ' + action + ' access to "' + databaseName + '"?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: hasAccess ? '#28a745' : '#ffc107',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Yes, ' + actionTitle
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $.ajax({
-                url: APP.baseUrl + 'AdminDatabaseAccess/UpdateDatabaseAccess',
-                type: 'POST',
-                data: {
-                    serverIpId: currentServerIpId,
-                    databaseName: databaseName,
-                    hasAccess: hasAccess
-                },
-                success: function (res) {
-                    if (res.Errors && res.Errors.length > 0) {
-                        Swal.fire('Error', res.Message, 'error');
-                    } else {
-                        Swal.fire('Success', res.Message, 'success');
-                        loadDatabases();
-                    }
-                },
-                error: function () {
-                    Swal.fire('Error', 'Failed to update database access', 'error');
-                }
-            });
+    // No confirmation - toggle directly
+    $.ajax({
+        url: APP.baseUrl + 'AdminDatabaseAccess/UpdateDatabaseAccess',
+        type: 'POST',
+        data: {
+            serverIpId: currentServerIpId,
+            databaseName: databaseName,
+            hasAccess: hasAccess
+        },
+        success: function (res) {
+            if (res.Errors && res.Errors.length > 0) {
+                Swal.fire('Error', res.Message, 'error');
+            } else {
+                var action = hasAccess ? 'granted' : 'revoked';
+                Toast.fire({
+                    icon: 'success',
+                    title: 'Access ' + action + ' successfully'
+                });
+                loadDatabases();
+            }
+        },
+        error: function () {
+            Swal.fire('Error', 'Failed to update database access', 'error');
         }
     });
 }
 
 function removeDatabaseAccess(databaseName) {
+    // Keep confirmation for remove action
     Swal.fire({
         title: 'Remove Database Access',
         text: 'Are you sure you want to remove "' + databaseName + '" from the access list? This action cannot be undone.',

@@ -6,61 +6,72 @@
 }
 
 <style>
-    .database-card {
-        border: 1px solid #dee2e6;
-        border-radius: 8px;
-        padding: 12px 16px;
-        margin-bottom: 10px;
-        background: white;
-        transition: all 0.2s ease;
-    }
-
-    .database-card:hover {
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    .database-card.new-database {
-        border-left: 4px solid #17a2b8;
-        background: #e7f7f9;
-    }
-
-    .database-card.has-access {
-        border-left: 4px solid #28a745;
-    }
-
-    .database-card.no-access {
-        border-left: 4px solid #dc3545;
-    }
-
-    .database-name {
-        font-weight: 500;
-        font-size: 1rem;
-    }
-
-    .access-badge {
-        font-size: 0.85rem;
-        padding: 4px 12px;
-        border-radius: 12px;
-    }
-
-    .new-badge {
-        background: #17a2b8;
-        color: white;
-    }
-
-    .granted-badge {
-        background: #28a745;
-        color: white;
-    }
-
-    .revoked-badge {
-        background: #dc3545;
-        color: white;
-    }
-
     .server-selector {
         margin-bottom: 25px;
     }
+
+    .stats-card {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 15px;
+        background: white;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .stats-value {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .stats-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+
+    .stats-total { color: #0d6efd; }
+    .stats-new { color: #17a2b8; }
+    .stats-granted { color: #28a745; }
+    .stats-revoked { color: #dc3545; }
+
+    .badge-new {
+        background: #17a2b8;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.85rem;
+    }
+
+    .badge-granted {
+        background: #28a745;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.85rem;
+    }
+
+    .badge-revoked {
+        background: #dc3545;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.85rem;
+    }
+
+    .database-table {
+        background: white;
+        border-radius: 8px;
+    }
+
+    .database-table th {
+        background: #f8f9fa;
+        font-weight: 600;
+    }
+
+    .row-new { background: #e7f7f9; }
+    .row-granted { background: #d4edda; }
+    .row-revoked { background: #f8d7da; }
 </style>
 
 <div class="database-access-management">
@@ -76,6 +87,34 @@
     </div>
 
     <div id="databaseListSection" style="display: none;">
+        <!-- Statistics Section -->
+        <div class="row mb-3" id="statsSection">
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-value stats-total" id="statTotal">0</div>
+                    <div class="stats-label">Total Databases</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-value stats-new" id="statNew">0</div>
+                    <div class="stats-label">New Databases</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-value stats-granted" id="statGranted">0</div>
+                    <div class="stats-label">Access Granted</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-value stats-revoked" id="statRevoked">0</div>
+                    <div class="stats-label">Access Revoked</div>
+                </div>
+            </div>
+        </div>
+
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h6>Databases on Selected Server</h6>
             <button class="btn btn-sm btn-primary" onclick="refreshDatabases()">
@@ -83,8 +122,20 @@
             </button>
         </div>
 
-        <div id="databaseList">
-            <!-- Database cards will be populated here -->
+        <div class="table-responsive database-table">
+            <table class="table table-hover mb-0" id="databaseTable">
+                <thead>
+                    <tr>
+                        <th style="width: 5%;">#</th>
+                        <th style="width: 40%;">Database Name</th>
+                        <th style="width: 20%;">Status</th>
+                        <th style="width: 35%;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="databaseTableBody">
+                    <!-- Table rows will be populated here -->
+                </tbody>
+            </table>
         </div>
 
         <div id="noDatabasesMessage" style="display: none;" class="text-center text-muted py-4">

@@ -147,6 +147,7 @@
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
     <None Include="Scripts\jquery-3.7.1.intellisense.js" />
+    <Content Include="Scripts\BranchIssue\BranchIssue.js" />
     <Content Include="Scripts\Common.js" />
     <Content Include="Scripts\ConcurrentSimulation\ConcurrentSimulation.js" />
     <Content Include="Scripts\jquery-3.7.1.js" />
@@ -178,6 +179,7 @@
     <Compile Include="Controllers\AttandanceSync\AttandanceController.cs" />
     <Compile Include="Controllers\AuthController.cs" />
     <Compile Include="Controllers\BaseController.cs" />
+    <Compile Include="Controllers\BranchIssue\BranchIssueController.cs" />
     <Compile Include="Controllers\CompanyRequestController.cs" />
     <Compile Include="Controllers\ConcurrentSimulation\ConcurrentSimulationController.cs" />
     <Compile Include="Controllers\Filters\AdminAuthorizeAttribute.cs" />
@@ -250,6 +252,7 @@
     <Compile Include="Models\Auth\GoogleUserInfo.cs" />
     <Compile Include="Models\Auth\LoginSession.cs" />
     <Compile Include="Models\Auth\User.cs" />
+    <Compile Include="Models\BranchIssue\ProblemBranch.cs" />
     <Compile Include="Models\Company.cs" />
     <Compile Include="Models\ConcurrentSimulation\PeriodEndProcessEntry.cs" />
     <Compile Include="Models\DTOs\Admin\AssignDatabaseDto.cs" />
@@ -278,6 +281,7 @@
     <Compile Include="Models\DTOs\Auth\RegisterDto.cs" />
     <Compile Include="Models\DTOs\Auth\SessionDto.cs" />
     <Compile Include="Models\DTOs\Auth\UserDto.cs" />
+    <Compile Include="Models\DTOs\BranchIssue\BranchIssueDtos.cs" />
     <Compile Include="Models\DTOs\ConcurrentSimulation\ConcurrentSimulationDtos.cs" />
     <Compile Include="Models\DTOs\PagedResultDto.cs" />
     <Compile Include="Models\DTOs\SalaryGarbge\DatabaseAccessDto.cs" />
@@ -316,6 +320,7 @@
     <Compile Include="Repositories\AuthUnitOfWork.cs" />
     <Compile Include="Repositories\Auth\LoginSessionRepository.cs" />
     <Compile Include="Repositories\Auth\UserRepository.cs" />
+    <Compile Include="Repositories\BranchIssue\BranchIssueRepository.cs" />
     <Compile Include="Repositories\CompanyRepository.cs" />
     <Compile Include="Repositories\Interfaces\AttandanceSync\IAttandanceSynchronizationRepository.cs" />
     <Compile Include="Repositories\Interfaces\AttandanceSync\IAttandanceSyncRequestRepository.cs" />
@@ -328,6 +333,7 @@
     <Compile Include="Repositories\Interfaces\AttandanceSync\IUserToolRepository.cs" />
     <Compile Include="Repositories\Interfaces\Auth\ILoginSessionRepository.cs" />
     <Compile Include="Repositories\Interfaces\Auth\IUserRepository.cs" />
+    <Compile Include="Repositories\Interfaces\BranchIssue\IBranchIssueRepository.cs" />
     <Compile Include="Repositories\Interfaces\IAuthUnitOfWork.cs" />
     <Compile Include="Repositories\Interfaces\ICompanyRepository.cs" />
     <Compile Include="Repositories\Interfaces\IRepository.cs" />
@@ -371,6 +377,7 @@
     <Compile Include="Services\Auth\AuthService.cs" />
     <Compile Include="Services\Auth\GoogleAuthService.cs" />
     <Compile Include="Services\Auth\SessionService.cs" />
+    <Compile Include="Services\BranchIssue\BranchIssueService.cs" />
     <Compile Include="Services\CompanyService.cs" />
     <Compile Include="Services\ConcurrentSimulation\ConcurrentSimulationService.cs" />
     <Compile Include="Services\Interfaces\Admin\IAdminDatabaseAssignmentService.cs" />
@@ -390,6 +397,7 @@
     <Compile Include="Services\Interfaces\Auth\IAuthService.cs" />
     <Compile Include="Services\Interfaces\Auth\IGoogleAuthService.cs" />
     <Compile Include="Services\Interfaces\Auth\ISessionService.cs" />
+    <Compile Include="Services\Interfaces\BranchIssue\IBranchIssueService.cs" />
     <Compile Include="Services\Interfaces\ConcurrentSimulation\IConcurrentSimulationService.cs" />
     <Compile Include="Services\Interfaces\ICompanyService.cs" />
     <Compile Include="Services\Interfaces\SalaryGarbge\IDatabaseAccessService.cs" />
@@ -454,6 +462,7 @@
     <Content Include="Views\SalaryGarbge\Index.cshtml" />
     <Content Include="Views\ConcurrentSimulation\Index.cshtml" />
     <Content Include="Views\Admin\SalaryGarbge\DatabaseAccess.cshtml" />
+    <Content Include="Views\BranchIssue\Index.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

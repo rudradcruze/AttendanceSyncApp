@@ -4,50 +4,190 @@
 ============================ */
 
 var currentScanType = 'confirm'; // 'confirm' or 'problematic'
+var selectedServerIpId = null;
+var selectedDatabases = [];
 
 $(function () {
     // Bind click events to tool cards
     $('#confirmGarbageCard').on('click', startConfirmScan);
     $('#problematicGarbageCard').on('click', startProblematicScan);
+
+    // Bind server IP selection change
+    $('#serverIpSelect').on('change', onServerIpChange);
+
+    // Bind database selection change
+    $('#databaseSelect').on('change', onDatabaseSelectionChange);
 });
 
 function startConfirmScan() {
     currentScanType = 'confirm';
-    startScan('Confirm Garbage Scan', 'This will scan all configured server databases for employee records with GradeScaleId or BasicSalary issues. Continue?');
+    $('#scanTypeTitle').text('Confirm Garbage Scan');
+    $('#selectionHeaderIcon').removeClass('problematic-icon').addClass('confirm-icon');
+    showSelectionSection();
 }
 
 function startProblematicScan() {
     currentScanType = 'problematic';
-    startScan('Problematic Garbage Scan', 'This will scan all configured server databases for salary mismatches between Employees and PromotionIncrements/Confirmations tables. Continue?');
+    $('#scanTypeTitle').text('Problematic Garbage Scan');
+    $('#selectionHeaderIcon').removeClass('confirm-icon').addClass('problematic-icon');
+    showSelectionSection();
 }
 
-function startScan(title, text) {
-    // Show confirmation dialog
-    Swal.fire({
-        title: title,
-        text: text,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: currentScanType === 'confirm' ? '#ee5a24' : '#f5576c',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Yes, Start Scan',
-        cancelButtonText: 'Cancel'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            performScan();
+function showSelectionSection() {
+    $('#cardSection').hide();
+    $('#selectionSection').show();
+    $('#resultsSection').hide();
+    $('#problematicResultsSection').hide();
+    $('#progressSection').hide();
+
+    // Reset selections
+    selectedServerIpId = null;
+    selectedDatabases = [];
+    $('#databaseSelectionDiv').hide();
+    $('#startScanBtn').prop('disabled', true);
+
+    // Load server IPs
+    loadServerIps();
+}
+
+function loadServerIps() {
+    $.get(APP.baseUrl + 'SalaryGarbge/GetActiveServers', function (res) {
+        var select = $('#serverIpSelect').empty();
+        select.append('<option value="">-- Select a Server IP --</option>');
+
+        if (res.Errors && res.Errors.length > 0) {
+            Swal.fire('Error', res.Message, 'error');
+            return;
         }
+
+        var servers = res.Data;
+        if (servers && servers.length > 0) {
+            $.each(servers, function (_, server) {
+                select.append(
+                    '<option value="' + server.Id + '">' +
+                    escapeHtml(server.IpAddress) +
+                    (server.Description ? ' - ' + escapeHtml(server.Description) : '') +
+                    '</option>'
+                );
+            });
+        }
+    }).fail(function () {
+        Swal.fire('Error', 'Failed to load server IPs', 'error');
     });
 }
 
+function onServerIpChange() {
+    var serverIpId = $('#serverIpSelect').val();
+
+    if (!serverIpId) {
+        $('#databaseSelectionDiv').hide();
+        $('#startScanBtn').prop('disabled', true);
+        selectedServerIpId = null;
+        selectedDatabases = [];
+        return;
+    }
+
+    selectedServerIpId = parseInt(serverIpId);
+    loadDatabases();
+}
+
+function loadDatabases() {
+    if (!selectedServerIpId) return;
+
+    $('#databaseSelectionDiv').show();
+    var dbSelect = $('#databaseSelect').empty();
+    dbSelect.append('<option value="">Loading databases...</option>');
+    $('#startScanBtn').prop('disabled', true);
+
+    // Use SalaryGarbge endpoint to get only accessible databases
+    $.get(APP.baseUrl + 'SalaryGarbge/GetAccessibleDatabases',
+        { serverIpId: selectedServerIpId },
+        function (res) {
+            dbSelect.empty();
+
+            if (res.Errors && res.Errors.length > 0) {
+                Swal.fire('Error', res.Message, 'error');
+                $('#databaseSelectionDiv').hide();
+                return;
+            }
+
+            var databases = res.Data;
+
+            if (!databases || databases.length === 0) {
+                dbSelect.append('<option value="">No accessible databases found</option>');
+                Swal.fire('Warning', 'No accessible databases found for this server. Please contact your administrator to grant database access.', 'warning');
+                return;
+            }
+
+            $.each(databases, function (_, db) {
+                dbSelect.append(
+                    '<option value="' + escapeHtml(db.DatabaseName) + '">' +
+                    escapeHtml(db.DatabaseName) +
+                    '</option>'
+                );
+            });
+
+            updateSelectedCount();
+        }
+    ).fail(function () {
+        Swal.fire('Error', 'Failed to load databases', 'error');
+        $('#databaseSelectionDiv').hide();
+    });
+}
+
+function onDatabaseSelectionChange() {
+    updateSelectedCount();
+    validateSelection();
+}
+
+function updateSelectedCount() {
+    var selected = $('#databaseSelect').val();
+    var count = selected ? selected.length : 0;
+    $('#selectedCount').text(count);
+    selectedDatabases = selected || [];
+}
+
+function validateSelection() {
+    var isValid = selectedServerIpId && selectedDatabases.length > 0;
+    $('#startScanBtn').prop('disabled', !isValid);
+}
+
+function selectAllDatabases() {
+    $('#databaseSelect option').prop('selected', true);
+    onDatabaseSelectionChange();
+}
+
+function deselectAllDatabases() {
+    $('#databaseSelect option').prop('selected', false);
+    onDatabaseSelectionChange();
+}
+
+function cancelSelection() {
+    $('#selectionSection').hide();
+    $('#cardSection').show();
+    selectedServerIpId = null;
+    selectedDatabases = [];
+}
+
+function startScanWithSelection() {
+    if (!selectedServerIpId || selectedDatabases.length === 0) {
+        Swal.fire('Warning', 'Please select a server IP and at least one database', 'warning');
+        return;
+    }
+
+    performScan();
+}
+
 function performScan() {
-    // Hide card section, show progress section
+    // Hide sections, show progress
     $('#cardSection').hide();
+    $('#selectionSection').hide();
     $('#resultsSection').hide();
     $('#problematicResultsSection').hide();
     $('#progressSection').show();
     $('#progressList').empty();
 
-    // First get all active servers
+    // Get selected server info
     $.get(APP.baseUrl + 'SalaryGarbge/GetActiveServers', function (res) {
         if (res.Errors && res.Errors.length > 0) {
             showError(res.Message);
@@ -55,15 +195,32 @@ function performScan() {
         }
 
         var servers = res.Data;
-        if (!servers || servers.length === 0) {
-            showNoServersMessage();
+        var selectedServer = servers.find(function(s) { return s.Id === selectedServerIpId; });
+
+        if (!selectedServer) {
+            showError('Selected server not found');
             return;
         }
 
-        // Start scanning servers one by one with real-time progress
-        scanServersSequentially(servers, 0, []);
+        // Scan only selected databases on the selected server
+        scanSelectedDatabases(selectedServer, selectedDatabases, []);
     }).fail(function () {
         showError('Failed to connect to the server');
+    });
+}
+
+function scanSelectedDatabases(server, databaseNames, allGarbageData) {
+    var progressId = 'server-' + server.Id;
+
+    // Add progress item for this server
+    addProgressItem(progressId, server.IpAddress, 'Starting scan...', 'scanning');
+
+    // Scan the selected databases sequentially
+    scanDatabasesSequentially(server, databaseNames, 0, allGarbageData, progressId, function (serverGarbageData) {
+        updateProgressItem(progressId, server.IpAddress, 'Completed (' + databaseNames.length + ' databases, ' + serverGarbageData.length + ' issues)', 'completed');
+
+        // Show results (1 server, total databases scanned)
+        showResults(1, serverGarbageData);
     });
 }
 

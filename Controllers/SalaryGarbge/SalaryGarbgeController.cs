@@ -77,6 +77,32 @@ namespace AttandanceSyncApp.Controllers.SalaryGarbge
             return Json(ApiResponse<object>.Success(result.Data), JsonRequestBehavior.AllowGet);
         }
 
+        // GET: SalaryGarbge/GetAccessibleDatabases
+        [HttpGet]
+        public JsonResult GetAccessibleDatabases(int serverIpId)
+        {
+            try
+            {
+                // Get only databases with access granted from DatabaseAccess table
+                var accessibleDatabases = _unitOfWork.DatabaseAccess
+                    .GetAccessibleDatabasesByServerId(serverIpId)
+                    .Select(da => new
+                    {
+                        DatabaseName = da.DatabaseName,
+                        HasAccess = da.HasAccess,
+                        ExistsInAccessTable = true
+                    })
+                    .OrderBy(d => d.DatabaseName)
+                    .ToList();
+
+                return Json(ApiResponse<object>.Success(accessibleDatabases), JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(ApiResponse<object>.Fail("Error loading accessible databases: " + ex.Message), JsonRequestBehavior.AllowGet);
+            }
+        }
+
         // POST: SalaryGarbge/ScanDatabase
         [HttpPost]
         public JsonResult ScanDatabase(int serverIpId, string databaseName)

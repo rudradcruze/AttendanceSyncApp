@@ -184,135 +184,119 @@
         font-weight: bold;
     }
 
-    /* Selection Section Styles */
-    .selection-container {
-        background: white;
-        border-radius: 15px;
-        padding: 30px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-    }
-
-    .selection-header {
+    /* Step Indicator Styles */
+    .step-indicator {
         display: flex;
-        align-items: center;
-        margin-bottom: 30px;
-        padding-bottom: 15px;
-        border-bottom: 2px solid #f0f0f0;
-    }
-
-    .selection-header-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
         justify-content: center;
-        margin-right: 15px;
+        margin-bottom: 30px;
     }
 
-    .selection-header-icon.confirm-icon {
-        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-        color: white;
-    }
-
-    .selection-header-icon.problematic-icon {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        color: white;
-    }
-
-    .selection-title {
-        font-size: 1.4rem;
-        font-weight: 600;
-        color: #2c3e50;
-        margin: 0;
-    }
-
-    .selection-step {
-        background: #f8f9fa;
-        border-left: 4px solid #667eea;
-        padding: 20px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-    }
-
-    .selection-step-label {
-        font-weight: 600;
-        color: #495057;
-        margin-bottom: 10px;
+    .step {
         display: flex;
         align-items: center;
+        color: #6c757d;
+    }
+
+    .step.active {
+        color: #667eea;
+        font-weight: 600;
+    }
+
+    .step.completed {
+        color: #28a745;
     }
 
     .step-number {
-        display: inline-flex;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: #e9ecef;
+        display: flex;
         align-items: center;
         justify-content: center;
-        width: 24px;
-        height: 24px;
+        margin-right: 8px;
+        font-weight: bold;
+    }
+
+    .step.active .step-number {
         background: #667eea;
         color: white;
-        border-radius: 50%;
-        font-size: 0.85rem;
-        font-weight: bold;
-        margin-right: 10px;
     }
 
-    .database-multiselect {
+    .step.completed .step-number {
+        background: #28a745;
+        color: white;
+    }
+
+    .step-divider {
+        width: 50px;
+        height: 2px;
+        background: #e9ecef;
+        margin: 0 15px;
+    }
+
+    /* IP and Database Card Styles */
+    .ip-card, .db-card {
         border: 2px solid #e9ecef;
-        border-radius: 8px;
-        padding: 8px;
-        max-height: 300px;
+        border-radius: 12px;
+        padding: 20px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: white;
     }
 
-    .database-multiselect:focus {
+    .ip-card:hover, .db-card:hover {
         border-color: #667eea;
-        outline: none;
-        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
     }
 
-    .database-selection-controls {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+    .ip-card.selected, .db-card.selected {
+        border-color: #667eea;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .ip-card .ip-icon, .db-card .db-icon {
+        font-size: 2rem;
         margin-bottom: 10px;
     }
 
-    .selection-actions {
+    .ip-card .ip-address, .db-card .db-name {
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+
+    .ip-card .ip-desc, .db-card .db-desc {
+        font-size: 0.85rem;
+        opacity: 0.8;
+    }
+
+    .section-header {
         display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .summary-info {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 15px 20px;
+        margin-bottom: 20px;
+    }
+
+    .summary-info .info-item {
+        display: flex;
+        align-items: center;
         gap: 10px;
-        padding-top: 20px;
-        border-top: 2px solid #f0f0f0;
-    }
-
-    .btn-start-scan {
-        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-        border: none;
-        color: white;
-        font-weight: 600;
-        padding: 10px 30px;
-        border-radius: 8px;
-        transition: all 0.3s ease;
-    }
-
-    .btn-start-scan:hover:not(:disabled) {
-        background: linear-gradient(135deg, #20c997 0%, #28a745 100%);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
-    }
-
-    .btn-start-scan:disabled {
-        background: #6c757d;
-        opacity: 0.6;
-        cursor: not-allowed;
-    }
-
-    .selected-count-badge {
-        background: #667eea;
-        color: white;
-        padding: 4px 12px;
-        border-radius: 12px;
-        font-size: 0.9rem;
-        font-weight: 600;
     }
 </style>
 
@@ -362,87 +346,87 @@
 
     <!-- Selection Section (Hidden initially) -->
     <div id="selectionSection" style="display: none;">
-        <div class="selection-container">
-            <!-- Header with Icon -->
-            <div class="selection-header">
-                <div class="selection-header-icon" id="selectionHeaderIcon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
-                        <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
-                    </svg>
-                </div>
-                <h3 class="selection-title" id="scanTypeTitle">Configure Scan</h3>
-            </div>
+        <div class="section-header">
+            <h5 id="scanTypeTitle">Configure Scan</h5>
+        </div>
 
-            <!-- Step 1: Server IP Selection -->
-            <div class="selection-step">
-                <div class="selection-step-label">
+        <!-- Step 1: Server IP Selection -->
+        <div class="selection-step" id="serverIpSelectionDiv">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="mb-0">
                     <span class="step-number">1</span>
                     Select Server IP <span class="text-danger ms-1">*</span>
-                </div>
-                <select class="form-select" id="serverIpSelect">
-                    <option value="">-- Choose a Server IP --</option>
-                </select>
+                </h6>
             </div>
+            <div class="row" id="serverIpContainer">
+                <div class="col-12 text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Loading server IPs...</p>
+                </div>
+            </div>
+        </div>
 
-            <!-- Step 2: Database Selection -->
-            <div class="selection-step" id="databaseSelectionDiv" style="display: none;">
-                <div class="selection-step-label">
+        <!-- Step 2: Database Selection -->
+        <div class="selection-step" id="databaseSelectionDiv" style="display: none;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="mb-0">
                     <span class="step-number">2</span>
                     Select Databases <span class="text-danger ms-1">*</span>
-                </div>
-                <div class="database-selection-controls">
-                    <small class="text-muted">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-info-circle me-1" viewBox="0 0 16 16">
-                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
-                            <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+                </h6>
+                <div>
+                    <button type="button" class="btn btn-sm btn-outline-primary me-1" onclick="selectAllDatabases()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-check-all me-1" viewBox="0 0 16 16">
+                            <path d="M8.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L2.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093L8.95 4.992a.252.252 0 0 1 .02-.022zm-.92 5.14.92.92a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 1 0-1.091-1.028L9.477 9.417l-.485-.486-.943 1.179z"/>
                         </svg>
-                        Hold Ctrl (Cmd on Mac) to select multiple
-                    </small>
-                    <div>
-                        <button type="button" class="btn btn-sm btn-outline-primary me-1" onclick="selectAllDatabases()">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-check-all me-1" viewBox="0 0 16 16">
-                                <path d="M8.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L2.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093L8.95 4.992a.252.252 0 0 1 .02-.022zm-.92 5.14.92.92a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 1 0-1.091-1.028L9.477 9.417l-.485-.486-.943 1.179z"/>
-                            </svg>
-                            Select All
-                        </button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="deselectAllDatabases()">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-x-lg me-1" viewBox="0 0 16 16">
-                                <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
-                            </svg>
-                            Clear All
-                        </button>
-                    </div>
-                </div>
-                <select class="form-select database-multiselect" id="databaseSelect" multiple size="10">
-                    <option value="">-- Select databases from Server IP first --</option>
-                </select>
-                <div class="mt-2 d-flex align-items-center">
-                    <span class="selected-count-badge">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-database me-1" viewBox="0 0 16 16">
-                            <path d="M4.318 2.687C5.234 2.271 6.536 2 8 2s2.766.27 3.682.687C12.644 3.125 13 3.627 13 4c0 .374-.356.875-1.318 1.313C10.766 5.729 9.464 6 8 6s-2.766-.27-3.682-.687C3.356 4.875 3 4.373 3 4c0-.374.356-.875 1.318-1.313ZM13 5.698V7c0 .374-.356.875-1.318 1.313C10.766 8.729 9.464 9 8 9s-2.766-.27-3.682-.687C3.356 7.875 3 7.373 3 7V5.698c.271.202.58.378.904.525C4.978 6.711 6.427 7 8 7s3.022-.289 4.096-.777A4.92 4.92 0 0 0 13 5.698ZM14 4c0-1.007-.875-1.755-1.904-2.223C11.022 1.289 9.573 1 8 1s-3.022.289-4.096.777C2.875 2.245 2 2.993 2 4v9c0 1.007.875 1.755 1.904 2.223C4.978 15.71 6.427 16 8 16s3.022-.289 4.096-.777C13.125 14.755 14 14.007 14 13V4Zm-1 4.698V10c0 .374-.356.875-1.318 1.313C10.766 11.729 9.464 12 8 12s-2.766-.27-3.682-.687C3.356 10.875 3 10.373 3 10V8.698c.271.202.58.378.904.525C4.978 9.71 6.427 10 8 10s3.022-.289 4.096-.777A4.92 4.92 0 0 0 13 8.698Zm0 3V13c0 .374-.356.875-1.318 1.313C10.766 14.729 9.464 15 8 15s-2.766-.27-3.682-.687C3.356 13.875 3 13.373 3 13v-1.302c.271.202.58.378.904.525C4.978 12.71 6.427 13 8 13s3.022-.289 4.096-.777c.324-.147.633-.323.904-.525Z"/>
+                        Select All
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="deselectAllDatabases()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-x-lg me-1" viewBox="0 0 16 16">
+                            <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
                         </svg>
-                        <span id="selectedCount">0</span> selected
-                    </span>
+                        Clear All
+                    </button>
                 </div>
             </div>
+            <div class="summary-info mb-3">
+                <div class="info-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M6 12.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5ZM3 8.062C3 6.76 4.235 5.765 5.53 5.886a26.58 26.58 0 0 0 4.94 0C11.765 5.765 13 6.76 13 8.062v1.157a.933.933 0 0 1-.765.935c-.845.147-2.34.346-4.235.346-1.895 0-3.39-.2-4.235-.346A.933.933 0 0 1 3 9.219V8.062Z"/>
+                        <path d="M8.5 1.866a1 1 0 1 0-1 0V3h-2A4.5 4.5 0 0 0 1 7.5V8a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1v1a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1v-.5A4.5 4.5 0 0 0 10.5 3h-2V1.866ZM14 7.5V13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7.5A3.5 3.5 0 0 1 5.5 4h5A3.5 3.5 0 0 1 14 7.5Z"/>
+                    </svg>
+                    <span>Selected Server: <strong id="selectedServerIpDisplay">-</strong></span>
+                </div>
+            </div>
+            <div class="row" id="databaseContainer">
+                <!-- Database cards will be loaded here -->
+            </div>
+            <div class="mt-3 d-flex align-items-center">
+                <span class="badge bg-primary" style="font-size: 0.9rem; padding: 8px 15px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-database me-1" viewBox="0 0 16 16">
+                        <path d="M4.318 2.687C5.234 2.271 6.536 2 8 2s2.766.27 3.682.687C12.644 3.125 13 3.627 13 4c0 .374-.356.875-1.318 1.313C10.766 5.729 9.464 6 8 6s-2.766-.27-3.682-.687C3.356 4.875 3 4.373 3 4c0-.374.356-.875 1.318-1.313ZM13 5.698V7c0 .374-.356.875-1.318 1.313C10.766 8.729 9.464 9 8 9s-2.766-.27-3.682-.687C3.356 7.875 3 7.373 3 7V5.698c.271.202.58.378.904.525C4.978 6.711 6.427 7 8 7s3.022-.289 4.096-.777A4.92 4.92 0 0 0 13 5.698ZM14 4c0-1.007-.875-1.755-1.904-2.223C11.022 1.289 9.573 1 8 1s-3.022.289-4.096.777C2.875 2.245 2 2.993 2 4v9c0 1.007.875 1.755 1.904 2.223C4.978 15.71 6.427 16 8 16s3.022-.289 4.096-.777C13.125 14.755 14 14.007 14 13V4Zm-1 4.698V10c0 .374-.356.875-1.318 1.313C10.766 11.729 9.464 12 8 12s-2.766-.27-3.682-.687C3.356 10.875 3 10.373 3 10V8.698c.271.202.58.378.904.525C4.978 9.71 6.427 10 8 10s3.022-.289 4.096-.777A4.92 4.92 0 0 0 13 8.698Zm0 3V13c0 .374-.356.875-1.318 1.313C10.766 14.729 9.464 15 8 15s-2.766-.27-3.682-.687C3.356 13.875 3 13.373 3 13v-1.302c.271.202.58.378.904.525C4.978 12.71 6.427 13 8 13s3.022-.289 4.096-.777c.324-.147.633-.323.904-.525Z"/>
+                    </svg>
+                    <span id="selectedCount">0</span> database(s) selected
+                </span>
+            </div>
+        </div>
 
-            <!-- Action Buttons -->
-            <div class="selection-actions">
-                <button type="button" class="btn btn-start-scan" onclick="startScanWithSelection()" id="startScanBtn" disabled>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-play-fill me-1" viewBox="0 0 16 16">
-                        <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.697l6.363 3.692a.802.802 0 0 1 0 1.393z"/>
-                    </svg>
-                    Start Scan
-                </button>
-                <button type="button" class="btn btn-outline-secondary" onclick="cancelSelection()">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-circle me-1" viewBox="0 0 16 16">
-                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
-                        <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
-                    </svg>
-                    Cancel
-                </button>
-            </div>
+        <!-- Action Buttons -->
+        <div class="mt-4 text-center">
+            <button type="button" class="btn btn-lg btn-primary me-2" onclick="startScanWithSelection()" id="startScanBtn" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-play-fill me-1" viewBox="0 0 16 16">
+                    <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.697l6.363 3.692a.802.802 0 0 1 0 1.393z"/>
+                </svg>
+                Start Scan
+            </button>
+            <button type="button" class="btn btn-lg btn-outline-secondary" onclick="cancelSelection()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-circle me-1" viewBox="0 0 16 16">
+                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                    <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                </svg>
+                Cancel
+            </button>
         </div>
     </div>
 

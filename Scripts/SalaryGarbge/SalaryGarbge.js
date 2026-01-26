@@ -12,12 +12,6 @@ $(function () {
     // Bind click events to tool cards
     $('#confirmGarbageCard').on('click', startConfirmScan);
     $('#problematicGarbageCard').on('click', startProblematicScan);
-
-    // Bind server IP selection change
-    $('#serverIpSelect').on('change', onServerIpChange);
-
-    // Bind database selection change
-    $('#databaseSelect').on('change', onDatabaseSelectionChange);
 });
 
 function startConfirmScan() {
@@ -45,8 +39,16 @@ function showSelectionSection() {
     selectedServerIpId = null;
     selectedDatabases = [];
     currentGarbageData = [];
+
+    // Reset UI
     $('#databaseSelectionDiv').hide();
+    $('#serverIpSelectionDiv').show();
     $('#startScanBtn').prop('disabled', true);
+    $('#selectedServerIpDisplay').text('-');
+    $('#selectedCount').text('0');
+    $('.ip-card').removeClass('selected');
+    $('.db-card').removeClass('selected');
+    $('#databaseContainer').empty();
 
     // Load server IPs
     loadServerIps();
@@ -54,99 +56,175 @@ function showSelectionSection() {
 
 function loadServerIps() {
     $.get(APP.baseUrl + 'SalaryGarbge/GetActiveServers', function (res) {
-        var select = $('#serverIpSelect').empty();
-        select.append('<option value="">-- Select a Server IP --</option>');
+        var container = $('#serverIpContainer');
 
         if (res.Errors && res.Errors.length > 0) {
-            Swal.fire('Error', res.Message, 'error');
+            container.html(
+                '<div class="col-12 text-center py-5">' +
+                '<div class="text-danger">' +
+                '<p>' + escapeHtml(res.Message) + '</p>' +
+                '</div>' +
+                '</div>'
+            );
             return;
         }
 
         var servers = res.Data;
-        if (servers && servers.length > 0) {
-            $.each(servers, function (_, server) {
-                select.append(
-                    '<option value="' + server.Id + '">' +
-                    escapeHtml(server.IpAddress) +
-                    (server.Description ? ' - ' + escapeHtml(server.Description) : '') +
-                    '</option>'
-                );
-            });
+        if (!servers || servers.length === 0) {
+            container.html(
+                '<div class="col-12 text-center py-5">' +
+                '<p class="text-muted">No server IPs available</p>' +
+                '</div>'
+            );
+            return;
         }
+
+        var html = '';
+        $.each(servers, function (_, server) {
+            html += '<div class="col-md-4 col-lg-3 mb-3">' +
+                '<div class="ip-card" data-id="' + server.Id + '" data-ip="' + escapeHtml(server.IpAddress) + '" onclick="selectServerIp(' + server.Id + ', \'' + escapeHtml(server.IpAddress) + '\')">' +
+                '<div class="text-center">' +
+                '<div class="ip-icon">' +
+                '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 16 16">' +
+                '<path d="M6 12.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5ZM3 8.062C3 6.76 4.235 5.765 5.53 5.886a26.58 26.58 0 0 0 4.94 0C11.765 5.765 13 6.76 13 8.062v1.157a.933.933 0 0 1-.765.935c-.845.147-2.34.346-4.235.346-1.895 0-3.39-.2-4.235-.346A.933.933 0 0 1 3 9.219V8.062Z"/>' +
+                '<path d="M8.5 1.866a1 1 0 1 0-1 0V3h-2A4.5 4.5 0 0 0 1 7.5V8a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1v1a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1v-.5A4.5 4.5 0 0 0 10.5 3h-2V1.866ZM14 7.5V13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7.5A3.5 3.5 0 0 1 5.5 4h5A3.5 3.5 0 0 1 14 7.5Z"/>' +
+                '</svg>' +
+                '</div>' +
+                '<div class="ip-address">' + escapeHtml(server.IpAddress) + '</div>' +
+                '<div class="ip-desc">' + (server.Description ? escapeHtml(server.Description) : 'Server') + '</div>' +
+                '</div>' +
+                '</div>' +
+                '</div>';
+        });
+
+        container.html(html);
     }).fail(function () {
-        Swal.fire('Error', 'Failed to load server IPs', 'error');
+        $('#serverIpContainer').html(
+            '<div class="col-12 text-center py-5">' +
+            '<div class="text-danger">' +
+            '<p>Failed to load server IPs</p>' +
+            '</div>' +
+            '</div>'
+        );
     });
 }
 
-function onServerIpChange() {
-    var serverIpId = $('#serverIpSelect').val();
+// Select server IP and load databases
+function selectServerIp(id, ipAddress) {
+    selectedServerIpId = id;
+    selectedDatabases = [];
 
-    if (!serverIpId) {
-        $('#databaseSelectionDiv').hide();
-        $('#startScanBtn').prop('disabled', true);
-        selectedServerIpId = null;
-        selectedDatabases = [];
-        return;
-    }
+    // Update UI
+    $('.ip-card').removeClass('selected');
+    $('.ip-card[data-id="' + id + '"]').addClass('selected');
 
-    selectedServerIpId = parseInt(serverIpId);
+    // Update display
+    $('#selectedServerIpDisplay').text(ipAddress);
+
+    // Show database selection
+    $('#databaseSelectionDiv').show();
+
+    // Load databases
     loadDatabases();
 }
 
 function loadDatabases() {
     if (!selectedServerIpId) return;
 
-    $('#databaseSelectionDiv').show();
-    var dbSelect = $('#databaseSelect').empty();
-    dbSelect.append('<option value="">Loading databases...</option>');
+    var container = $('#databaseContainer');
+    container.html(
+        '<div class="col-12 text-center py-5">' +
+        '<div class="spinner-border text-primary" role="status"></div>' +
+        '<p class="mt-2 text-muted">Loading databases...</p>' +
+        '</div>'
+    );
+
     $('#startScanBtn').prop('disabled', true);
 
     // Use SalaryGarbge endpoint to get only accessible databases
     $.get(APP.baseUrl + 'SalaryGarbge/GetAccessibleDatabases',
         { serverIpId: selectedServerIpId },
         function (res) {
-            dbSelect.empty();
-
             if (res.Errors && res.Errors.length > 0) {
-                Swal.fire('Error', res.Message, 'error');
-                $('#databaseSelectionDiv').hide();
+                container.html(
+                    '<div class="col-12 text-center py-5">' +
+                    '<div class="text-danger">' +
+                    '<p>' + escapeHtml(res.Message) + '</p>' +
+                    '</div>' +
+                    '</div>'
+                );
                 return;
             }
 
             var databases = res.Data;
 
             if (!databases || databases.length === 0) {
-                dbSelect.append('<option value="">No accessible databases found</option>');
+                container.html(
+                    '<div class="col-12 text-center py-5">' +
+                    '<p class="text-muted">No accessible databases found on this server</p>' +
+                    '</div>'
+                );
                 Swal.fire('Warning', 'No accessible databases found for this server. Please contact your administrator to grant database access.', 'warning');
                 return;
             }
 
+            var html = '';
             $.each(databases, function (_, db) {
-                dbSelect.append(
-                    '<option value="' + escapeHtml(db.DatabaseName) + '">' +
-                    escapeHtml(db.DatabaseName) +
-                    '</option>'
-                );
+                html += '<div class="col-md-4 col-lg-3 mb-3">' +
+                    '<div class="db-card" data-name="' + escapeHtml(db.DatabaseName) + '" onclick="toggleDatabase(\'' + escapeHtml(db.DatabaseName) + '\')">' +
+                    '<div class="text-center">' +
+                    '<div class="db-icon">' +
+                    '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 16 16">' +
+                    '<path d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm.5-5v1h1a.5.5 0 0 1 0 1h-1v1a.5.5 0 0 1-1 0v-1h-1a.5.5 0 0 1 0-1h1v-1a.5.5 0 0 1 1 0Z"/>' +
+                    '<path d="M12.096 6.223A4.92 4.92 0 0 0 13 5.698V7c0 .289-.213.654-.753 1.007a4.493 4.493 0 0 1 1.753.25V4c0-1.007-.875-1.755-1.904-2.223C11.022 1.289 9.573 1 8 1s-3.022.289-4.096.777C2.875 2.245 2 2.993 2 4v9c0 1.007.875 1.755 1.904 2.223C4.978 15.71 6.427 16 8 16c.536 0 1.058-.034 1.555-.097a4.525 4.525 0 0 1-.813-.927C8.5 14.992 8.252 15 8 15c-1.464 0-2.766-.27-3.682-.687C3.356 13.875 3 13.373 3 13v-1.302c.271.202.58.378.904.525C4.978 12.71 6.427 13 8 13h.027a4.552 4.552 0 0 1 0-1H8c-1.464 0-2.766-.27-3.682-.687C3.356 10.875 3 10.373 3 10V8.698c.271.202.58.378.904.525C4.978 9.71 6.427 10 8 10c.262 0 .52-.008.774-.024a4.525 4.525 0 0 1 1.102-1.132C9.298 8.944 8.666 9 8 9c-1.464 0-2.766-.27-3.682-.687C3.356 7.875 3 7.373 3 7V5.698c.271.202.58.378.904.525C4.978 6.711 6.427 7 8 7s3.022-.289 4.096-.777ZM3 4c0-.374.356-.875 1.318-1.313C5.234 2.271 6.536 2 8 2s2.766.27 3.682.687C12.644 3.125 13 3.627 13 4c0 .374-.356.875-1.318 1.313C10.766 5.729 9.464 6 8 6s-2.766-.27-3.682-.687C3.356 4.875 3 4.373 3 4Z"/>' +
+                    '</svg>' +
+                    '</div>' +
+                    '<div class="db-name">' + escapeHtml(db.DatabaseName) + '</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>';
             });
 
+            container.html(html);
             updateSelectedCount();
         }
     ).fail(function () {
-        Swal.fire('Error', 'Failed to load databases', 'error');
-        $('#databaseSelectionDiv').hide();
+        container.html(
+            '<div class="col-12 text-center py-5">' +
+            '<div class="text-danger">' +
+            '<p>Failed to load databases</p>' +
+            '</div>' +
+            '</div>'
+        );
     });
 }
 
-function onDatabaseSelectionChange() {
+// Toggle database selection (for multi-select)
+function toggleDatabase(databaseName) {
+    var card = $('.db-card[data-name="' + databaseName + '"]');
+
+    if (card.hasClass('selected')) {
+        // Deselect
+        card.removeClass('selected');
+        var index = selectedDatabases.indexOf(databaseName);
+        if (index > -1) {
+            selectedDatabases.splice(index, 1);
+        }
+    } else {
+        // Select
+        card.addClass('selected');
+        if (selectedDatabases.indexOf(databaseName) === -1) {
+            selectedDatabases.push(databaseName);
+        }
+    }
+
     updateSelectedCount();
     validateSelection();
 }
 
 function updateSelectedCount() {
-    var selected = $('#databaseSelect').val();
-    var count = selected ? selected.length : 0;
+    var count = selectedDatabases.length;
     $('#selectedCount').text(count);
-    selectedDatabases = selected || [];
 }
 
 function validateSelection() {
@@ -155,13 +233,23 @@ function validateSelection() {
 }
 
 function selectAllDatabases() {
-    $('#databaseSelect option').prop('selected', true);
-    onDatabaseSelectionChange();
+    $('.db-card').addClass('selected');
+    selectedDatabases = [];
+    $('.db-card').each(function() {
+        var dbName = $(this).data('name');
+        if (dbName && selectedDatabases.indexOf(dbName) === -1) {
+            selectedDatabases.push(dbName);
+        }
+    });
+    updateSelectedCount();
+    validateSelection();
 }
 
 function deselectAllDatabases() {
-    $('#databaseSelect option').prop('selected', false);
-    onDatabaseSelectionChange();
+    $('.db-card').removeClass('selected');
+    selectedDatabases = [];
+    updateSelectedCount();
+    validateSelection();
 }
 
 function cancelSelection() {
@@ -170,6 +258,12 @@ function cancelSelection() {
     selectedServerIpId = null;
     selectedDatabases = [];
     currentGarbageData = [];
+
+    // Reset UI elements
+    $('.ip-card').removeClass('selected');
+    $('.db-card').removeClass('selected');
+    $('#selectedServerIpDisplay').text('-');
+    $('#selectedCount').text('0');
 }
 
 function startScanWithSelection() {

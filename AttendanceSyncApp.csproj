@@ -148,6 +148,7 @@
     <Content Include="Scripts\bootstrap.min.js" />
     <None Include="Scripts\jquery-3.7.1.intellisense.js" />
     <Content Include="Scripts\BranchIssue\BranchIssue.js" />
+    <Content Include="Scripts\BranchReprocess\BranchReprocess.js" />
     <Content Include="Scripts\Common.js" />
     <Content Include="Scripts\ConcurrentSimulation\ConcurrentSimulation.js" />
     <Content Include="Scripts\jquery-3.7.1.js" />
@@ -180,6 +181,7 @@
     <Compile Include="Controllers\AuthController.cs" />
     <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\BranchIssue\BranchIssueController.cs" />
+    <Compile Include="Controllers\BranchReprocessController.cs" />
     <Compile Include="Controllers\CompanyRequestController.cs" />
     <Compile Include="Controllers\ConcurrentSimulation\ConcurrentSimulationController.cs" />
     <Compile Include="Controllers\Filters\AdminAuthorizeAttribute.cs" />
@@ -463,6 +465,7 @@
     <Content Include="Views\ConcurrentSimulation\Index.cshtml" />
     <Content Include="Views\Admin\SalaryGarbge\DatabaseAccess.cshtml" />
     <Content Include="Views\BranchIssue\Index.cshtml" />
+    <Content Include="Views\BranchReprocess\Index.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

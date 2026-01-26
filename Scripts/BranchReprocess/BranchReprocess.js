@@ -1,4 +1,4 @@
-// Branch Issue JavaScript
+// Branch Reprocess JavaScript
 (function () {
     'use strict';
 
@@ -58,7 +58,7 @@
     // Load server IPs
     function loadServerIps() {
         $.ajax({
-            url: APP.baseUrl + 'BranchIssue/GetServerIps',
+            url: APP.baseUrl + 'BranchReprocess/GetServerIps',
             type: 'GET',
             success: function (response) {
                 if (response.Errors && response.Errors.length > 0) {
@@ -115,6 +115,7 @@
 
         // Update display
         $('#selectedServerIpDisplay').text(ipAddress);
+        $('#step3ServerDisplay').text(ipAddress);
 
         // Go to step 2
         goToStep(2);
@@ -132,7 +133,7 @@
         );
 
         $.ajax({
-            url: APP.baseUrl + 'BranchIssue/GetDatabases',
+            url: APP.baseUrl + 'BranchReprocess/GetDatabases',
             type: 'GET',
             data: { serverIpId: serverIpId },
             success: function (response) {
@@ -200,7 +201,7 @@
 
     function fetchLastMonth() {
         $.ajax({
-            url: APP.baseUrl + 'BranchIssue/GetLastMonth',
+            url: APP.baseUrl + 'BranchReprocess/GetLastMonth',
             type: 'GET',
             data: {
                 serverIpId: state.selectedServerIpId,
@@ -243,7 +244,7 @@
         };
 
         $.ajax({
-            url: APP.baseUrl + 'BranchIssue/LoadProblemBranches',
+            url: APP.baseUrl + 'BranchReprocess/LoadProblemBranches',
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(payload),
@@ -292,7 +293,7 @@
         var monthDate = new Date(elements.monthStartDateInput.val());
         // Format Month: "MMM yyyy"
         var monthStr = monthDate.toLocaleString('default', { month: 'short', year: 'numeric' });
-        
+
         // Prev Month
         var prevDate = new Date(monthDate);
         prevDate.setMonth(prevDate.getMonth() - 1);
@@ -324,7 +325,7 @@
         };
 
         $.ajax({
-            url: APP.baseUrl + 'BranchIssue/ReprocessBranch',
+            url: APP.baseUrl + 'BranchReprocess/ReprocessBranch',
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(payload),

@@ -67,7 +67,7 @@ namespace AttandanceSyncApp.Services.Admin
                     ToolName = ut.Tool.Name,
                     ToolDescription = ut.Tool.Description,
                     RouteUrl = GetToolRouteUrl(ut.Tool.Name),
-                    IsImplemented = !ut.Tool.IsUnderDevelopment
+                    IsImplemented = !ut.Tool.IsUnderDevelopment || ut.Tool.Name.Contains("Branch Issue")
                 }).ToList();
 
                 return ServiceResult<IEnumerable<AssignedToolDto>>.SuccessResult(assignments);
@@ -93,6 +93,9 @@ namespace AttandanceSyncApp.Services.Admin
 
             if (normalizedName.Contains("concurrent") || normalizedName.Contains("simulation"))
                 return "~/ConcurrentSimulation/Index";
+
+            if (normalizedName.Contains("branch") && normalizedName.Contains("issue"))
+                return "~/BranchIssue/Index";
 
             return null;
         }

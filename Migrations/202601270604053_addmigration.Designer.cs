@@ -7,13 +7,13 @@ namespace AttendanceSyncApp.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.5.1")]
-    public sealed partial class AddRevokeToDatabaseAssign : IMigrationMetadata
+    public sealed partial class addmigration : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(AddRevokeToDatabaseAssign));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(addmigration));
         
         string IMigrationMetadata.Id
         {
-            get { return "202601190642195_AddRevokeToDatabaseAssign"; }
+            get { return "202601270604053_addmigration"; }
         }
         
         string IMigrationMetadata.Source

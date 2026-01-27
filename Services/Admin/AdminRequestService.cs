@@ -54,6 +54,7 @@ namespace AttandanceSyncApp.Services.Admin
                     FromDate = r.FromDate,
                     ToDate = r.ToDate,
                     CreatedAt = r.CreatedAt,
+                    UpdatedAt = r.UpdatedAt,
                     HasDatabaseConfig = r.DatabaseConfiguration != null
                 })
                 .ToList();
@@ -102,6 +103,7 @@ namespace AttandanceSyncApp.Services.Admin
                     FromDate = request.FromDate,
                     ToDate = request.ToDate,
                     CreatedAt = request.CreatedAt,
+                    UpdatedAt = request.UpdatedAt,
                     HasDatabaseConfig = request.DatabaseConfiguration != null
                 };
 

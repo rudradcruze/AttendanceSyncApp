@@ -20,6 +20,7 @@ namespace AttandanceSyncApp.Models.DTOs.Admin
         public DateTime FromDate { get; set; }
         public DateTime ToDate { get; set; }
         public DateTime CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
         public bool HasDatabaseConfig { get; set; }
     }
 }

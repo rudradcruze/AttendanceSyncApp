@@ -28,6 +28,7 @@ namespace AttandanceSyncApp.Repositories.AttandanceSync
         {
             return _dbSet.AsNoTracking()
                 .Include(r => r.User)
+                .Include(r => r.Employee)
                 .Include(r => r.Company)
                 .Include(r => r.Tool)
                 .Include(r => r.DatabaseConfiguration)
@@ -39,6 +40,7 @@ namespace AttandanceSyncApp.Repositories.AttandanceSync
         {
             return _dbSet.AsNoTracking()
                 .Include(r => r.User)
+                .Include(r => r.Employee)
                 .Include(r => r.Company)
                 .Include(r => r.Tool)
                 .Include(r => r.DatabaseConfiguration)
@@ -52,6 +54,7 @@ namespace AttandanceSyncApp.Repositories.AttandanceSync
         {
             return _dbSet.AsNoTracking()
                 .Include(r => r.User)
+                .Include(r => r.Employee)
                 .Include(r => r.Company)
                 .Include(r => r.Tool)
                 .Include(r => r.DatabaseConfiguration)
@@ -66,6 +69,7 @@ namespace AttandanceSyncApp.Repositories.AttandanceSync
         {
             return _dbSet.AsNoTracking()
                 .Include(r => r.User)
+                .Include(r => r.Employee)
                 .Include(r => r.Company)
                 .Include(r => r.Tool)
                 .Include(r => r.DatabaseConfiguration)
@@ -86,6 +90,7 @@ namespace AttandanceSyncApp.Repositories.AttandanceSync
         {
             var query = _dbSet.AsNoTracking()
                 .Include(r => r.User)
+                .Include(r => r.Employee)
                 .Include(r => r.Company)
                 .Include(r => r.Tool)
                 .Include(r => r.DatabaseConfiguration)

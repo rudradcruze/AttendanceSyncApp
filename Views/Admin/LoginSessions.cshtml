@@ -1,0 +1,127 @@
+@{
+    ViewBag.Title = "Login Sessions";
+    ViewBag.ActiveMenu = "LoginSessions";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="sessions-management">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Login Sessions</h5>
+            <span class="badge bg-secondary" id="totalSessionsCount">0 Sessions</span>
+        </div>
+        <div class="card-body">
+            <!-- Filter Section -->
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label class="form-label">Search User (Name/Email)</label>
+                    <input type="text" class="form-control" id="filterUser" placeholder="Search user...">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Session Status</label>
+                    <select class="form-select" id="filterStatus">
+                        <option value="">All Sessions</option>
+                        <option value="true">Active Only</option>
+                        <option value="false">Inactive Only</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button class="btn btn-primary me-2" id="applyFiltersBtn">Apply</button>
+                    <button class="btn btn-secondary" id="resetFiltersBtn">Reset</button>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover" id="sessionsTable">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>User</th>
+                            <th>Device</th>
+                            <th>Browser</th>
+                            <th>IP Address</th>
+                            <th>Login Time</th>
+                            <th>Logout Time</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div id="pagination" class="pagination-wrapper mt-3"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Session Details Modal -->
+<div class="modal fade" id="sessionDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Session Details #<span id="detailSessionId"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <!-- Session Information -->
+                    <div class="col-12">
+                        <h6 class="border-bottom pb-2">Session Information</h6>
+                    </div>
+                    <div class="col-md-6 d-flex gap-2">
+                        <strong>Session ID:</strong>
+                        <p id="detailId">-</p>
+                    </div>
+                    <div class="col-md-6 d-flex gap-2">
+                        <strong>Status:</strong>
+                        <p id="detailStatus">-</p>
+                    </div>
+                    <div class="col-md-6 d-flex gap-2">
+                        <strong>Login Time:</strong>
+                        <p id="detailLoginTime">-</p>
+                    </div>
+                    <div class="col-md-6 d-flex gap-2">
+                        <strong>Logout Time:</strong>
+                        <p id="detailLogoutTime">-</p>
+                    </div>
+                    <div class="col-md-6 d-flex gap-2">
+                        <strong>IP Address:</strong>
+                        <p id="detailIpAddress">-</p>
+                    </div>
+                    <div class="col-md-6 d-flex gap-2">
+                        <strong>Device:</strong>
+                        <p id="detailDevice">-</p>
+                    </div>
+                    <div class="col-md-6 d-flex gap-2">
+                        <strong>Browser:</strong>
+                        <p id="detailBrowser">-</p>
+                    </div>
+
+                    <!-- User Information -->
+                    <div class="col-12 mt-3">
+                        <h6 class="border-bottom pb-2">User Information</h6>
+                    </div>
+                    <div class="col-md-6 d-flex gap-2">
+                        <strong>User ID:</strong>
+                        <p id="detailUserId">-</p>
+                    </div>
+                    <div class="col-md-6 d-flex gap-2">
+                        <strong>User Name:</strong>
+                        <p id="detailUserName">-</p>
+                    </div>
+                    <div class="col-md-6 d-flex gap-2">
+                        <strong>User Email:</strong>
+                        <p id="detailUserEmail">-</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/Scripts/Admin/LoginSessions.js"></script>
+}

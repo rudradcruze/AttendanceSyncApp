@@ -34,6 +34,9 @@
                 <li class="@(ViewBag.ActiveMenu == "Users" ? "active" : "")">
                     <a href="@Url.Action("Index", "AdminUsers")">Users</a>
                 </li>
+                <li class="@(ViewBag.ActiveMenu == "LoginSessions" ? "active" : "")">
+                    <a href="@Url.Action("LoginSessions", "AdminSessions")">Login Sessions</a>
+                </li>
                 <li class="@(ViewBag.ActiveMenu == "Employees" ? "active" : "")">
                     <a href="@Url.Action("Index", "AdminEmployees")">Employees</a>
                 </li>

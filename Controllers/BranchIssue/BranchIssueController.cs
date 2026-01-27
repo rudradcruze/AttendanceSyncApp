@@ -1,10 +1,15 @@
+using System;
+using System.Linq;
 using System.Web.Mvc;
 using AttandanceSyncApp.Controllers.Filters;
 using AttandanceSyncApp.Models.DTOs;
 using AttandanceSyncApp.Models.DTOs.BranchIssue;
 using AttandanceSyncApp.Repositories;
 using AttandanceSyncApp.Repositories.BranchIssue;
+using AttandanceSyncApp.Repositories.Interfaces;
+using AttandanceSyncApp.Services.Admin;
 using AttandanceSyncApp.Services.BranchIssue;
+using AttandanceSyncApp.Services.Interfaces.Admin;
 using AttandanceSyncApp.Services.Interfaces.BranchIssue;
 
 namespace AttandanceSyncApp.Controllers.BranchIssue
@@ -13,12 +18,36 @@ namespace AttandanceSyncApp.Controllers.BranchIssue
     public class BranchIssueController : BaseController
     {
         private readonly IBranchIssueService _service;
+        private readonly IUserToolService _userToolService;
+        private readonly IAuthUnitOfWork _unitOfWork;
 
         public BranchIssueController() : base()
         {
             var unitOfWork = new AuthUnitOfWork();
             var repository = new BranchIssueRepository();
+            _unitOfWork = new AuthUnitOfWork();
             _service = new BranchIssueService(unitOfWork, repository);
+            _userToolService = new UserToolService(_unitOfWork);
+        }
+
+        // Check if the user request for any admin action it will redirect to admin dashboard else if the user is admin and request for the user action it will return access denied view or redirect to the '/'.
+        protected override void OnActionExecuting(ActionExecutingContext filterContext)
+        {
+            if (IsAdmin)
+            {
+                var actionName = filterContext.ActionDescriptor.ActionName;
+                if (actionName.Equals("Index", System.StringComparison.OrdinalIgnoreCase) ||
+                    actionName.Equals("Dashboard", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    filterContext.Result = new RedirectResult("~/AdminDashboard");
+                    return;
+                }
+
+                ViewBag.Message = "Administrators cannot access the User Dashboard.";
+                filterContext.Result = View("AccessDenied");
+                return;
+            }
+            base.OnActionExecuting(filterContext);
         }
 
         // GET: BranchIssue/Index

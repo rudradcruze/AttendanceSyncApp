@@ -5,99 +5,149 @@
 }
 
 <div class="requests-management">
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="mb-0">Filter Requests</h5>
-        </div>
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <label class="form-label">User (Name/Email)</label>
-                    <input type="text" class="form-control" id="filterUser" placeholder="Search user...">
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Company ID</label>
-                    <input type="number" class="form-control" id="filterCompany" placeholder="Company ID...">
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Status</label>
-                    <select class="form-select" id="filterStatus">
-                        <option value="">All Statuses</option>
-                        <option value="Pending">Pending</option>
-                        <option value="Completed">Completed</option>
-                        <option value="Failed">Failed</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Date Range</label>
-                    <div class="input-group">
-                        <input type="date" class="form-control" id="filterFromDate">
-                        <input type="date" class="form-control" id="filterToDate">
-                    </div>
-                </div>
-                <div class="col-12 text-end">
-                    <button class="btn btn-secondary" id="resetFiltersBtn">Reset</button>
-                    <button class="btn btn-primary" id="applyFiltersBtn">Apply Filters</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Attendance Sync Requests</h5>
+            <span class="badge bg-secondary" id="totalRequestsCount">0 Requests</span>
+        </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-bordered table-striped" id="requestsTable">
-                    <thead>
+                <table class="table table-bordered table-striped table-hover" id="requestsTable">
+                    <thead class="table-dark">
                         <tr>
                             <th>ID</th>
                             <th>User</th>
+                            <th>Employee</th>
                             <th>Company</th>
                             <th>Tool</th>
+                            <th>From Date</th>
+                            <th>To Date</th>
                             <th>External ID</th>
                             <th>Status</th>
                             <th>Created</th>
                             <th>Updated</th>
-                            <th>Actions</th>
+                            <th>Details</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
                 </table>
             </div>
-            <div id="pagination" class="pagination-wrapper mt-3"></div>
+            <nav aria-label="Request pagination" class="mt-3">
+                <ul id="pagination" class="pagination justify-content-center"></ul>
+            </nav>
         </div>
     </div>
 </div>
 
-<!-- Process Request Modal -->
-<div class="modal fade" id="processRequestModal" tabindex="-1">
-    <div class="modal-dialog">
+<!-- Request Details Modal -->
+<div class="modal fade" id="requestDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Process Request</h5>
+                <h5 class="modal-title">Request Details #<span id="detailRequestId"></span></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="processRequestForm">
-                    <input type="hidden" id="processRequestId" />
-                    
-                    <div class="mb-3">
-                        <label class="form-label">External Sync ID</label>
-                        <input type="number" class="form-control" id="externalSyncId" required />
-                        <div class="form-text">Enter the ID from the external system.</div>
+                <div class="row g-3">
+                    <!-- Request Information -->
+                    <div class="col-12">
+                        <h6 class="border-bottom pb-2">Request Information</h6>
+                    </div>
+                    <div class="col-md-6 d-flex gap-2">
+                        <strong>Request ID:</strong>
+                        <p id="detailId">-</p>
+                    </div>
+                    <div class="col-md-6 d-flex gap-2">
+                        <strong>Status:</strong>
+                        <p id="detailStatus">-</p>
+                    </div>
+                    <div class="col-md-6 d-flex gap-2">
+                        <strong>From Date:</strong>
+                        <p id="detailFromDate">-</p>
+                    </div>
+                    <div class="col-md-6 d-flex gap-2">
+                        <strong>To Date:</strong>
+                        <p id="detailToDate">-</p>
+                    </div>
+                    <div class="col-md-6 d-flex gap-2">
+                        <strong>External Sync ID:</strong>
+                        <p id="detailExternalSyncId">-</p>
+                    </div>
+                    <div class="col-md-6 d-flex gap-2">
+                        <strong>Created At:</strong>
+                        <p id="detailCreatedAt">-</p>
+                    </div>
+                    <div class="col-md-6 d-flex gap-2">
+                        <strong>Updated At:</strong>
+                        <p id="detailUpdatedAt">-</p>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Outcome</label>
-                        <select class="form-select" id="processOutcome" required>
-                            <option value="true">Successful</option>
-                            <option value="false">Failed</option>
-                        </select>
+                    <!-- User Information -->
+                    <div class="col-12 mt-3">
+                        <h6 class="border-bottom pb-2">User Information</h6>
                     </div>
-                </form>
+                    <div class="col-md-6 d-flex gap-2">
+                        <strong>User ID:</strong>
+                        <p id="detailUserId">-</p>
+                    </div>
+                    <div class="col-md-6 d-flex gap-2">
+                        <strong>User Name:</strong>
+                        <p id="detailUserName">-</p>
+                    </div>
+                    <div class="col-md-6 d-flex gap-2">
+                        <strong>User Email:</strong>
+                        <p id="detailUserEmail">-</p>
+                    </div>
+
+                    <!-- Employee Information -->
+                    <div class="col-12 mt-3">
+                        <h6 class="border-bottom pb-2">Employee Information</h6>
+                    </div>
+                    <div class="col-md-6 d-flex gap-2">
+                        <strong>Employee ID:</strong>
+                        <p id="detailEmployeeId">-</p>
+                    </div>
+                    <div class="col-md-6 d-flex gap-2">
+                        <strong>Employee Name:</strong>
+                        <p id="detailEmployeeName">-</p>
+                    </div>
+
+                    <!-- Company & Tool Information -->
+                    <div class="col-12 mt-3">
+                        <h6 class="border-bottom pb-2">Company & Tool Information</h6>
+                    </div>
+                    <div class="col-md-6 d-flex gap-2">
+                        <strong>Company ID:</strong>
+                        <p id="detailCompanyId">-</p>
+                    </div>
+                    <div class="col-md-6 d-flex gap-2">
+                        <strong>Company Name:</strong>
+                        <p id="detailCompanyName">-</p>
+                    </div>
+                    <div class="col-md-6 d-flex gap-2">
+                        <strong>Tool ID:</strong>
+                        <p id="detailToolId">-</p>
+                    </div>
+                    <div class="col-md-6 d-flex gap-2">
+                        <strong>Tool Name:</strong>
+                        <p id="detailToolName">-</p>
+                    </div>
+
+                    <!-- Session Information -->
+                    <div class="col-12 mt-3">
+                        <h6 class="border-bottom pb-2">Session Information</h6>
+                    </div>
+                    <div class="col-md-6 d-flex gap-2">
+                        <strong>Session ID:</strong>
+                        <p id="detailSessionId">-</p>
+                    </div>
+                    <div class="col-12 d-flex gap-2" id="sessionInfoContainer">
+                        <p class="text-muted">Loading session information...</p>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="saveProcessBtn">Save Changes</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>

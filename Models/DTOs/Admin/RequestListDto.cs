@@ -14,12 +14,14 @@ namespace AttandanceSyncApp.Models.DTOs.Admin
         public string CompanyName { get; set; }
         public int ToolId { get; set; }
         public string ToolName { get; set; }
+        public int SessionId { get; set; }
         public int? ExternalSyncId { get; set; }
         public bool? IsSuccessful { get; set; }
         public string Status { get; set; }
         public DateTime FromDate { get; set; }
         public DateTime ToDate { get; set; }
         public DateTime CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
         public bool HasDatabaseConfig { get; set; }
     }
 }

@@ -128,6 +128,7 @@
     <Content Include="Scripts\Admin\DatabaseAssignments.js" />
     <Content Include="Scripts\Admin\DatabaseConfigurations.js" />
     <Content Include="Scripts\Admin\Employees.js" />
+    <Content Include="Scripts\Admin\LoginSessions.js" />
     <Content Include="Scripts\Admin\SalaryGarbge\DatabaseAccess.js" />
     <Content Include="Scripts\Admin\SalaryGarbge\ServerIp.js" />
     <Content Include="Scripts\Admin\SyncRequests.js" />
@@ -174,6 +175,7 @@
     <Compile Include="Controllers\AdminDatabaseConfigurationsController.cs" />
     <Compile Include="Controllers\AdminEmployeesController.cs" />
     <Compile Include="Controllers\AdminRequestsController.cs" />
+    <Compile Include="Controllers\AdminSessionsController.cs" />
     <Compile Include="Controllers\AdminToolsController.cs" />
     <Compile Include="Controllers\AdminUsersController.cs" />
     <Compile Include="Controllers\AdminUserToolsController.cs" />
@@ -195,49 +197,9 @@
     <Compile Include="Helpers\DynamicDbHelper.cs" />
     <Compile Include="Helpers\EncryptionHelper.cs" />
     <Compile Include="Helpers\StatusHelper.cs" />
-    <Compile Include="Migrations\202601180421452_AddEmployeeAndUpdateSyncRequest.cs" />
-    <Compile Include="Migrations\202601180421452_AddEmployeeAndUpdateSyncRequest.designer.cs">
-      <DependentUpon>202601180421452_AddEmployeeAndUpdateSyncRequest.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202601180905298_AddCompanyRequest.cs" />
-    <Compile Include="Migrations\202601180905298_AddCompanyRequest.designer.cs">
-      <DependentUpon>202601180905298_AddCompanyRequest.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202601181149356_modifydbconfig.cs" />
-    <Compile Include="Migrations\202601181149356_modifydbconfig.designer.cs">
-      <DependentUpon>202601181149356_modifydbconfig.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202601190526000_AddDatabaseAssign.cs" />
-    <Compile Include="Migrations\202601190526000_AddDatabaseAssign.designer.cs">
-      <DependentUpon>202601190526000_AddDatabaseAssign.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202601190621550_AddRevokeToCompanyRequest.cs" />
-    <Compile Include="Migrations\202601190621550_AddRevokeToCompanyRequest.designer.cs">
-      <DependentUpon>202601190621550_AddRevokeToCompanyRequest.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202601190642195_AddRevokeToDatabaseAssign.cs" />
-    <Compile Include="Migrations\202601190642195_AddRevokeToDatabaseAssign.designer.cs">
-      <DependentUpon>202601190642195_AddRevokeToDatabaseAssign.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202601191038297_AddToolsAssginDB.cs" />
-    <Compile Include="Migrations\202601191038297_AddToolsAssginDB.Designer.cs">
-      <DependentUpon>202601191038297_AddToolsAssginDB.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202601210713047_NewServerIpForSalaryGarbageTool.cs" />
-    <Compile Include="Migrations\202601210713047_NewServerIpForSalaryGarbageTool.designer.cs">
-      <DependentUpon>202601210713047_NewServerIpForSalaryGarbageTool.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202601210840025_AddUnderDevelopmentInTool.cs" />
-    <Compile Include="Migrations\202601210840025_AddUnderDevelopmentInTool.designer.cs">
-      <DependentUpon>202601210840025_AddUnderDevelopmentInTool.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202601210851090_RemoveTheRouteUrlFromTool.cs" />
-    <Compile Include="Migrations\202601210851090_RemoveTheRouteUrlFromTool.designer.cs">
-      <DependentUpon>202601210851090_RemoveTheRouteUrlFromTool.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202601250913556_AddDatabaseAccess.cs" />
-    <Compile Include="Migrations\202601250913556_AddDatabaseAccess.designer.cs">
-      <DependentUpon>202601250913556_AddDatabaseAccess.cs</DependentUpon>
+    <Compile Include="Migrations\202601270604053_addmigration.cs" />
+    <Compile Include="Migrations\202601270604053_addmigration.designer.cs">
+      <DependentUpon>202601270604053_addmigration.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AppDbContext.cs" />
@@ -266,6 +228,7 @@
     <Compile Include="Models\DTOs\Admin\ProcessRequestDto.cs" />
     <Compile Include="Models\DTOs\Admin\RequestFilterDto.cs" />
     <Compile Include="Models\DTOs\Admin\RequestListDto.cs" />
+    <Compile Include="Models\DTOs\Admin\SessionDto.cs" />
     <Compile Include="Models\DTOs\Admin\ToolDto.cs" />
     <Compile Include="Models\DTOs\Admin\UserListDto.cs" />
     <Compile Include="Models\DTOs\Admin\UserToolDto.cs" />
@@ -466,6 +429,7 @@
     <Content Include="Views\Admin\SalaryGarbge\DatabaseAccess.cshtml" />
     <Content Include="Views\BranchIssue\Index.cshtml" />
     <Content Include="Views\BranchReprocess\Index.cshtml" />
+    <Content Include="Views\Admin\LoginSessions.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -477,38 +441,8 @@
     <Folder Include="App_Data\" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202601180421452_AddEmployeeAndUpdateSyncRequest.resx">
-      <DependentUpon>202601180421452_AddEmployeeAndUpdateSyncRequest.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202601180905298_AddCompanyRequest.resx">
-      <DependentUpon>202601180905298_AddCompanyRequest.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202601181149356_modifydbconfig.resx">
-      <DependentUpon>202601181149356_modifydbconfig.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202601190526000_AddDatabaseAssign.resx">
-      <DependentUpon>202601190526000_AddDatabaseAssign.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202601190621550_AddRevokeToCompanyRequest.resx">
-      <DependentUpon>202601190621550_AddRevokeToCompanyRequest.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202601190642195_AddRevokeToDatabaseAssign.resx">
-      <DependentUpon>202601190642195_AddRevokeToDatabaseAssign.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202601191038297_AddToolsAssginDB.resx">
-      <DependentUpon>202601191038297_AddToolsAssginDB.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202601210713047_NewServerIpForSalaryGarbageTool.resx">
-      <DependentUpon>202601210713047_NewServerIpForSalaryGarbageTool.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202601210840025_AddUnderDevelopmentInTool.resx">
-      <DependentUpon>202601210840025_AddUnderDevelopmentInTool.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202601210851090_RemoveTheRouteUrlFromTool.resx">
-      <DependentUpon>202601210851090_RemoveTheRouteUrlFromTool.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202601250913556_AddDatabaseAccess.resx">
-      <DependentUpon>202601250913556_AddDatabaseAccess.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202601270604053_addmigration.resx">
+      <DependentUpon>202601270604053_addmigration.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

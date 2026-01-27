@@ -27,26 +27,30 @@ namespace AttandanceSyncApp.Controllers.SalaryGarbge
             _userToolService = new UserToolService(_unitOfWork);
         }
 
+        // Check if the user request for any admin action it will redirect to admin dashboard else if the user is admin and request for the user action it will return access denied view or redirect to the '/'.
+        protected override void OnActionExecuting(ActionExecutingContext filterContext)
+        {
+            if (IsAdmin)
+            {
+                var actionName = filterContext.ActionDescriptor.ActionName;
+                if (actionName.Equals("Index", System.StringComparison.OrdinalIgnoreCase) ||
+                    actionName.Equals("Dashboard", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    filterContext.Result = new RedirectResult("~/AdminDashboard");
+                    return;
+                }
+
+                ViewBag.Message = "Administrators cannot access the User Dashboard.";
+                filterContext.Result = View("AccessDenied");
+                return;
+            }
+            base.OnActionExecuting(filterContext);
+        }
+
         // GET: SalaryGarbge/Index
         public ActionResult Index()
         {
-            if (!HasSalaryGarbageToolAccess(CurrentUserId))
-            {
-                ViewBag.Message = "You do not have access to the Salary Garbage tool. Please request access from your administrator.";
-                return View("AccessDenied");
-            }
             return View("~/Views/SalaryGarbge/Index.cshtml");
-        }
-
-        private bool HasSalaryGarbageToolAccess(int userId)
-        {
-            var validToolNames = new[] { "Salary Garbage", "SalaryGarbge", "Salary Garbge", "Salary Issue" };
-
-            // Get all active tools assigned to the user
-            var userTools = _unitOfWork.UserTools.GetActiveToolsByUserId(userId);
-
-            // Check if any of the assigned tools match the valid names
-            return userTools.Any(ut => validToolNames.Contains(ut.Tool.Name, StringComparer.OrdinalIgnoreCase));
         }
 
         // GET: SalaryGarbge/GetActiveServers

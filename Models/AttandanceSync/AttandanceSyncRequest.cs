@@ -31,6 +31,9 @@ namespace AttandanceSyncApp.Models.AttandanceSync
         // External dynamic DB reference
         public int? ExternalSyncId { get; set; }
 
+        // Optional: Database configuration reference
+        public int? DatabaseConfigurationId { get; set; }
+
         public bool? IsSuccessful { get; set; }
 
         public DateTime FromDate { get; set; }
@@ -55,6 +58,7 @@ namespace AttandanceSyncApp.Models.AttandanceSync
         [ForeignKey("SessionId")]
         public virtual LoginSession Session { get; set; }
 
+        [ForeignKey("DatabaseConfigurationId")]
         public virtual DatabaseConfiguration DatabaseConfiguration { get; set; }
     }
 }

@@ -48,12 +48,14 @@ namespace AttandanceSyncApp.Services.Admin
                     CompanyName = r.Company?.Name ?? "Unknown",
                     ToolId = r.ToolId,
                     ToolName = r.Tool?.Name ?? "Unknown",
+                    SessionId = r.SessionId,
                     ExternalSyncId = r.ExternalSyncId,
                     IsSuccessful = r.IsSuccessful,
                     Status = GetStatusText(r.IsSuccessful),
                     FromDate = r.FromDate,
                     ToDate = r.ToDate,
                     CreatedAt = r.CreatedAt,
+                    UpdatedAt = r.UpdatedAt,
                     HasDatabaseConfig = r.DatabaseConfiguration != null
                 })
                 .ToList();
@@ -96,12 +98,14 @@ namespace AttandanceSyncApp.Services.Admin
                     CompanyName = request.Company?.Name ?? "Unknown",
                     ToolId = request.ToolId,
                     ToolName = request.Tool?.Name ?? "Unknown",
+                    SessionId = request.SessionId,
                     ExternalSyncId = request.ExternalSyncId,
                     IsSuccessful = request.IsSuccessful,
                     Status = GetStatusText(request.IsSuccessful),
                     FromDate = request.FromDate,
                     ToDate = request.ToDate,
                     CreatedAt = request.CreatedAt,
+                    UpdatedAt = request.UpdatedAt,
                     HasDatabaseConfig = request.DatabaseConfiguration != null
                 };
 

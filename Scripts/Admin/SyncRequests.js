@@ -7,20 +7,6 @@ var pageSize = 20;
 $(function () {
     loadRequests(1);
 
-    // Filter Buttons
-    $('#applyFiltersBtn').on('click', function() {
-        loadRequests(1);
-    });
-
-    $('#resetFiltersBtn').on('click', function() {
-        $('#filterUser').val('');
-        $('#filterCompany').val('');
-        $('#filterStatus').val('');
-        $('#filterFromDate').val('');
-        $('#filterToDate').val('');
-        loadRequests(1);
-    });
-
     // Process Save Button
     $('#saveProcessBtn').on('click', saveProcess);
 });
@@ -30,12 +16,7 @@ function loadRequests(page) {
 
     var filter = {
         Page: page,
-        PageSize: pageSize,
-        UserSearch: $('#filterUser').val(),
-        CompanyId: $('#filterCompany').val() ? parseInt($('#filterCompany').val()) : null,
-        Status: $('#filterStatus').val(),
-        FromDate: $('#filterFromDate').val(),
-        ToDate: $('#filterToDate').val()
+        PageSize: pageSize
     };
 
     $.get(APP.baseUrl + 'AdminRequests/GetAllRequests', filter, function (res) {
@@ -148,5 +129,22 @@ function renderPagination(totalRecords, page, pageSize) {
             '<button class="btn btn-sm btn-outline-primary me-1 ' + activeClass +
             '" onclick="loadRequests(' + i + ')">' + i + '</button>'
         );
+    }
+}
+
+function formatDateTime(dateTimeStr) {
+    if (!dateTimeStr) return '-';
+
+    try {
+        var date = new Date(dateTimeStr);
+        var year = date.getFullYear();
+        var month = String(date.getMonth() + 1).padStart(2, '0');
+        var day = String(date.getDate()).padStart(2, '0');
+        var hours = String(date.getHours()).padStart(2, '0');
+        var minutes = String(date.getMinutes()).padStart(2, '0');
+
+        return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes;
+    } catch (e) {
+        return dateTimeStr;
     }
 }

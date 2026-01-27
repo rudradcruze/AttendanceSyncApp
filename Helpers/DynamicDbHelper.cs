@@ -1,6 +1,7 @@
 using System;
 using System.Data.Entity;
 using System.Data.SqlClient;
+using System.Linq;
 using AttandanceSyncApp.Models;
 using AttandanceSyncApp.Models.AttandanceSync;
 
@@ -48,6 +49,7 @@ namespace AttandanceSyncApp.Helpers
 
         /// <summary>
         /// Creates an AttandanceSynchronization record in the external database
+        /// Gets the first CompanyId from the external database's Company table
         /// </summary>
         /// <returns>The ID of the created record, or null if failed</returns>
         public static int? CreateSyncInExternalDb(DatabaseConfiguration config, DateTime fromDate, DateTime toDate, int companyId)
@@ -56,17 +58,26 @@ namespace AttandanceSyncApp.Helpers
             {
                 using (var context = CreateExternalDbContext(config))
                 {
+                    // Query the external database Company table and get the first CompanyId
+                    var firstCompany = context.Companies.OrderBy(c => c.Id).FirstOrDefault();
+
+                    if (firstCompany == null)
+                    {
+                        throw new Exception("No company found in the external database");
+                    }
+
                     var sync = new AttandanceSynchronization
                     {
                         FromDate = fromDate,
                         ToDate = toDate,
-                        CompanyId = companyId,
+                        CompanyId = firstCompany.Id, // Use the first company ID from external database
                         Status = "NR" // New Request
                     };
 
                     context.AttandanceSynchronizations.Add(sync);
                     context.SaveChanges();
 
+                    // Return the inserted ID
                     return sync.Id;
                 }
             }

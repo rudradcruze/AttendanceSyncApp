@@ -5,44 +5,6 @@
 }
 
 <div class="requests-management">
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="mb-0">Filter Requests</h5>
-        </div>
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <label class="form-label">User (Name/Email)</label>
-                    <input type="text" class="form-control" id="filterUser" placeholder="Search user...">
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Company ID</label>
-                    <input type="number" class="form-control" id="filterCompany" placeholder="Company ID...">
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Status</label>
-                    <select class="form-select" id="filterStatus">
-                        <option value="">All Statuses</option>
-                        <option value="Pending">Pending</option>
-                        <option value="Completed">Completed</option>
-                        <option value="Failed">Failed</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Date Range</label>
-                    <div class="input-group">
-                        <input type="date" class="form-control" id="filterFromDate">
-                        <input type="date" class="form-control" id="filterToDate">
-                    </div>
-                </div>
-                <div class="col-12 text-end">
-                    <button class="btn btn-secondary" id="resetFiltersBtn">Reset</button>
-                    <button class="btn btn-primary" id="applyFiltersBtn">Apply Filters</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div class="card">
         <div class="card-body">
             <div class="table-responsive">

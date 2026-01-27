@@ -7,11 +7,21 @@ using AttandanceSyncApp.Services.Interfaces.Auth;
 
 namespace AttandanceSyncApp.Controllers
 {
+    /// <summary>
+    /// Provides common authentication and user-related functionality for all application controllers.
+    /// </summary>
     public abstract class BaseController : Controller
     {
+        /// <summary>
+        /// Authentication service used to resolve the current user and session.
+        /// </summary>
         protected readonly IAuthService _authService;
+
         private UserDto _currentUser;
 
+        /// <summary>
+        /// Initializes the controller with default authentication dependencies.
+        /// </summary>
         protected BaseController()
         {
             var unitOfWork = new AuthUnitOfWork();
@@ -20,11 +30,22 @@ namespace AttandanceSyncApp.Controllers
             _authService = new AuthService(unitOfWork, googleAuth, sessionService);
         }
 
+        /// <summary>
+        /// Initializes the controller with a provided authentication service.
+        /// </summary>
+        /// <param name="authService">The authentication service instance.</param>
         protected BaseController(IAuthService authService)
         {
             _authService = authService;
         }
 
+        /// <summary>
+        /// Gets the currently authenticated user.
+        /// </summary>
+        /// <remarks>
+        /// The user is resolved lazily using the session token and cached
+        /// for the lifetime of the request.
+        /// </remarks>
         protected UserDto CurrentUser
         {
             get
@@ -45,17 +66,46 @@ namespace AttandanceSyncApp.Controllers
             }
         }
 
+        /// <summary>
+        /// Indicates whether the current request is authenticated.
+        /// </summary>
         protected bool IsAuthenticated => CurrentUser != null;
+
+        /// <summary>
+        /// Indicates whether the current user has administrator privileges.
+        /// </summary>
         protected bool IsAdmin => CurrentUser?.Role == "ADMIN";
+
+        /// <summary>
+        /// Gets the current user's unique identifier.
+        /// </summary>
+        /// <remarks>
+        /// Returns <c>0</c> when no authenticated user exists.
+        /// </remarks>
         protected int CurrentUserId => CurrentUser?.Id ?? 0;
+
+        /// <summary>
+        /// Gets the current user's active login session ID.
+        /// </summary>
+        /// <remarks>
+        /// This property retrieves the session token from the current context and
+        /// looks up the corresponding login session in the authentication store.
+        /// If no token exists or the token is invalid, the method returns <c>0</c>.
+        /// </remarks>
+        /// <value>
+        /// The unique identifier of the current login session; otherwise <c>0</c>
+        /// if the user is not logged in or the session cannot be resolved.
+        /// </value>
         protected int CurrentSessionId
         {
             get
             {
+                // Retrieve the current session token; return 0 if missing
                 var token = GetSessionToken();
                 if (string.IsNullOrEmpty(token))
                     return 0;
 
+                // Resolve the session using the authentication unit of work
                 using (var unitOfWork = new AuthUnitOfWork())
                 {
                     var session = unitOfWork.LoginSessions.GetByToken(token);
@@ -64,6 +114,7 @@ namespace AttandanceSyncApp.Controllers
             }
         }
 
+        // get the session token for authorization
         protected string GetSessionToken()
         {
             // Check cookie first
@@ -73,7 +124,7 @@ namespace AttandanceSyncApp.Controllers
                 return cookie.Value;
             }
 
-            // Check Authorization header
+            // Check Authorization header if all okay then return the token else return null
             var authHeader = Request.Headers["Authorization"];
             if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
             {
@@ -83,17 +134,20 @@ namespace AttandanceSyncApp.Controllers
             return null;
         }
 
+        // set the session cookie so that next time user can sign in automatic for next '5' days it will only for the login. 
         protected void SetSessionCookie(string token)
         {
             var cookie = new HttpCookie("SessionToken", token)
             {
-                HttpOnly = true,
-                Secure = Request.IsSecureConnection,
-                Expires = System.DateTime.Now.AddDays(7),
-                Path = "/"
+                HttpOnly = true, // this allow cookie is only for http
+                Secure = Request.IsSecureConnection, // encrypt this cookie
+                Expires = System.DateTime.Now.AddDays(5), // life of the cookie 
+                Path = "/" // path of the cookie
             };
-            Response.Cookies.Add(cookie);
+            Response.Cookies.Add(cookie); // return / add the cookie
         }
+
+        // clear the session cookie this is use for clear the auto login if the http cookie available (if clear -> user unable to auto login next time) this will only for the login
 
         protected void ClearSessionCookie()
         {
@@ -105,6 +159,7 @@ namespace AttandanceSyncApp.Controllers
             Response.Cookies.Add(cookie);
         }
 
+        // get the session info of device, brower and ip address
         protected SessionDto GetSessionInfo()
         {
             return new SessionDto
@@ -115,6 +170,7 @@ namespace AttandanceSyncApp.Controllers
             };
         }
 
+        // get the client ip address
         private string GetClientIP()
         {
             var ip = Request.ServerVariables["HTTP_X_FORWARDED_FOR"];

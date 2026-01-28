@@ -7,17 +7,25 @@ using AttandanceSyncApp.Repositories;
 using AttandanceSyncApp.Services.Auth;
 using AttandanceSyncApp.Services.Interfaces.Auth;
 
+
 namespace AttandanceSyncApp.Controllers
 {
+    /// <summary>
+    /// Handles authentication-related operations such as login, logout,
+    /// and third-party authentication (e.g., Google OAuth).
+    /// </summary>
     public class AuthController : BaseController
     {
+        /// Google authentication service.
         private readonly IGoogleAuthService _googleAuthService;
 
+        /// Initializes controller with default services.
         public AuthController() : base()
         {
             _googleAuthService = new GoogleAuthService();
         }
 
+        /// Initializes controller with injected services.
         public AuthController(IAuthService authService, IGoogleAuthService googleAuthService)
             : base(authService)
         {

@@ -13,13 +13,23 @@ using AttandanceSyncApp.Services.Interfaces.ConcurrentSimulation;
 
 namespace AttandanceSyncApp.Controllers.ConcurrentSimulation
 {
+    /// <summary>
+    /// Handles concurrent processing simulation for testing
+    /// salary period processing under multiple simultaneous requests.
+    /// </summary>
     [AuthorizeUser]
     public class ConcurrentSimulationController : BaseController
     {
+        /// Concurrent simulation service for testing operations.
         private readonly IConcurrentSimulationService _service;
+
+        /// User tool service for managing user-assigned tools.
         private readonly IUserToolService _userToolService;
+
+        /// Unit of work for database operations.
         private readonly IAuthUnitOfWork _unitOfWork;
 
+        /// Initializes controller with default services.
         public ConcurrentSimulationController() : base()
         {
             var unitOfWork = new AuthUnitOfWork();
@@ -28,12 +38,18 @@ namespace AttandanceSyncApp.Controllers.ConcurrentSimulation
             _service = new ConcurrentSimulationService(unitOfWork);
         }
 
-        // Check if the user request for any admin action it will redirect to admin dashboard else if the user is admin and request for the user action it will return access denied view or redirect to the '/'.
+        /// <summary>
+        /// Ensures administrators are redirected to admin dashboard
+        /// or shown access denied for user-specific actions.
+        /// </summary>
         protected override void OnActionExecuting(ActionExecutingContext filterContext)
         {
+            // Check if the current user is an administrator
             if (IsAdmin)
             {
                 var actionName = filterContext.ActionDescriptor.ActionName;
+
+                // Redirect admins from user dashboard to admin dashboard
                 if (actionName.Equals("Index", System.StringComparison.OrdinalIgnoreCase) ||
                     actionName.Equals("Dashboard", System.StringComparison.OrdinalIgnoreCase))
                 {
@@ -41,6 +57,7 @@ namespace AttandanceSyncApp.Controllers.ConcurrentSimulation
                     return;
                 }
 
+                // Block admins from accessing user-only features
                 ViewBag.Message = "Administrators cannot access the User Dashboard.";
                 filterContext.Result = View("AccessDenied");
                 return;
@@ -51,6 +68,7 @@ namespace AttandanceSyncApp.Controllers.ConcurrentSimulation
         // GET: ConcurrentSimulation/Index
         public ActionResult Index()
         {
+            // Return the concurrent simulation testing view
             return View("~/Views/ConcurrentSimulation/Index.cshtml");
         }
 
@@ -58,13 +76,16 @@ namespace AttandanceSyncApp.Controllers.ConcurrentSimulation
         [HttpGet]
         public JsonResult GetServerIps()
         {
+            // Retrieve list of available server IPs for selection
             var result = _service.GetAllServerIps();
 
+            // If retrieval fails, return error response
             if (!result.Success)
             {
                 return Json(ApiResponse<object>.Fail(result.Message), JsonRequestBehavior.AllowGet);
             }
 
+            // Return server IP list
             return Json(ApiResponse<object>.Success(result.Data), JsonRequestBehavior.AllowGet);
         }
 
@@ -72,13 +93,16 @@ namespace AttandanceSyncApp.Controllers.ConcurrentSimulation
         [HttpGet]
         public JsonResult GetDatabases(int serverIpId)
         {
+            // Retrieve databases available on the selected server
             var result = _service.GetDatabasesForServer(serverIpId);
 
+            // If retrieval fails, return error response
             if (!result.Success)
             {
                 return Json(ApiResponse<object>.Fail(result.Message), JsonRequestBehavior.AllowGet);
             }
 
+            // Return database list for the server
             return Json(ApiResponse<object>.Success(result.Data), JsonRequestBehavior.AllowGet);
         }
 
@@ -86,13 +110,16 @@ namespace AttandanceSyncApp.Controllers.ConcurrentSimulation
         [HttpGet]
         public JsonResult GetPeriodEndData(int serverIpId, string databaseName)
         {
+            // Retrieve period end data for concurrent processing simulation
             var result = _service.GetPeriodEndData(serverIpId, databaseName);
 
+            // If retrieval fails, return error response
             if (!result.Success)
             {
                 return Json(ApiResponse<object>.Fail(result.Message), JsonRequestBehavior.AllowGet);
             }
 
+            // Return period end data
             return Json(ApiResponse<object>.Success(result.Data), JsonRequestBehavior.AllowGet);
         }
 
@@ -102,17 +129,21 @@ namespace AttandanceSyncApp.Controllers.ConcurrentSimulation
         {
             try
             {
+                // Execute concurrent processing simulation with the specified parameters
                 var result = _service.HitConcurrent(request);
 
+                // If simulation fails, return error response
                 if (!result.Success)
                 {
                     return Json(ApiResponse<HitConcurrentResponseDto>.Fail(result.Message));
                 }
 
+                // Return simulation results
                 return Json(ApiResponse<HitConcurrentResponseDto>.Success(result.Data, result.Message));
             }
             catch (System.Exception ex)
             {
+                // Catch and return any unexpected errors during simulation
                 return Json(ApiResponse<HitConcurrentResponseDto>.Fail($"Error: {ex.Message}. Inner: {ex.InnerException?.Message}"));
             }
         }

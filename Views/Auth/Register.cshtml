@@ -20,14 +20,20 @@
                  data-auto_prompt="false">
             </div>
 
-            <div class="g_id_signin"
-                 data-type="standard"
-                 data-shape="rectangular"
-                 data-theme="outline"
-                 data-text="signup_with"
-                 data-size="large"
-                 data-logo_alignment="left"
-                 data-width="300">
+            <div id="googleSignUpContainer">
+                <div class="g_id_signin"
+                     data-type="standard"
+                     data-shape="rectangular"
+                     data-theme="outline"
+                     data-text="signup_with"
+                     data-size="large"
+                     data-logo_alignment="left"
+                     data-width="300">
+                </div>
+            </div>
+            <div id="googleSignUpSpinner" class="text-center py-2" style="display:none;">
+                <span class="spinner-border spinner-border-sm text-primary" role="status" aria-hidden="true"></span>
+                <span class="ms-2">Signing up with Google...</span>
             </div>
         </div>
 
@@ -57,8 +63,12 @@
                     <label for="registerConfirmPassword">Confirm Password</label>
                     <input type="password" class="form-control" id="registerConfirmPassword" placeholder="Confirm your password" required />
                 </div>
-                <button type="submit" class="btn btn-primary btn-block w-100">
-                    Create Account
+                <button type="submit" class="btn btn-primary btn-block w-100" id="registerButton">
+                    <span class="button-text">Create Account</span>
+                    <span class="button-spinner" style="display:none;">
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        Creating account...
+                    </span>
                 </button>
             </form>
         </div>

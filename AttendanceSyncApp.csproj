@@ -197,9 +197,9 @@
     <Compile Include="Helpers\DynamicDbHelper.cs" />
     <Compile Include="Helpers\EncryptionHelper.cs" />
     <Compile Include="Helpers\StatusHelper.cs" />
-    <Compile Include="Migrations\202601270604053_addmigration.cs" />
-    <Compile Include="Migrations\202601270604053_addmigration.designer.cs">
-      <DependentUpon>202601270604053_addmigration.cs</DependentUpon>
+    <Compile Include="Migrations\202601280602277_dbchange.cs" />
+    <Compile Include="Migrations\202601280602277_dbchange.designer.cs">
+      <DependentUpon>202601280602277_dbchange.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AppDbContext.cs" />
@@ -441,8 +441,8 @@
     <Folder Include="App_Data\" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202601270604053_addmigration.resx">
-      <DependentUpon>202601270604053_addmigration.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202601280602277_dbchange.resx">
+      <DependentUpon>202601280602277_dbchange.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

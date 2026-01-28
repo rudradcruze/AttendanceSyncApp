@@ -136,11 +136,11 @@ function loadSessionInfo(sessionId) {
 
         var session = res.Data;
         var sessionHtml = '<div class="row g-2">' +
-            '<div class="col-md-6"><strong>Login Time:</strong><p>' + formatDateTime(session.LoginTime) + '</p></div>' +
-            '<div class="col-md-6"><strong>Logout Time:</strong><p>' + formatDateTime(session.LogoutTime) + '</p></div>' +
-            '<div class="col-md-6"><strong>IP Address:</strong><p>' + escapeHtml(session.IpAddress || '-') + '</p></div>' +
-            '<div class="col-md-6"><strong>User Agent:</strong><p>' + escapeHtml(session.UserAgent || '-') + '</p></div>' +
-            '<div class="col-md-6"><strong>Is Active:</strong><p>' + (session.IsActive ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-secondary">Inactive</span>') + '</p></div>' +
+            '<div class="col-md-6 d-flex gap-2"><strong>Login Time:</strong><p>' + formatDateTime(session.LoginTime) + '</p></div>' +
+            '<div class="col-md-6 d-flex gap-2"><strong>Logout Time:</strong><p>' + formatDateTime(session.LogoutTime) + '</p></div>' +
+            '<div class="col-md-6 d-flex gap-2"><strong>IP Address:</strong><p>' + escapeHtml(session.IpAddress || '-') + '</p></div>' +
+            '<div class="col-md-6 d-flex gap-2"><strong>User Agent:</strong><p>' + escapeHtml(session.UserAgent || '-') + '</p></div>' +
+            '<div class="col-md-6 d-flex gap-2"><strong>Is Active:</strong><p>' + (session.IsActive ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-secondary">Inactive</span>') + '</p></div>' +
             '</div>';
 
         $('#sessionInfoContainer').html(sessionHtml);

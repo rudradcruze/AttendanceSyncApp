@@ -184,7 +184,7 @@
     <Compile Include="Controllers\BaseController.cs" />
     <Compile Include="Controllers\BranchIssue\BranchIssueController.cs" />
     <Compile Include="Controllers\BranchReprocessController.cs" />
-    <Compile Include="Controllers\CompanyRequestController.cs" />
+    <Compile Include="Controllers\AttandanceSync\CompanyRequestController.cs" />
     <Compile Include="Controllers\ConcurrentSimulation\ConcurrentSimulationController.cs" />
     <Compile Include="Controllers\Filters\AdminAuthorizeAttribute.cs" />
     <Compile Include="Controllers\Filters\AuthorizeUserAttribute.cs" />
@@ -217,7 +217,7 @@
     <Compile Include="Models\Auth\LoginSession.cs" />
     <Compile Include="Models\Auth\User.cs" />
     <Compile Include="Models\BranchIssue\ProblemBranch.cs" />
-    <Compile Include="Models\Company.cs" />
+    <Compile Include="Models\AttandanceSync\Company.cs" />
     <Compile Include="Models\ConcurrentSimulation\PeriodEndProcessEntry.cs" />
     <Compile Include="Models\DTOs\Admin\AssignDatabaseDto.cs" />
     <Compile Include="Models\DTOs\Admin\CompanyDto.cs" />
@@ -286,7 +286,7 @@
     <Compile Include="Repositories\Auth\LoginSessionRepository.cs" />
     <Compile Include="Repositories\Auth\UserRepository.cs" />
     <Compile Include="Repositories\BranchIssue\BranchIssueRepository.cs" />
-    <Compile Include="Repositories\CompanyRepository.cs" />
+    <Compile Include="Repositories\AttandanceSync\CompanyRepository.cs" />
     <Compile Include="Repositories\Interfaces\AttandanceSync\IAttandanceSynchronizationRepository.cs" />
     <Compile Include="Repositories\Interfaces\AttandanceSync\IAttandanceSyncRequestRepository.cs" />
     <Compile Include="Repositories\Interfaces\AttandanceSync\ICompanyRequestRepository.cs" />

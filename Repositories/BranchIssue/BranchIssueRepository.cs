@@ -7,8 +7,18 @@ using AttandanceSyncApp.Repositories.Interfaces.BranchIssue;
 
 namespace AttandanceSyncApp.Repositories.BranchIssue
 {
+    /// <summary>
+    /// Repository for branch issue operations using raw SQL queries.
+    /// Manages problem branch detection and reprocessing for period-end operations,
+    /// interacting directly with external company databases for salary processing.
+    /// </summary>
     public class BranchIssueRepository : IBranchIssueRepository
     {
+        /// <summary>
+        /// Retrieves the most recent period start date from the period end details table.
+        /// </summary>
+        /// <param name="connectionString">Database connection string for the target company database.</param>
+        /// <returns>The maximum PeriodFrom date, or current month minus one if no data exists.</returns>
         public DateTime GetLastMonthDate(string connectionString)
         {
             using (SqlConnection con = new SqlConnection(connectionString))
@@ -26,12 +36,20 @@ namespace AttandanceSyncApp.Repositories.BranchIssue
             }
         }
 
+        /// <summary>
+        /// Retrieves branches that have processing issues for a specific period.
+        /// </summary>
+        /// <param name="connectionString">Database connection string for the target company database.</param>
+        /// <param name="monthStartDate">The period start date to check for issues.</param>
+        /// <param name="locationId">Optional location/branch ID filter (empty string for all branches).</param>
+        /// <returns>Collection of problem branches with issue descriptions.</returns>
         public IEnumerable<ProblemBranch> GetProblemBranches(string connectionString, DateTime monthStartDate, string locationId)
         {
             var list = new List<ProblemBranch>();
 
             using (SqlConnection con = new SqlConnection(connectionString))
             {
+                // Query to find branches with period-end processing issues
                 string query = @"
                     SELECT
                         p.PeriodFrom,
@@ -58,6 +76,7 @@ namespace AttandanceSyncApp.Repositories.BranchIssue
 
                     using (SqlDataReader rdr = cmd.ExecuteReader())
                     {
+                        // Map database results to ProblemBranch model
                         while (rdr.Read())
                         {
                             list.Add(new ProblemBranch
@@ -74,6 +93,13 @@ namespace AttandanceSyncApp.Repositories.BranchIssue
             return list;
         }
 
+        /// <summary>
+        /// Inserts problem branch records by executing stored procedure logic.
+        /// </summary>
+        /// <param name="connectionString">Database connection string for the target company database.</param>
+        /// <param name="month">The current month to process.</param>
+        /// <param name="prevMonth">The previous month for comparison.</param>
+        /// <remarks>Calls SP_Insert_ProblemBranches_ByLogic stored procedure to identify and record problematic branches.</remarks>
         public void InsertProblemBranches(string connectionString, string month, string prevMonth)
         {
             using (SqlConnection con = new SqlConnection(connectionString))
@@ -87,6 +113,14 @@ namespace AttandanceSyncApp.Repositories.BranchIssue
             }
         }
 
+        /// <summary>
+        /// Reprocesses a single branch for a specific period to resolve period-end issues.
+        /// </summary>
+        /// <param name="connectionString">Database connection string for the target company database.</param>
+        /// <param name="branchCode">The branch/location code to reprocess.</param>
+        /// <param name="month">The current month to reprocess.</param>
+        /// <param name="prevMonth">The previous month for calculation.</param>
+        /// <remarks>Calls SP_Reprocess_SingleBranch stored procedure to re-run period-end calculations for the branch.</remarks>
         public void ReprocessBranch(string connectionString, string branchCode, string month, string prevMonth)
         {
             using (SqlConnection con = new SqlConnection(connectionString))

@@ -14,13 +14,23 @@ using AttandanceSyncApp.Services.Interfaces.BranchIssue;
 
 namespace AttandanceSyncApp.Controllers.BranchIssue
 {
+    /// <summary>
+    /// Handles branch-specific attendance sync issues,
+    /// allowing users to identify and reprocess problematic branches.
+    /// </summary>
     [AuthorizeUser]
     public class BranchIssueController : BaseController
     {
+        /// Branch issue service for identifying and reprocessing problems.
         private readonly IBranchIssueService _service;
+
+        /// User tool service for managing user-assigned tools.
         private readonly IUserToolService _userToolService;
+
+        /// Unit of work for database operations.
         private readonly IAuthUnitOfWork _unitOfWork;
 
+        /// Initializes controller with default services.
         public BranchIssueController() : base()
         {
             var unitOfWork = new AuthUnitOfWork();
@@ -30,12 +40,18 @@ namespace AttandanceSyncApp.Controllers.BranchIssue
             _userToolService = new UserToolService(_unitOfWork);
         }
 
-        // Check if the user request for any admin action it will redirect to admin dashboard else if the user is admin and request for the user action it will return access denied view or redirect to the '/'.
+        /// <summary>
+        /// Ensures administrators are redirected to admin dashboard
+        /// or shown access denied for user-specific actions.
+        /// </summary>
         protected override void OnActionExecuting(ActionExecutingContext filterContext)
         {
+            // Check if the current user is an administrator
             if (IsAdmin)
             {
                 var actionName = filterContext.ActionDescriptor.ActionName;
+
+                // Redirect admins from user dashboard to admin dashboard
                 if (actionName.Equals("Index", System.StringComparison.OrdinalIgnoreCase) ||
                     actionName.Equals("Dashboard", System.StringComparison.OrdinalIgnoreCase))
                 {
@@ -43,6 +59,7 @@ namespace AttandanceSyncApp.Controllers.BranchIssue
                     return;
                 }
 
+                // Block admins from accessing user-only features
                 ViewBag.Message = "Administrators cannot access the User Dashboard.";
                 filterContext.Result = View("AccessDenied");
                 return;
@@ -53,6 +70,7 @@ namespace AttandanceSyncApp.Controllers.BranchIssue
         // GET: BranchIssue/Index
         public ActionResult Index()
         {
+            // Return the branch issue troubleshooting view
             return View("~/Views/BranchIssue/Index.cshtml");
         }
 
@@ -60,13 +78,16 @@ namespace AttandanceSyncApp.Controllers.BranchIssue
         [HttpGet]
         public JsonResult GetServerIps()
         {
+            // Retrieve list of available server IPs for selection
             var result = _service.GetAllServerIps();
 
+            // If retrieval fails, return error response
             if (!result.Success)
             {
                 return Json(ApiResponse<object>.Fail(result.Message), JsonRequestBehavior.AllowGet);
             }
 
+            // Return server IP list
             return Json(ApiResponse<object>.Success(result.Data), JsonRequestBehavior.AllowGet);
         }
 
@@ -74,13 +95,16 @@ namespace AttandanceSyncApp.Controllers.BranchIssue
         [HttpGet]
         public JsonResult GetDatabases(int serverIpId)
         {
+            // Retrieve databases available on the selected server
             var result = _service.GetDatabasesForServer(serverIpId);
 
+            // If retrieval fails, return error response
             if (!result.Success)
             {
                 return Json(ApiResponse<object>.Fail(result.Message), JsonRequestBehavior.AllowGet);
             }
 
+            // Return database list for the server
             return Json(ApiResponse<object>.Success(result.Data), JsonRequestBehavior.AllowGet);
         }
 
@@ -88,11 +112,16 @@ namespace AttandanceSyncApp.Controllers.BranchIssue
         [HttpGet]
         public JsonResult GetLastMonth(int serverIpId, string databaseName)
         {
+            // Retrieve the last processed month date for the database
             var result = _service.GetLastMonthDate(serverIpId, databaseName);
+
+            // If retrieval fails, return error response
             if (!result.Success)
             {
                 return Json(ApiResponse<object>.Fail(result.Message), JsonRequestBehavior.AllowGet);
             }
+
+            // Return the last month date
             return Json(ApiResponse<object>.Success(result.Data), JsonRequestBehavior.AllowGet);
         }
 
@@ -100,13 +129,16 @@ namespace AttandanceSyncApp.Controllers.BranchIssue
         [HttpPost]
         public JsonResult LoadProblemBranches(BranchIssueRequestDto request)
         {
+            // Identify branches with attendance sync issues for the specified month
             var result = _service.GetProblemBranches(request.ServerIpId, request.DatabaseName, request.MonthStartDate, request.LocationId);
 
+            // If identification fails, return error response
             if (!result.Success)
             {
                 return Json(ApiResponse<object>.Fail(result.Message));
             }
 
+            // Return list of problematic branches
             return Json(ApiResponse<object>.Success(result.Data));
         }
 
@@ -114,13 +146,16 @@ namespace AttandanceSyncApp.Controllers.BranchIssue
         [HttpPost]
         public JsonResult ReprocessBranch(ReprocessBranchRequestDto request)
         {
+            // Attempt to reprocess attendance data for the specified branch
             var result = _service.ReprocessBranch(request);
 
+            // If reprocessing fails, return error response
             if (!result.Success)
             {
                 return Json(ApiResponse<object>.Fail(result.Message));
             }
 
+            // Return reprocessing result
             return Json(ApiResponse<object>.Success(result.Data, result.Message));
         }
     }

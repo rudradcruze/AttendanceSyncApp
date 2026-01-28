@@ -21,10 +21,16 @@ namespace AttandanceSyncApp.Controllers.AttandanceSync
     [AuthorizeUser]
     public class AttandanceController : BaseController
     {
+        /// Sync request service for attendance synchronization operations.
         private readonly ISyncRequestService _syncRequestService;
+
+        /// User tool service for managing user-assigned tools.
         private readonly IUserToolService _userToolService;
+
+        /// Unit of work for database operations.
         private readonly IAuthUnitOfWork _authUnitOfWork;
 
+        /// Initializes controller with default services.
         public AttandanceController() : base()
         {
             _authUnitOfWork = new AuthUnitOfWork();
@@ -32,6 +38,7 @@ namespace AttandanceSyncApp.Controllers.AttandanceSync
             _userToolService = new UserToolService(_authUnitOfWork);
         }
 
+        /// Initializes controller with injected services for testing.
         public AttandanceController(ISyncRequestService syncRequestService, IUserToolService userToolService, IAuthUnitOfWork unitOfWork)
             : base()
         {
@@ -40,12 +47,18 @@ namespace AttandanceSyncApp.Controllers.AttandanceSync
             _authUnitOfWork = unitOfWork;
         }
 
-        // Check if the user request for any admin action it will redirect to admin dashboard else if the user is admin and request for the user action it will return access denied view.
+        /// <summary>
+        /// Ensures administrators are redirected to admin dashboard
+        /// or shown access denied for user-specific actions.
+        /// </summary>
         protected override void OnActionExecuting(ActionExecutingContext filterContext)
         {
+            // Check if the current user is an administrator
             if (IsAdmin)
             {
                 var actionName = filterContext.ActionDescriptor.ActionName;
+
+                // Redirect admins from user dashboard to admin dashboard
                 if (actionName.Equals("Index", System.StringComparison.OrdinalIgnoreCase) ||
                     actionName.Equals("Dashboard", System.StringComparison.OrdinalIgnoreCase))
                 {
@@ -53,6 +66,7 @@ namespace AttandanceSyncApp.Controllers.AttandanceSync
                     return;
                 }
 
+                // Block admins from accessing user-only features
                 ViewBag.Message = "Administrators cannot access the User Dashboard.";
                 filterContext.Result = View("AccessDenied");
                 return;
@@ -63,12 +77,14 @@ namespace AttandanceSyncApp.Controllers.AttandanceSync
         // GET: Attandance/Dashboard - User dashboard with tool cards
         public ActionResult Dashboard()
         {
+            // Return the main user dashboard view
             return View();
         }
 
         // GET: Attandance/Index - Attendance sync page
         public ActionResult Index()
         {
+            // Return the attendance synchronization page
             return View();
         }
 
@@ -76,13 +92,16 @@ namespace AttandanceSyncApp.Controllers.AttandanceSync
         [HttpGet]
         public JsonResult GetMyTools()
         {
+            // Retrieve tools assigned to the current user
             var result = _userToolService.GetUserAssignedTools(CurrentUserId);
 
+            // If retrieval fails, return error response
             if (!result.Success)
             {
                 return Json(ApiResponse<IEnumerable<AssignedToolDto>>.Fail(result.Message), JsonRequestBehavior.AllowGet);
             }
 
+            // Return list of assigned tools
             return Json(ApiResponse<IEnumerable<AssignedToolDto>>.Success(result.Data), JsonRequestBehavior.AllowGet);
         }
 
@@ -90,19 +109,23 @@ namespace AttandanceSyncApp.Controllers.AttandanceSync
         [HttpGet]
         public JsonResult GetMyCompanyDatabases()
         {
+            // Retrieve company databases accessible to the current user
             var result = _syncRequestService.GetUserCompanyDatabases(CurrentUserId);
 
+            // If retrieval fails, return error response
             if (!result.Success)
             {
                 return Json(ApiResponse<IEnumerable<UserCompanyDatabaseDto>>.Fail(result.Message), JsonRequestBehavior.AllowGet);
             }
 
+            // Return list of accessible company databases
             return Json(ApiResponse<IEnumerable<UserCompanyDatabaseDto>>.Success(result.Data), JsonRequestBehavior.AllowGet);
         }
 
         // GET: Attandance/Requests - User's requests page (CompanyRequest)
         public ActionResult Requests()
         {
+            // Return the sync requests management view
             return View();
         }
 

@@ -7,13 +7,13 @@ namespace AttendanceSyncApp.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.5.1")]
-    public sealed partial class addmigration : IMigrationMetadata
+    public sealed partial class dbchange : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(addmigration));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(dbchange));
         
         string IMigrationMetadata.Id
         {
-            get { return "202601270604053_addmigration"; }
+            get { return "202601280602277_dbchange"; }
         }
         
         string IMigrationMetadata.Source

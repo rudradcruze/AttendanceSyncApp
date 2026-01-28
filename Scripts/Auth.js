@@ -2,6 +2,10 @@
    Google Sign-In Handler
 ============================ */
 function handleGoogleSignIn(response) {
+    // Show spinner and hide Google button
+    $('#googleSignInContainer').hide();
+    $('#googleSignInSpinner').show();
+
     $.ajax({
         url: APP.baseUrl + 'Auth/GoogleSignIn',
         type: 'POST',
@@ -10,9 +14,13 @@ function handleGoogleSignIn(response) {
         },
         success: function (res) {
             if (res.Errors && res.Errors.length > 0) {
+                // Hide spinner and show Google button on error
+                $('#googleSignInSpinner').hide();
+                $('#googleSignInContainer').show();
                 showMessage(res.Message || res.Errors[0], 'danger');
             } else if (res.Data) {
                 showMessage('Login successful! Redirecting...', 'success');
+                // Keep spinner visible during redirect
                 setTimeout(function () {
                     if (res.Data.Role === 'ADMIN') {
                         window.location.href = APP.baseUrl + 'AdminDashboard';
@@ -23,6 +31,9 @@ function handleGoogleSignIn(response) {
             }
         },
         error: function () {
+            // Hide spinner and show Google button on error
+            $('#googleSignInSpinner').hide();
+            $('#googleSignInContainer').show();
             showMessage('Login failed. Please try again.', 'danger');
         }
     });
@@ -32,6 +43,10 @@ function handleGoogleSignIn(response) {
    Google Sign-Up Handler
 ============================ */
 function handleGoogleSignUp(response) {
+    // Show spinner and hide Google button
+    $('#googleSignUpContainer').hide();
+    $('#googleSignUpSpinner').show();
+
     $.ajax({
         url: APP.baseUrl + 'Auth/GoogleSignUp',
         type: 'POST',
@@ -40,15 +55,22 @@ function handleGoogleSignUp(response) {
         },
         success: function (res) {
             if (res.Errors && res.Errors.length > 0) {
+                // Hide spinner and show Google button on error
+                $('#googleSignUpSpinner').hide();
+                $('#googleSignUpContainer').show();
                 showMessage(res.Message || res.Errors[0], 'danger');
             } else if (res.Data) {
                 showMessage('Registration successful! Redirecting...', 'success');
+                // Keep spinner visible during redirect
                 setTimeout(function () {
                     window.location.href = APP.baseUrl;
                 }, 1000);
             }
         },
         error: function () {
+            // Hide spinner and show Google button on error
+            $('#googleSignUpSpinner').hide();
+            $('#googleSignUpContainer').show();
             showMessage('Registration failed. Please try again.', 'danger');
         }
     });
@@ -69,6 +91,14 @@ $(function () {
             return;
         }
 
+        // Show spinner and disable button
+        var $button = $('#loginButton');
+
+        // Direct DOM manipulation to ensure it works
+        $button.find('.button-text').hide();
+        $button.find('.button-spinner').show();
+        $button.prop('disabled', true);
+
         $.ajax({
             url: APP.baseUrl + 'Auth/UserLogin',
             type: 'POST',
@@ -78,9 +108,14 @@ $(function () {
             },
             success: function (res) {
                 if (res.Errors && res.Errors.length > 0) {
+                    // Hide spinner and enable button on error
+                    $button.find('.button-text').show();
+                    $button.find('.button-spinner').hide();
+                    $button.prop('disabled', false);
                     showMessage(res.Message || res.Errors[0], 'danger');
                 } else if (res.Data) {
                     showMessage('Login successful! Redirecting...', 'success');
+                    // Keep spinner visible during redirect
                     setTimeout(function () {
                         if (res.Data.Role === 'ADMIN') {
                             window.location.href = APP.baseUrl + 'AdminDashboard';
@@ -91,6 +126,10 @@ $(function () {
                 }
             },
             error: function () {
+                // Hide spinner and enable button on error
+                $button.find('.button-text').show();
+                $button.find('.button-spinner').hide();
+                $button.prop('disabled', false);
                 showMessage('Login failed. Please try again.', 'danger');
             }
         });
@@ -130,6 +169,14 @@ $(function () {
             return;
         }
 
+        // Show spinner and disable button
+        var $button = $('#registerButton');
+
+        // Direct DOM manipulation to ensure it works
+        $button.find('.button-text').hide();
+        $button.find('.button-spinner').show();
+        $button.prop('disabled', true);
+
         $.ajax({
             url: APP.baseUrl + 'Auth/Register',
             type: 'POST',
@@ -141,15 +188,24 @@ $(function () {
             },
             success: function (res) {
                 if (res.Errors && res.Errors.length > 0) {
+                    // Hide spinner and enable button on error
+                    $button.find('.button-text').show();
+                    $button.find('.button-spinner').hide();
+                    $button.prop('disabled', false);
                     showMessage(res.Message || res.Errors[0], 'danger');
                 } else if (res.Data) {
                     showMessage('Registration successful! Redirecting...', 'success');
+                    // Keep spinner visible during redirect
                     setTimeout(function () {
                         window.location.href = APP.baseUrl;
                     }, 1000);
                 }
             },
             error: function () {
+                // Hide spinner and enable button on error
+                $button.find('.button-text').show();
+                $button.find('.button-spinner').hide();
+                $button.prop('disabled', false);
                 showMessage('Registration failed. Please try again.', 'danger');
             }
         });
@@ -188,5 +244,24 @@ function showMessage(msg, type) {
         setTimeout(function () {
             $msg.fadeOut();
         }, 5000);
+    }
+}
+
+/**
+ * Toggles the loading state of a button (shows/hides spinner and disables/enables button).
+ * @param {jQuery} $button - The button element to update.
+ * @param {boolean} isLoading - True to show spinner and disable button, false to hide spinner and enable button.
+ */
+function setButtonLoading($button, isLoading) {
+    if (isLoading) {
+        // Show spinner, hide text, disable button
+        $button.find('.button-text').hide();
+        $button.find('.button-spinner').show();
+        $button.prop('disabled', true);
+    } else {
+        // Hide spinner, show text, enable button
+        $button.find('.button-text').show();
+        $button.find('.button-spinner').hide();
+        $button.prop('disabled', false);
     }
 }

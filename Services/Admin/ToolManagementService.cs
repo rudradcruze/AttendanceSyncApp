@@ -8,19 +8,35 @@ using AttandanceSyncApp.Services.Interfaces.Admin;
 
 namespace AttandanceSyncApp.Services.Admin
 {
+    /// <summary>
+    /// Service for managing tool records from an administrative perspective.
+    /// Handles CRUD operations for tools and their status/development flags.
+    /// </summary>
     public class ToolManagementService : IToolManagementService
     {
+        /// Unit of work for database operations.
         private readonly IAuthUnitOfWork _unitOfWork;
 
+        /// <summary>
+        /// Initializes a new ToolManagementService with the given unit of work.
+        /// </summary>
+        /// <param name="unitOfWork">The authentication unit of work.</param>
         public ToolManagementService(IAuthUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }
 
+        /// <summary>
+        /// Retrieves all tools with pagination support.
+        /// </summary>
+        /// <param name="page">The page number to retrieve.</param>
+        /// <param name="pageSize">The number of records per page.</param>
+        /// <returns>Paginated list of tools with their details.</returns>
         public ServiceResult<PagedResultDto<ToolDto>> GetToolsPaged(int page, int pageSize)
         {
             try
             {
+                // Get total count for pagination
                 var totalCount = _unitOfWork.Tools.Count();
                 var tools = _unitOfWork.Tools.GetAll()
                     .OrderByDescending(t => t.Id)
@@ -54,10 +70,16 @@ namespace AttandanceSyncApp.Services.Admin
             }
         }
 
+        /// <summary>
+        /// Retrieves a specific tool by ID.
+        /// </summary>
+        /// <param name="id">The tool ID.</param>
+        /// <returns>Tool details including name, description, and status.</returns>
         public ServiceResult<ToolDto> GetToolById(int id)
         {
             try
             {
+                // Fetch tool by ID
                 var tool = _unitOfWork.Tools.GetById(id);
                 if (tool == null)
                 {
@@ -83,10 +105,16 @@ namespace AttandanceSyncApp.Services.Admin
             }
         }
 
+        /// <summary>
+        /// Creates a new tool record.
+        /// </summary>
+        /// <param name="dto">The tool data to create.</param>
+        /// <returns>Success or failure result.</returns>
         public ServiceResult CreateTool(ToolCreateDto dto)
         {
             try
             {
+                // Validate tool name
                 if (string.IsNullOrWhiteSpace(dto.Name))
                 {
                     return ServiceResult.FailureResult("Tool name is required");
@@ -112,10 +140,16 @@ namespace AttandanceSyncApp.Services.Admin
             }
         }
 
+        /// <summary>
+        /// Updates an existing tool's information.
+        /// </summary>
+        /// <param name="dto">The updated tool data.</param>
+        /// <returns>Success or failure result.</returns>
         public ServiceResult UpdateTool(ToolUpdateDto dto)
         {
             try
             {
+                // Retrieve existing tool
                 var tool = _unitOfWork.Tools.GetById(dto.Id);
                 if (tool == null)
                 {
@@ -144,10 +178,16 @@ namespace AttandanceSyncApp.Services.Admin
             }
         }
 
+        /// <summary>
+        /// Deletes a tool record if it has no associated requests.
+        /// </summary>
+        /// <param name="id">The tool ID to delete.</param>
+        /// <returns>Success or failure result.</returns>
         public ServiceResult DeleteTool(int id)
         {
             try
             {
+                // Retrieve tool to delete
                 var tool = _unitOfWork.Tools.GetById(id);
                 if (tool == null)
                 {
@@ -172,10 +212,16 @@ namespace AttandanceSyncApp.Services.Admin
             }
         }
 
+        /// <summary>
+        /// Toggles the status of a tool between active and inactive.
+        /// </summary>
+        /// <param name="id">The tool ID to toggle.</param>
+        /// <returns>Success or failure result with new status.</returns>
         public ServiceResult ToggleToolStatus(int id)
         {
             try
             {
+                // Retrieve the tool
                 var tool = _unitOfWork.Tools.GetById(id);
                 if (tool == null)
                 {

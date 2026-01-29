@@ -13,15 +13,29 @@ using AttandanceSyncApp.Services.Interfaces.ConcurrentSimulation;
 
 namespace AttandanceSyncApp.Services.ConcurrentSimulation
 {
+    /// <summary>
+    /// Service responsible for executing concurrent simulation operations.
+    /// Handles server/database discovery, period-end data extraction,
+    /// and concurrent insertion of period-end processing requests.
+    /// </summary>
     public class ConcurrentSimulationService : IConcurrentSimulationService
     {
+        /// Unit of work for accessing repositories.
         private readonly IAuthUnitOfWork _unitOfWork;
 
+        /// <summary>
+        /// Initializes a new instance of ConcurrentSimulationService.
+        /// </summary>
+        /// <param name="unitOfWork">Authentication unit of work.</param>
         public ConcurrentSimulationService(IAuthUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }
 
+        /// <summary>
+        /// Calculates the first day of the previous month.
+        /// </summary>
+        /// <returns>Previous month start date in yyyy-MM-dd format.</returns>
         private string GetLastMonthDate()
         {
             var now = DateTime.Now;
@@ -29,10 +43,15 @@ namespace AttandanceSyncApp.Services.ConcurrentSimulation
             return lastMonth.ToString("yyyy-MM-dd");
         }
 
+        /// <summary>
+        /// Retrieves all active server IP addresses.
+        /// </summary>
+        /// <returns>List of active server IPs.</returns>
         public ServiceResult<IEnumerable<ServerIpDto>> GetAllServerIps()
         {
             try
             {
+                // Fetch active servers and map to DTOs
                 var serverIps = _unitOfWork.ServerIps.GetAll()
                     .Where(s => s.IsActive)
                     .OrderBy(s => s.IpAddress)
@@ -44,53 +63,75 @@ namespace AttandanceSyncApp.Services.ConcurrentSimulation
                     })
                     .ToList();
 
-                return ServiceResult<IEnumerable<ServerIpDto>>.SuccessResult(serverIps);
+                return ServiceResult<IEnumerable<ServerIpDto>>
+                    .SuccessResult(serverIps);
             }
             catch (Exception ex)
             {
-                return ServiceResult<IEnumerable<ServerIpDto>>.FailureResult($"Error fetching server IPs: {ex.Message}");
+                return ServiceResult<IEnumerable<ServerIpDto>>
+                    .FailureResult($"Error fetching server IPs: {ex.Message}");
             }
         }
 
+        /// <summary>
+        /// Retrieves accessible databases for a given server IP.
+        /// </summary>
+        /// <param name="serverIpId">Server IP identifier.</param>
+        /// <returns>List of accessible databases.</returns>
         public ServiceResult<IEnumerable<DatabaseListDto>> GetDatabasesForServer(int serverIpId)
         {
             try
             {
+                // Validate server IP existence
                 var serverIp = _unitOfWork.ServerIps.GetById(serverIpId);
                 if (serverIp == null)
                 {
-                    return ServiceResult<IEnumerable<DatabaseListDto>>.FailureResult("Server IP not found");
+                    return ServiceResult<IEnumerable<DatabaseListDto>>
+                        .FailureResult("Server IP not found");
                 }
 
-                // Get accessible databases from DatabaseAccess table
+                // Retrieve database access permissions
                 var accessibleDatabases = new HashSet<string>(
                     _unitOfWork.DatabaseAccess
                         .GetAccessibleDatabasesByServerId(serverIpId)
                         .Select(da => da.DatabaseName)
                 );
 
+                // If no databases are accessible, return empty list
                 if (!accessibleDatabases.Any())
                 {
-                    return ServiceResult<IEnumerable<DatabaseListDto>>.SuccessResult(
-                        new List<DatabaseListDto>());
+                    return ServiceResult<IEnumerable<DatabaseListDto>>
+                        .SuccessResult(new List<DatabaseListDto>());
                 }
 
-                var decryptedPassword = EncryptionHelper.Decrypt(serverIp.DatabasePassword);
-                var connectionString = BuildConnectionString(serverIp.IpAddress, serverIp.DatabaseUser, decryptedPassword, "master");
+                // Decrypt database password and build connection string
+                var decryptedPassword =
+                    EncryptionHelper.Decrypt(serverIp.DatabasePassword);
+
+                var connectionString = BuildConnectionString(
+                    serverIp.IpAddress,
+                    serverIp.DatabaseUser,
+                    decryptedPassword,
+                    "master"
+                );
 
                 var databases = new List<DatabaseListDto>();
 
+                // Connect to SQL Server and retrieve database list
                 using (var connection = new SqlConnection(connectionString))
                 {
                     connection.Open();
-                    using (var command = new SqlCommand("SELECT name FROM sys.databases WHERE database_id > 4 ORDER BY name", connection))
+                    using (var command = new SqlCommand(
+                        "SELECT name FROM sys.databases WHERE database_id > 4 ORDER BY name",
+                        connection))
                     {
                         using (var reader = command.ExecuteReader())
                         {
                             while (reader.Read())
                             {
                                 var dbName = reader.GetString(0);
-                                // Only include if in accessible list
+
+                                // Include only databases the server has access to
                                 if (accessibleDatabases.Contains(dbName))
                                 {
                                     databases.Add(new DatabaseListDto
@@ -103,29 +144,50 @@ namespace AttandanceSyncApp.Services.ConcurrentSimulation
                     }
                 }
 
-                return ServiceResult<IEnumerable<DatabaseListDto>>.SuccessResult(databases);
+                return ServiceResult<IEnumerable<DatabaseListDto>>
+                    .SuccessResult(databases);
             }
             catch (Exception ex)
             {
-                return ServiceResult<IEnumerable<DatabaseListDto>>.FailureResult($"Error fetching databases: {ex.Message}");
+                return ServiceResult<IEnumerable<DatabaseListDto>>
+                    .FailureResult($"Error fetching databases: {ex.Message}");
             }
         }
 
-        public ServiceResult<IEnumerable<PeriodEndProcessEntry>> GetPeriodEndData(int serverIpId, string databaseName)
+        /// <summary>
+        /// Retrieves period-end processing data for the previous month.
+        /// </summary>
+        /// <param name="serverIpId">Server IP identifier.</param>
+        /// <param name="databaseName">Target database name.</param>
+        /// <returns>Collection of period-end processing entries.</returns>
+        public ServiceResult<IEnumerable<PeriodEndProcessEntry>> GetPeriodEndData(
+            int serverIpId,
+            string databaseName)
         {
             try
             {
+                // Validate server IP
                 var serverIp = _unitOfWork.ServerIps.GetById(serverIpId);
                 if (serverIp == null)
                 {
-                    return ServiceResult<IEnumerable<PeriodEndProcessEntry>>.FailureResult("Server IP not found");
+                    return ServiceResult<IEnumerable<PeriodEndProcessEntry>>
+                        .FailureResult("Server IP not found");
                 }
 
-                var decryptedPassword = EncryptionHelper.Decrypt(serverIp.DatabasePassword);
-                var connectionString = BuildConnectionString(serverIp.IpAddress, serverIp.DatabaseUser, decryptedPassword, databaseName);
+                // Decrypt password and build connection string
+                var decryptedPassword =
+                    EncryptionHelper.Decrypt(serverIp.DatabasePassword);
+
+                var connectionString = BuildConnectionString(
+                    serverIp.IpAddress,
+                    serverIp.DatabaseUser,
+                    decryptedPassword,
+                    databaseName
+                );
 
                 var entries = new List<PeriodEndProcessEntry>();
 
+                // SQL query to generate period-end request data
                 var query = @"
                     SELECT
                         ISNULL(MIN(u.Id), '') AS UserId,
@@ -145,12 +207,15 @@ namespace AttandanceSyncApp.Services.ConcurrentSimulation
                         l.BranchID,
                         p.Location_Id";
 
+                // Execute query and map results
                 using (var connection = new SqlConnection(connectionString))
                 {
                     connection.Open();
                     using (var command = new SqlCommand(query, connection))
                     {
-                        command.Parameters.AddWithValue("@PeriodFrom", GetLastMonthDate());
+                        command.Parameters.AddWithValue(
+                            "@PeriodFrom",
+                            GetLastMonthDate());
 
                         using (var reader = command.ExecuteReader())
                         {
@@ -171,40 +236,63 @@ namespace AttandanceSyncApp.Services.ConcurrentSimulation
                     }
                 }
 
-                return ServiceResult<IEnumerable<PeriodEndProcessEntry>>.SuccessResult(entries);
+                return ServiceResult<IEnumerable<PeriodEndProcessEntry>>
+                    .SuccessResult(entries);
             }
             catch (Exception ex)
             {
-                return ServiceResult<IEnumerable<PeriodEndProcessEntry>>.FailureResult($"Error fetching period end data: {ex.Message}");
+                return ServiceResult<IEnumerable<PeriodEndProcessEntry>>
+                    .FailureResult($"Error fetching period end data: {ex.Message}");
             }
         }
 
-        public ServiceResult<HitConcurrentResponseDto> HitConcurrent(HitConcurrentRequestDto request)
+        /// <summary>
+        /// Executes concurrent insertion of period-end processing requests.
+        /// </summary>
+        /// <param name="request">Concurrent simulation request data.</param>
+        /// <returns>Execution summary including success and failure counts.</returns>
+        public ServiceResult<HitConcurrentResponseDto> HitConcurrent(
+            HitConcurrentRequestDto request)
         {
             try
             {
-                // First, fetch the period end data from the database
-                var dataResult = GetPeriodEndData(request.ServerIpId, request.DatabaseName);
+                // Fetch period-end data
+                var dataResult =
+                    GetPeriodEndData(request.ServerIpId, request.DatabaseName);
+
                 if (!dataResult.Success)
                 {
-                    return ServiceResult<HitConcurrentResponseDto>.FailureResult($"Failed to fetch data: {dataResult.Message}");
+                    return ServiceResult<HitConcurrentResponseDto>
+                        .FailureResult($"Failed to fetch data: {dataResult.Message}");
                 }
 
                 var entries = dataResult.Data.ToList();
                 if (!entries.Any())
                 {
-                    return ServiceResult<HitConcurrentResponseDto>.FailureResult("No entries to insert");
+                    return ServiceResult<HitConcurrentResponseDto>
+                        .FailureResult("No entries to insert");
                 }
 
+                // Validate server IP
                 var serverIp = _unitOfWork.ServerIps.GetById(request.ServerIpId);
                 if (serverIp == null)
                 {
-                    return ServiceResult<HitConcurrentResponseDto>.FailureResult("Server IP not found");
+                    return ServiceResult<HitConcurrentResponseDto>
+                        .FailureResult("Server IP not found");
                 }
 
-                var decryptedPassword = EncryptionHelper.Decrypt(serverIp.DatabasePassword);
-                var connectionString = BuildConnectionString(serverIp.IpAddress, serverIp.DatabaseUser, decryptedPassword, request.DatabaseName);
+                // Build database connection string
+                var decryptedPassword =
+                    EncryptionHelper.Decrypt(serverIp.DatabasePassword);
 
+                var connectionString = BuildConnectionString(
+                    serverIp.IpAddress,
+                    serverIp.DatabaseUser,
+                    decryptedPassword,
+                    request.DatabaseName
+                );
+
+                // Thread-safe collections for concurrent execution
                 var errors = new ConcurrentBag<string>();
                 var successCount = 0;
 
@@ -214,7 +302,7 @@ namespace AttandanceSyncApp.Services.ConcurrentSimulation
                     VALUES
                     (@CompanyId, @Status, @EmployeeId, @UserId, @Branch_Id, @Location_Id, @PostProcessStatus)";
 
-                // Execute all inserts concurrently
+                // Execute insert operations concurrently
                 var tasks = entries.Select(entry => Task.Run(() =>
                 {
                     try
@@ -233,14 +321,20 @@ namespace AttandanceSyncApp.Services.ConcurrentSimulation
                                 command.Parameters.AddWithValue("@PostProcessStatus", entry.PostProcessStatus ?? "NA");
 
                                 command.ExecuteNonQuery();
-                                System.Threading.Interlocked.Increment(ref successCount);
+                                System.Threading.Interlocked
+                                    .Increment(ref successCount);
                             }
                         }
                     }
                     catch (Exception ex)
                     {
-                        var innerMsg = ex.InnerException != null ? $" Inner: {ex.InnerException.Message}" : "";
-                        errors.Add($"Error inserting entry (Location_Id: {entry.Location_Id}, UserId: {entry.UserId}): {ex.Message}{innerMsg}");
+                        var inner =
+                            ex.InnerException != null
+                                ? $" Inner: {ex.InnerException.Message}"
+                                : "";
+
+                        errors.Add(
+                            $"Error inserting entry (Location_Id: {entry.Location_Id}, UserId: {entry.UserId}): {ex.Message}{inner}");
                     }
                 })).ToArray();
 
@@ -254,22 +348,27 @@ namespace AttandanceSyncApp.Services.ConcurrentSimulation
                     Errors = errors.ToList()
                 };
 
-                if (errors.Any())
-                {
-                    return ServiceResult<HitConcurrentResponseDto>.SuccessResult(response,
-                        $"Completed with {errors.Count} errors");
-                }
-
-                return ServiceResult<HitConcurrentResponseDto>.SuccessResult(response,
-                    $"Successfully inserted {successCount} records simultaneously");
+                return errors.Any()
+                    ? ServiceResult<HitConcurrentResponseDto>
+                        .SuccessResult(response, $"Completed with {errors.Count} errors")
+                    : ServiceResult<HitConcurrentResponseDto>
+                        .SuccessResult(response, $"Successfully inserted {successCount} records simultaneously");
             }
             catch (Exception ex)
             {
-                return ServiceResult<HitConcurrentResponseDto>.FailureResult($"Error during concurrent insert: {ex.Message}");
+                return ServiceResult<HitConcurrentResponseDto>
+                    .FailureResult($"Error during concurrent insert: {ex.Message}");
             }
         }
 
-        private string BuildConnectionString(string ipAddress, string userId, string password, string databaseName)
+        /// <summary>
+        /// Builds a SQL Server connection string using explicit credentials.
+        /// </summary>
+        private string BuildConnectionString(
+            string ipAddress,
+            string userId,
+            string password,
+            string databaseName)
         {
             var builder = new SqlConnectionStringBuilder
             {

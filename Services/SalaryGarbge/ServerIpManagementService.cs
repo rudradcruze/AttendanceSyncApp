@@ -11,20 +11,40 @@ using AttandanceSyncApp.Services.Interfaces.SalaryGarbge;
 
 namespace AttandanceSyncApp.Services.SalaryGarbge
 {
+    /// <summary>
+    /// Service responsible for managing Server IP configurations.
+    /// Handles CRUD operations, activation control, secure credential handling,
+    /// and initial database access population.
+    /// </summary>
     public class ServerIpManagementService : IServerIpManagementService
     {
+        /// Unit of work for accessing repositories.
         private readonly IAuthUnitOfWork _unitOfWork;
 
+        /// <summary>
+        /// Initializes a new instance of ServerIpManagementService.
+        /// </summary>
+        /// <param name="unitOfWork">Authentication unit of work.</param>
         public ServerIpManagementService(IAuthUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }
 
-        public ServiceResult<PagedResultDto<ServerIpDto>> GetServerIpsPaged(int page, int pageSize)
+        /// <summary>
+        /// Retrieves server IPs in a paginated format.
+        /// </summary>
+        /// <param name="page">Page number.</param>
+        /// <param name="pageSize">Records per page.</param>
+        /// <returns>Paged list of server IPs.</returns>
+        public ServiceResult<PagedResultDto<ServerIpDto>>
+            GetServerIpsPaged(int page, int pageSize)
         {
             try
             {
+                // Retrieve total record count
                 var totalCount = _unitOfWork.ServerIps.Count();
+
+                // Fetch paginated server IPs
                 var serverIps = _unitOfWork.ServerIps.GetAll()
                     .OrderByDescending(s => s.Id)
                     .Skip((page - 1) * pageSize)
@@ -34,7 +54,7 @@ namespace AttandanceSyncApp.Services.SalaryGarbge
                         Id = s.Id,
                         IpAddress = s.IpAddress,
                         DatabaseUser = s.DatabaseUser,
-                        DatabasePassword = null, // Don't expose password in list
+                        DatabasePassword = null, // Never expose passwords in lists
                         Description = s.Description,
                         IsActive = s.IsActive,
                         CreatedAt = s.CreatedAt,
@@ -50,29 +70,39 @@ namespace AttandanceSyncApp.Services.SalaryGarbge
                     Data = serverIps
                 };
 
-                return ServiceResult<PagedResultDto<ServerIpDto>>.SuccessResult(result);
+                return ServiceResult<PagedResultDto<ServerIpDto>>
+                    .SuccessResult(result);
             }
             catch (Exception ex)
             {
-                return ServiceResult<PagedResultDto<ServerIpDto>>.FailureResult($"Failed to retrieve server IPs: {ex.Message}");
+                return ServiceResult<PagedResultDto<ServerIpDto>>
+                    .FailureResult($"Failed to retrieve server IPs: {ex.Message}");
             }
         }
 
+        /// <summary>
+        /// Retrieves a single server IP by its identifier.
+        /// </summary>
+        /// <param name="id">Server IP ID.</param>
+        /// <returns>Server IP details.</returns>
         public ServiceResult<ServerIpDto> GetServerIpById(int id)
         {
             try
             {
+                // Fetch server IP entity
                 var serverIp = _unitOfWork.ServerIps.GetById(id);
                 if (serverIp == null)
                 {
-                    return ServiceResult<ServerIpDto>.FailureResult("Server IP not found");
+                    return ServiceResult<ServerIpDto>
+                        .FailureResult("Server IP not found");
                 }
 
-                // Decrypt the password for display
-                string decryptedPassword = null;
+                // Attempt to decrypt password for admin view
+                string decryptedPassword;
                 try
                 {
-                    decryptedPassword = EncryptionHelper.Decrypt(serverIp.DatabasePassword);
+                    decryptedPassword =
+                        EncryptionHelper.Decrypt(serverIp.DatabasePassword);
                 }
                 catch
                 {
@@ -91,41 +121,47 @@ namespace AttandanceSyncApp.Services.SalaryGarbge
                     UpdatedAt = serverIp.UpdatedAt
                 };
 
-                return ServiceResult<ServerIpDto>.SuccessResult(dto);
+                return ServiceResult<ServerIpDto>
+                    .SuccessResult(dto);
             }
             catch (Exception ex)
             {
-                return ServiceResult<ServerIpDto>.FailureResult($"Failed to retrieve server IP: {ex.Message}");
+                return ServiceResult<ServerIpDto>
+                    .FailureResult($"Failed to retrieve server IP: {ex.Message}");
             }
         }
 
+        /// <summary>
+        /// Creates a new server IP configuration.
+        /// Automatically populates database access entries.
+        /// </summary>
+        /// <param name="dto">Server IP creation data.</param>
+        /// <returns>Operation result.</returns>
         public ServiceResult CreateServerIp(ServerIpCreateDto dto)
         {
             try
             {
+                // Validate required fields
                 if (string.IsNullOrWhiteSpace(dto.IpAddress))
-                {
                     return ServiceResult.FailureResult("Server IP address is required");
-                }
 
                 if (string.IsNullOrWhiteSpace(dto.DatabaseUser))
-                {
                     return ServiceResult.FailureResult("Database user is required");
-                }
 
                 if (string.IsNullOrWhiteSpace(dto.DatabasePassword))
-                {
                     return ServiceResult.FailureResult("Database password is required");
-                }
 
-                // Check if IP address already exists
-                if (_unitOfWork.ServerIps.IpAddressExists(dto.IpAddress.Trim()))
+                // Prevent duplicate IP addresses
+                if (_unitOfWork.ServerIps
+                    .IpAddressExists(dto.IpAddress.Trim()))
                 {
-                    return ServiceResult.FailureResult("Server IP address already exists");
+                    return ServiceResult
+                        .FailureResult("Server IP address already exists");
                 }
 
-                // Encrypt the password before saving
-                var encryptedPassword = EncryptionHelper.Encrypt(dto.DatabasePassword);
+                // Encrypt database password before persistence
+                var encryptedPassword =
+                    EncryptionHelper.Encrypt(dto.DatabasePassword);
 
                 var serverIp = new ServerIp
                 {
@@ -140,40 +176,50 @@ namespace AttandanceSyncApp.Services.SalaryGarbge
                 _unitOfWork.ServerIps.Add(serverIp);
                 _unitOfWork.SaveChanges();
 
-                // Auto-populate DatabaseAccess table with all databases from this server
+                // Auto-populate DatabaseAccess entries
                 try
                 {
-                    var databases = GetDatabasesFromNewServer(serverIp.IpAddress, serverIp.DatabaseUser, serverIp.DatabasePassword);
+                    var databases = GetDatabasesFromNewServer(
+                        serverIp.IpAddress,
+                        serverIp.DatabaseUser,
+                        serverIp.DatabasePassword);
 
                     foreach (var dbName in databases)
                     {
-                        var dbAccess = new DatabaseAccess
-                        {
-                            ServerIpId = serverIp.Id,
-                            DatabaseName = dbName,
-                            HasAccess = true, // Default to granted
-                            IsActive = true,
-                            CreatedAt = DateTime.Now
-                        };
-                        _unitOfWork.DatabaseAccess.Add(dbAccess);
+                        _unitOfWork.DatabaseAccess.Add(
+                            new DatabaseAccess
+                            {
+                                ServerIpId = serverIp.Id,
+                                DatabaseName = dbName,
+                                HasAccess = true,
+                                IsActive = true,
+                                CreatedAt = DateTime.Now
+                            });
                     }
 
                     _unitOfWork.SaveChanges();
                 }
-                catch (Exception ex)
+                catch
                 {
-                    // Log error but don't fail ServerIp creation
-                    // Admin can manually add databases via Database Access page
+                    // Failure here should not block server creation
+                    // Admin can manage access manually later
                 }
 
-                return ServiceResult.SuccessResult("Server IP created successfully");
+                return ServiceResult
+                    .SuccessResult("Server IP created successfully");
             }
             catch (Exception ex)
             {
-                return ServiceResult.FailureResult($"Failed to create server IP: {ex.Message}");
+                return ServiceResult
+                    .FailureResult($"Failed to create server IP: {ex.Message}");
             }
         }
 
+        /// <summary>
+        /// Updates an existing server IP configuration.
+        /// </summary>
+        /// <param name="dto">Server IP update data.</param>
+        /// <returns>Operation result.</returns>
         public ServiceResult UpdateServerIp(ServerIpUpdateDto dto)
         {
             try
@@ -181,32 +227,32 @@ namespace AttandanceSyncApp.Services.SalaryGarbge
                 var serverIp = _unitOfWork.ServerIps.GetById(dto.Id);
                 if (serverIp == null)
                 {
-                    return ServiceResult.FailureResult("Server IP not found");
+                    return ServiceResult
+                        .FailureResult("Server IP not found");
                 }
 
                 if (string.IsNullOrWhiteSpace(dto.IpAddress))
-                {
                     return ServiceResult.FailureResult("Server IP address is required");
-                }
 
                 if (string.IsNullOrWhiteSpace(dto.DatabaseUser))
-                {
                     return ServiceResult.FailureResult("Database user is required");
-                }
 
-                // Check if IP address already exists (excluding current record)
-                if (_unitOfWork.ServerIps.IpAddressExists(dto.IpAddress.Trim(), dto.Id))
+                // Ensure IP uniqueness
+                if (_unitOfWork.ServerIps
+                    .IpAddressExists(dto.IpAddress.Trim(), dto.Id))
                 {
-                    return ServiceResult.FailureResult("Server IP address already exists");
+                    return ServiceResult
+                        .FailureResult("Server IP address already exists");
                 }
 
                 serverIp.IpAddress = dto.IpAddress.Trim();
                 serverIp.DatabaseUser = dto.DatabaseUser.Trim();
 
-                // Only update password if a new one is provided
+                // Update password only if provided
                 if (!string.IsNullOrWhiteSpace(dto.DatabasePassword))
                 {
-                    serverIp.DatabasePassword = EncryptionHelper.Encrypt(dto.DatabasePassword);
+                    serverIp.DatabasePassword =
+                        EncryptionHelper.Encrypt(dto.DatabasePassword);
                 }
 
                 serverIp.Description = dto.Description?.Trim();
@@ -216,14 +262,21 @@ namespace AttandanceSyncApp.Services.SalaryGarbge
                 _unitOfWork.ServerIps.Update(serverIp);
                 _unitOfWork.SaveChanges();
 
-                return ServiceResult.SuccessResult("Server IP updated successfully");
+                return ServiceResult
+                    .SuccessResult("Server IP updated successfully");
             }
             catch (Exception ex)
             {
-                return ServiceResult.FailureResult($"Failed to update server IP: {ex.Message}");
+                return ServiceResult
+                    .FailureResult($"Failed to update server IP: {ex.Message}");
             }
         }
 
+        /// <summary>
+        /// Permanently deletes a server IP configuration.
+        /// </summary>
+        /// <param name="id">Server IP ID.</param>
+        /// <returns>Operation result.</returns>
         public ServiceResult DeleteServerIp(int id)
         {
             try
@@ -231,20 +284,28 @@ namespace AttandanceSyncApp.Services.SalaryGarbge
                 var serverIp = _unitOfWork.ServerIps.GetById(id);
                 if (serverIp == null)
                 {
-                    return ServiceResult.FailureResult("Server IP not found");
+                    return ServiceResult
+                        .FailureResult("Server IP not found");
                 }
 
                 _unitOfWork.ServerIps.Remove(serverIp);
                 _unitOfWork.SaveChanges();
 
-                return ServiceResult.SuccessResult("Server IP deleted successfully");
+                return ServiceResult
+                    .SuccessResult("Server IP deleted successfully");
             }
             catch (Exception ex)
             {
-                return ServiceResult.FailureResult($"Failed to delete server IP: {ex.Message}");
+                return ServiceResult
+                    .FailureResult($"Failed to delete server IP: {ex.Message}");
             }
         }
 
+        /// <summary>
+        /// Toggles the active status of a server IP.
+        /// </summary>
+        /// <param name="id">Server IP ID.</param>
+        /// <returns>Operation result.</returns>
         public ServiceResult ToggleServerIpStatus(int id)
         {
             try
@@ -252,7 +313,8 @@ namespace AttandanceSyncApp.Services.SalaryGarbge
                 var serverIp = _unitOfWork.ServerIps.GetById(id);
                 if (serverIp == null)
                 {
-                    return ServiceResult.FailureResult("Server IP not found");
+                    return ServiceResult
+                        .FailureResult("Server IP not found");
                 }
 
                 serverIp.IsActive = !serverIp.IsActive;
@@ -261,19 +323,33 @@ namespace AttandanceSyncApp.Services.SalaryGarbge
                 _unitOfWork.ServerIps.Update(serverIp);
                 _unitOfWork.SaveChanges();
 
-                var status = serverIp.IsActive ? "activated" : "deactivated";
-                return ServiceResult.SuccessResult($"Server IP {status} successfully");
+                var status = serverIp.IsActive
+                    ? "activated"
+                    : "deactivated";
+
+                return ServiceResult
+                    .SuccessResult($"Server IP {status} successfully");
             }
             catch (Exception ex)
             {
-                return ServiceResult.FailureResult($"Failed to toggle server IP status: {ex.Message}");
+                return ServiceResult
+                    .FailureResult($"Failed to toggle server IP status: {ex.Message}");
             }
         }
 
-        private List<string> GetDatabasesFromNewServer(string serverIp, string userId, string encryptedPassword)
+        /// <summary>
+        /// Retrieves all user databases from a newly added server.
+        /// </summary>
+        private List<string> GetDatabasesFromNewServer(
+            string serverIp,
+            string userId,
+            string encryptedPassword)
         {
             var databases = new List<string>();
-            var decryptedPassword = EncryptionHelper.Decrypt(encryptedPassword);
+
+            // Decrypt password for SQL connection
+            var decryptedPassword =
+                EncryptionHelper.Decrypt(encryptedPassword);
 
             var builder = new SqlConnectionStringBuilder
             {
@@ -287,23 +363,25 @@ namespace AttandanceSyncApp.Services.SalaryGarbge
                 TrustServerCertificate = true
             };
 
-            using (var connection = new SqlConnection(builder.ConnectionString))
+            using (var connection =
+                new SqlConnection(builder.ConnectionString))
             {
                 connection.Open();
+
+                // Retrieve non-system databases
                 var query = @"
                     SELECT name FROM sys.databases
                     WHERE state_desc = 'ONLINE'
-                    AND name NOT IN ('master', 'tempdb', 'model', 'msdb')
+                      AND name NOT IN ('master', 'tempdb', 'model', 'msdb')
                     ORDER BY name";
 
-                using (var command = new SqlCommand(query, connection))
+                using (var command =
+                    new SqlCommand(query, connection))
+                using (var reader = command.ExecuteReader())
                 {
-                    using (var reader = command.ExecuteReader())
+                    while (reader.Read())
                     {
-                        while (reader.Read())
-                        {
-                            databases.Add(reader.GetString(0));
-                        }
+                        databases.Add(reader.GetString(0));
                     }
                 }
             }

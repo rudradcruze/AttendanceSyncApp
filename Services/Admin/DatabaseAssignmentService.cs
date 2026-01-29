@@ -8,15 +8,31 @@ using AttandanceSyncApp.Services.Interfaces.Admin;
 
 namespace AttandanceSyncApp.Services.Admin
 {
+    /// <summary>
+    /// Service for managing database configuration assignments to company requests.
+    /// Handles creation, retrieval, and updates of database configurations linked to companies.
+    /// </summary>
     public class DatabaseAssignmentService : IDatabaseAssignmentService
     {
+        /// Unit of work for database operations.
         private readonly IAuthUnitOfWork _unitOfWork;
 
+        /// <summary>
+        /// Initializes a new DatabaseAssignmentService with the given unit of work.
+        /// </summary>
+        /// <param name="unitOfWork">The authentication unit of work.</param>
         public DatabaseAssignmentService(IAuthUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }
 
+        /// <summary>
+        /// Assigns a new database configuration to a company based on a sync request.
+        /// Creates encrypted database credentials and links them to the company.
+        /// </summary>
+        /// <param name="dto">Database configuration details including IP, credentials, and database name.</param>
+        /// <param name="adminUserId">The admin user ID performing the assignment.</param>
+        /// <returns>Success or failure result.</returns>
         public ServiceResult AssignDatabase(AssignDatabaseDto dto, int adminUserId)
         {
             try
@@ -28,21 +44,9 @@ namespace AttandanceSyncApp.Services.Admin
                     return ServiceResult.FailureResult("Request not found");
                 }
 
-                // Check if company already has configuration
-                // NOTE: DatabaseConfiguration is now 1:1 with Company, not Request.
-                // So we check based on the Request's CompanyId.
+                // Check if company already has configuration (1:1 relationship)
                 if (_unitOfWork.DatabaseConfigurations.HasConfiguration(request.CompanyId))
                 {
-                    // If configuration exists, we might just want to return success or update it?
-                    // Or maybe the user intends to OVERWRITE it?
-                    // For "AssignDatabase", if it exists, let's fail and say it exists, or update it.
-                    // Given the logic usually implies "creating" a link, let's assume update or fail.
-                    // But wait, the previous logic was 1 request -> 1 config.
-                    // Now it is 1 company -> 1 config.
-                    
-                    // If the company already has a config, we technically don't need to "create" a new one.
-                    // But if the Admin is inputting new details, they probably want to update the Company's config.
-                    
                     return ServiceResult.FailureResult("A database configuration already exists for this company. Please manage it via 'Database Configs'.");
                 }
 
@@ -55,7 +59,7 @@ namespace AttandanceSyncApp.Services.Admin
                     return ServiceResult.FailureResult("All database configuration fields are required");
                 }
 
-                // Create database configuration
+                // Create database configuration with encrypted password
                 var config = new DatabaseConfiguration
                 {
                     CompanyId = request.CompanyId,
@@ -83,25 +87,34 @@ namespace AttandanceSyncApp.Services.Admin
             }
         }
 
+        /// <summary>
+        /// Retrieves the database configuration assignment for a specific request.
+        /// Decrypts the password for display purposes.
+        /// </summary>
+        /// <param name="requestId">The request ID.</param>
+        /// <returns>Database configuration details with decrypted password.</returns>
         public ServiceResult<AssignDatabaseDto> GetAssignment(int requestId)
         {
             try
             {
+                // Validate request exists
                 var request = _unitOfWork.AttandanceSyncRequests.GetById(requestId);
                 if (request == null)
                 {
                     return ServiceResult<AssignDatabaseDto>.FailureResult("Request not found");
                 }
 
+                // Get configuration by company ID
                 var config = _unitOfWork.DatabaseConfigurations.GetByCompanyId(request.CompanyId);
                 if (config == null)
                 {
                     return ServiceResult<AssignDatabaseDto>.FailureResult("No database configuration found for this company");
                 }
 
+                // Map to DTO with decrypted password
                 var dto = new AssignDatabaseDto
                 {
-                    RequestId = request.Id, // Kept for compatibility, though config is company-bound
+                    RequestId = request.Id,
                     DatabaseIP = config.DatabaseIP,
                     DatabaseUserId = config.DatabaseUserId,
                     DatabasePassword = EncryptionHelper.Decrypt(config.DatabasePassword),
@@ -116,23 +129,33 @@ namespace AttandanceSyncApp.Services.Admin
             }
         }
 
+        /// <summary>
+        /// Updates an existing database configuration for a company.
+        /// Re-encrypts the password if changed.
+        /// </summary>
+        /// <param name="requestId">The request ID associated with the company.</param>
+        /// <param name="dto">Updated database configuration details.</param>
+        /// <param name="adminUserId">The admin user ID performing the update.</param>
+        /// <returns>Success or failure result.</returns>
         public ServiceResult UpdateAssignment(int requestId, AssignDatabaseDto dto, int adminUserId)
         {
             try
             {
+                // Validate request exists
                 var request = _unitOfWork.AttandanceSyncRequests.GetById(requestId);
                 if (request == null)
                 {
                     return ServiceResult.FailureResult("Request not found");
                 }
 
+                // Get existing configuration
                 var config = _unitOfWork.DatabaseConfigurations.GetByCompanyId(request.CompanyId);
                 if (config == null)
                 {
                     return ServiceResult.FailureResult("No database configuration found for this company");
                 }
 
-                // Update configuration
+                // Update configuration fields
                 config.DatabaseIP = dto.DatabaseIP;
                 config.DatabaseUserId = dto.DatabaseUserId;
                 config.DatabasePassword = EncryptionHelper.Encrypt(dto.DatabasePassword);

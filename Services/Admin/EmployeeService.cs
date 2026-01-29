@@ -8,19 +8,35 @@ using AttandanceSyncApp.Services.Interfaces.Admin;
 
 namespace AttandanceSyncApp.Services.Admin
 {
+    /// <summary>
+    /// Service for managing employee records from an administrative perspective.
+    /// Handles CRUD operations for employees and status management.
+    /// </summary>
     public class EmployeeService : IEmployeeService
     {
+        /// Unit of work for database operations.
         private readonly IAuthUnitOfWork _unitOfWork;
 
+        /// <summary>
+        /// Initializes a new EmployeeService with the given unit of work.
+        /// </summary>
+        /// <param name="unitOfWork">The authentication unit of work.</param>
         public EmployeeService(IAuthUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }
 
+        /// <summary>
+        /// Retrieves all employees with pagination support.
+        /// </summary>
+        /// <param name="page">The page number to retrieve.</param>
+        /// <param name="pageSize">The number of records per page.</param>
+        /// <returns>Paginated list of employees with their details.</returns>
         public ServiceResult<PagedResultDto<EmployeeDto>> GetEmployeesPaged(int page, int pageSize)
         {
             try
             {
+                // Get total count for pagination
                 var totalCount = _unitOfWork.Employees.Count();
                 var employees = _unitOfWork.Employees.GetAll()
                     .OrderByDescending(e => e.Id)
@@ -52,10 +68,16 @@ namespace AttandanceSyncApp.Services.Admin
             }
         }
 
+        /// <summary>
+        /// Retrieves a specific employee by ID.
+        /// </summary>
+        /// <param name="id">The employee ID.</param>
+        /// <returns>Employee details including name and status.</returns>
         public ServiceResult<EmployeeDto> GetEmployeeById(int id)
         {
             try
             {
+                // Fetch employee by ID
                 var employee = _unitOfWork.Employees.GetById(id);
                 if (employee == null)
                 {
@@ -79,10 +101,16 @@ namespace AttandanceSyncApp.Services.Admin
             }
         }
 
+        /// <summary>
+        /// Creates a new employee record.
+        /// </summary>
+        /// <param name="dto">The employee data to create.</param>
+        /// <returns>Success or failure result.</returns>
         public ServiceResult CreateEmployee(EmployeeCreateDto dto)
         {
             try
             {
+                // Validate employee name
                 if (string.IsNullOrWhiteSpace(dto.Name))
                 {
                     return ServiceResult.FailureResult("Employee name is required");
@@ -106,10 +134,16 @@ namespace AttandanceSyncApp.Services.Admin
             }
         }
 
+        /// <summary>
+        /// Updates an existing employee's information.
+        /// </summary>
+        /// <param name="dto">The updated employee data.</param>
+        /// <returns>Success or failure result.</returns>
         public ServiceResult UpdateEmployee(EmployeeUpdateDto dto)
         {
             try
             {
+                // Retrieve existing employee
                 var employee = _unitOfWork.Employees.GetById(dto.Id);
                 if (employee == null)
                 {
@@ -136,10 +170,16 @@ namespace AttandanceSyncApp.Services.Admin
             }
         }
 
+        /// <summary>
+        /// Deletes an employee record if they have no associated requests.
+        /// </summary>
+        /// <param name="id">The employee ID to delete.</param>
+        /// <returns>Success or failure result.</returns>
         public ServiceResult DeleteEmployee(int id)
         {
             try
             {
+                // Retrieve employee to delete
                 var employee = _unitOfWork.Employees.GetById(id);
                 if (employee == null)
                 {
@@ -164,10 +204,16 @@ namespace AttandanceSyncApp.Services.Admin
             }
         }
 
+        /// <summary>
+        /// Toggles the status of an employee between active and inactive.
+        /// </summary>
+        /// <param name="id">The employee ID to toggle.</param>
+        /// <returns>Success or failure result with new status.</returns>
         public ServiceResult ToggleEmployeeStatus(int id)
         {
             try
             {
+                // Retrieve the employee
                 var employee = _unitOfWork.Employees.GetById(id);
                 if (employee == null)
                 {

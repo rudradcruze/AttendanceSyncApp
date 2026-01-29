@@ -1,4 +1,4 @@
-# Attendance Sync App
+# Smart Tools App
 
 A web-based application for managing attendance, employee data, and multi-tool access control with role-based authentication.
 

@@ -1,4 +1,5 @@
 @using System.Configuration
+@* page title and layout *@
 @{
     ViewBag.Title = "Manage Users";
     ViewBag.ActiveMenu = "Users";
@@ -6,6 +7,7 @@
 }
 
 <div class="users-management">
+    @* users table display *@
     <div class="table-responsive">
         <table class="table table-bordered table-striped" id="usersTable">
             <thead>
@@ -24,10 +26,11 @@
         </table>
     </div>
 
+    @* pagination controls *@
     <div id="pagination" class="pagination-wrapper"></div>
 </div>
 
-<!-- Edit User Modal -->
+@* modal for editing user details *@
 <div class="modal fade" id="editUserModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -61,10 +64,12 @@
 </div>
 
 @section Scripts {
+    @* app configuration *@
     <script>
         window.APP = {
             baseUrl: '@Url.Content(ConfigurationManager.AppSettings["AppBaseUrl"])'
         };
     </script>
+    @* users management functionality script *@
     <script src="~/Scripts/Admin/Users.js"></script>
 }

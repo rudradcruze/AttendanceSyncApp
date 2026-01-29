@@ -10,20 +10,39 @@ using AttandanceSyncApp.Services.Interfaces.AttandanceSync;
 
 namespace AttandanceSyncApp.Services.AttandanceSync
 {
+    /// <summary>
+    /// Service for managing company access requests from a user perspective.
+    /// Handles request creation, cancellation, and retrieval of user-specific company access requests.
+    /// </summary>
     public class CompanyRequestService : ICompanyRequestService
     {
+        /// Unit of work for database operations.
         private readonly IAuthUnitOfWork _unitOfWork;
 
+        /// <summary>
+        /// Initializes a new CompanyRequestService with the given unit of work.
+        /// </summary>
+        /// <param name="unitOfWork">The authentication unit of work.</param>
         public CompanyRequestService(IAuthUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }
 
+        /// <summary>
+        /// Retrieves company requests for a specific user with pagination support.
+        /// </summary>
+        /// <param name="userId">The user ID.</param>
+        /// <param name="page">The page number to retrieve.</param>
+        /// <param name="pageSize">The number of records per page.</param>
+        /// <returns>Paginated list of user's company requests.</returns>
         public ServiceResult<PagedResultDto<CompanyRequestDto>> GetUserRequestsPaged(int userId, int page, int pageSize)
         {
             try
             {
+                // Get total count for pagination
                 var totalCount = _unitOfWork.CompanyRequests.GetTotalCountByUserId(userId);
+
+                // Retrieve paginated requests and map to DTOs
                 var requests = _unitOfWork.CompanyRequests.GetPagedByUserId(userId, page, pageSize)
                     .Select(r => new CompanyRequestDto
                     {
@@ -57,25 +76,33 @@ namespace AttandanceSyncApp.Services.AttandanceSync
             }
         }
 
+        /// <summary>
+        /// Creates a new company access request for a user.
+        /// Validates employee, company, and tool existence before creation.
+        /// </summary>
+        /// <param name="dto">Request details including employee, company, and tool IDs.</param>
+        /// <param name="userId">The user ID creating the request.</param>
+        /// <param name="sessionId">The session ID associated with the request.</param>
+        /// <returns>The ID of the created request.</returns>
         public ServiceResult<int> CreateRequest(CompanyRequestCreateDto dto, int userId, int sessionId)
         {
             try
             {
-                // Validate employee exists
+                // Validate employee exists and is active
                 var employee = _unitOfWork.Employees.GetById(dto.EmployeeId);
                 if (employee == null || !employee.IsActive)
                 {
                     return ServiceResult<int>.FailureResult("Selected employee not found or inactive");
                 }
 
-                // Validate company exists
+                // Validate company exists and is active
                 var company = _unitOfWork.SyncCompanies.GetById(dto.CompanyId);
                 if (company == null || company.Status != "Active")
                 {
                     return ServiceResult<int>.FailureResult("Selected company not found or inactive");
                 }
 
-                // Validate tool exists
+                // Validate tool exists and is active
                 var tool = _unitOfWork.Tools.GetById(dto.ToolId);
                 if (tool == null || !tool.IsActive)
                 {
@@ -106,10 +133,18 @@ namespace AttandanceSyncApp.Services.AttandanceSync
             }
         }
 
+        /// <summary>
+        /// Cancels a user's company request.
+        /// Only allows cancellation of new requests that haven't been processed.
+        /// </summary>
+        /// <param name="requestId">The request ID to cancel.</param>
+        /// <param name="userId">The user ID requesting cancellation.</param>
+        /// <returns>Success or failure result.</returns>
         public ServiceResult CancelRequest(int requestId, int userId)
         {
             try
             {
+                // Validate request exists
                 var request = _unitOfWork.CompanyRequests.GetById(requestId);
                 if (request == null)
                 {
@@ -148,10 +183,15 @@ namespace AttandanceSyncApp.Services.AttandanceSync
             }
         }
 
+        /// <summary>
+        /// Retrieves all active employees for request creation dropdowns.
+        /// </summary>
+        /// <returns>List of active employees.</returns>
         public ServiceResult<IEnumerable<EmployeeDto>> GetActiveEmployees()
         {
             try
             {
+                // Get active employees
                 var employees = _unitOfWork.Employees.GetActiveEmployees()
                     .Select(e => new EmployeeDto
                     {
@@ -169,10 +209,15 @@ namespace AttandanceSyncApp.Services.AttandanceSync
             }
         }
 
+        /// <summary>
+        /// Retrieves all active companies for request creation dropdowns.
+        /// </summary>
+        /// <returns>List of active companies.</returns>
         public ServiceResult<IEnumerable<SyncCompany>> GetActiveCompanies()
         {
             try
             {
+                // Get active companies
                 var companies = _unitOfWork.SyncCompanies.GetActiveCompanies();
                 return ServiceResult<IEnumerable<SyncCompany>>.SuccessResult(companies);
             }
@@ -182,10 +227,15 @@ namespace AttandanceSyncApp.Services.AttandanceSync
             }
         }
 
+        /// <summary>
+        /// Retrieves all active tools for request creation dropdowns.
+        /// </summary>
+        /// <returns>List of active tools.</returns>
         public ServiceResult<IEnumerable<Tool>> GetActiveTools()
         {
             try
             {
+                // Get active tools
                 var tools = _unitOfWork.Tools.GetActiveTools();
                 return ServiceResult<IEnumerable<Tool>>.SuccessResult(tools);
             }
@@ -195,8 +245,14 @@ namespace AttandanceSyncApp.Services.AttandanceSync
             }
         }
 
+        /// <summary>
+        /// Converts status codes to human-readable text.
+        /// </summary>
+        /// <param name="status">The status code.</param>
+        /// <returns>Human-readable status description.</returns>
         private static string GetStatusText(string status)
         {
+            // Map status codes to display text
             switch (status)
             {
                 case "NR": return "New Request";

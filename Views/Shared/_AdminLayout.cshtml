@@ -1,4 +1,5 @@
 @using System.Configuration
+@* admin layout template with sidebar navigation *@
 <!DOCTYPE html>
 <html>
 <head>
@@ -11,7 +12,7 @@
 </head>
 <body>
     <div class="admin-wrapper">
-        <!-- Sidebar -->
+        @* admin sidebar navigation menu *@
         <nav class="admin-sidebar">
             <div class="sidebar-header">
                 <h4>Admin Panel</h4>
@@ -78,26 +79,31 @@
             </ul>
         </nav>
 
-        <!-- Main Content -->
+        @* main content area *@
         <div class="admin-content">
+            @* page header *@
             <header class="admin-header">
                 <h2>@ViewBag.Title</h2>
                 <div class="user-info" id="adminUserInfo"></div>
             </header>
+            @* page body content *@
             <main class="admin-main">
                 @RenderBody()
             </main>
         </div>
     </div>
 
+    @* required javascript libraries *@
     <script src="~/Scripts/jquery-3.7.1.min.js"></script>
     <script src="~/Scripts/bootstrap.bundle.min.js"></script>
     <script src="~/Scripts/sweetalert2@11.js"></script>
+    @* app configuration *@
     <script>
         window.APP = {
             baseUrl: '@Url.Content(ConfigurationManager.AppSettings["AppBaseUrl"])'
         };
     </script>
+    @* common scripts and admin functionality *@
     <script src="~/Scripts/Common.js"></script>
     <script src="~/Scripts/Admin/Admin.js"></script>
     @RenderSection("Scripts", required: false)

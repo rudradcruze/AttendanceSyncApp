@@ -8,19 +8,36 @@ using AttandanceSyncApp.Services.Interfaces.Auth;
 
 namespace AttandanceSyncApp.Services.Auth
 {
+    /// <summary>
+    /// Service for managing user login sessions.
+    /// Handles session creation, validation, termination, and token generation.
+    /// </summary>
     public class SessionService : ISessionService
     {
+        /// Unit of work for database operations.
         private readonly IAuthUnitOfWork _unitOfWork;
 
+        /// <summary>
+        /// Initializes a new SessionService with the given unit of work.
+        /// </summary>
+        /// <param name="unitOfWork">The authentication unit of work.</param>
         public SessionService(IAuthUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }
 
+        /// <summary>
+        /// Creates a new login session for a user.
+        /// Generates a secure session token and records device/browser information.
+        /// </summary>
+        /// <param name="userId">The user ID.</param>
+        /// <param name="sessionInfo">Session metadata including device, browser, and IP address.</param>
+        /// <returns>The created session with token.</returns>
         public ServiceResult<LoginSession> CreateSession(int userId, SessionDto sessionInfo)
         {
             try
             {
+                // Create new session entity
                 var session = new LoginSession
                 {
                     UserId = userId,
@@ -44,10 +61,17 @@ namespace AttandanceSyncApp.Services.Auth
             }
         }
 
+        /// <summary>
+        /// Retrieves an active session by its token.
+        /// Validates that the session exists and is still active.
+        /// </summary>
+        /// <param name="sessionToken">The session token.</param>
+        /// <returns>The active session, or failure if not found/inactive.</returns>
         public ServiceResult<LoginSession> GetActiveSession(string sessionToken)
         {
             try
             {
+                // Validate token provided
                 if (string.IsNullOrEmpty(sessionToken))
                 {
                     return ServiceResult<LoginSession>.FailureResult("Session token is required");
@@ -73,10 +97,17 @@ namespace AttandanceSyncApp.Services.Auth
             }
         }
 
+        /// <summary>
+        /// Ends a user session (logout).
+        /// Marks the session as inactive and records logout time.
+        /// </summary>
+        /// <param name="sessionToken">The session token to end.</param>
+        /// <returns>Success or failure result.</returns>
         public ServiceResult EndSession(string sessionToken)
         {
             try
             {
+                // Validate token provided
                 if (string.IsNullOrEmpty(sessionToken))
                 {
                     return ServiceResult.FailureResult("Session token is required");
@@ -101,8 +132,13 @@ namespace AttandanceSyncApp.Services.Auth
             }
         }
 
+        /// <summary>
+        /// Generates a cryptographically secure session token.
+        /// </summary>
+        /// <returns>A 64-character secure token.</returns>
         public string GenerateSessionToken()
         {
+            // Generate secure random token
             return EncryptionHelper.GenerateSecureToken(64);
         }
     }

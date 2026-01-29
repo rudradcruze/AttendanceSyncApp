@@ -1,3 +1,4 @@
+@* page title and layout *@
 @{
     ViewBag.Title = "Login Sessions";
     ViewBag.ActiveMenu = "LoginSessions";
@@ -6,12 +7,13 @@
 
 <div class="sessions-management">
     <div class="card">
+        @* header with total sessions count *@
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Login Sessions</h5>
             <span class="badge bg-secondary" id="totalSessionsCount">0 Sessions</span>
         </div>
         <div class="card-body">
-            <!-- Filter Section -->
+            @* filter controls section *@
             <div class="row mb-3">
                 <div class="col-md-4">
                     <label class="form-label">Search User (Name/Email)</label>
@@ -31,6 +33,7 @@
                 </div>
             </div>
 
+            @* login sessions table display *@
             <div class="table-responsive">
                 <table class="table table-bordered table-striped table-hover" id="sessionsTable">
                     <thead class="table-dark">
@@ -49,6 +52,7 @@
                     <tbody></tbody>
                 </table>
             </div>
+            @* pagination controls *@
             <nav aria-label="Session pagination" class="mt-3">
                 <ul id="pagination" class="pagination justify-content-center"></ul>
             </nav>
@@ -56,7 +60,7 @@
     </div>
 </div>
 
-<!-- Session Details Modal -->
+@* modal for viewing session details *@
 <div class="modal fade" id="sessionDetailsModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -125,5 +129,6 @@
 </div>
 
 @section Scripts {
+    @* login sessions management functionality script *@
     <script src="~/Scripts/Admin/LoginSessions.js"></script>
 }

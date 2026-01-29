@@ -7,20 +7,38 @@ using AttandanceSyncApp.Services.Interfaces.Admin;
 
 namespace AttandanceSyncApp.Services.Admin
 {
+    /// <summary>
+    /// Service for managing user accounts from an administrative perspective.
+    /// Handles user retrieval, updates, and account status management operations.
+    /// </summary>
     public class AdminUserService : IAdminUserService
     {
+        /// Unit of work for database operations.
         private readonly IAuthUnitOfWork _unitOfWork;
 
+        /// <summary>
+        /// Initializes a new AdminUserService with the given unit of work.
+        /// </summary>
+        /// <param name="unitOfWork">The authentication unit of work.</param>
         public AdminUserService(IAuthUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }
 
+        /// <summary>
+        /// Retrieves all users with pagination support.
+        /// </summary>
+        /// <param name="page">The page number to retrieve.</param>
+        /// <param name="pageSize">The number of records per page.</param>
+        /// <returns>Paginated list of users with their details.</returns>
         public ServiceResult<PagedResultDto<UserListDto>> GetUsersPaged(int page, int pageSize)
         {
             try
             {
+                // Get total count for pagination
                 var totalCount = _unitOfWork.Users.Count();
+
+                // Retrieve paginated users and map to DTOs
                 var users = _unitOfWork.Users.GetAll()
                     .OrderByDescending(u => u.Id)
                     .Skip((page - 1) * pageSize)
@@ -54,10 +72,16 @@ namespace AttandanceSyncApp.Services.Admin
             }
         }
 
+        /// <summary>
+        /// Retrieves a specific user by their ID.
+        /// </summary>
+        /// <param name="id">The user ID.</param>
+        /// <returns>User details including role, status, and profile information.</returns>
         public ServiceResult<UserListDto> GetUserById(int id)
         {
             try
             {
+                // Fetch user by ID
                 var user = _unitOfWork.Users.GetById(id);
                 if (user == null)
                 {
@@ -84,16 +108,23 @@ namespace AttandanceSyncApp.Services.Admin
             }
         }
 
+        /// <summary>
+        /// Updates an existing user's information.
+        /// </summary>
+        /// <param name="userDto">The updated user data.</param>
+        /// <returns>Success or failure result.</returns>
         public ServiceResult UpdateUser(UserListDto userDto)
         {
             try
             {
+                // Retrieve existing user
                 var user = _unitOfWork.Users.GetById(userDto.Id);
                 if (user == null)
                 {
                     return ServiceResult.FailureResult("User not found");
                 }
 
+                // Update user properties
                 user.Name = userDto.Name;
                 user.Email = userDto.Email;
                 user.IsActive = userDto.IsActive;
@@ -110,16 +141,23 @@ namespace AttandanceSyncApp.Services.Admin
             }
         }
 
+        /// <summary>
+        /// Toggles the active status of a user account (activate/deactivate).
+        /// </summary>
+        /// <param name="userId">The user ID to toggle.</param>
+        /// <returns>Success or failure result with status message.</returns>
         public ServiceResult ToggleUserStatus(int userId)
         {
             try
             {
+                // Retrieve the user
                 var user = _unitOfWork.Users.GetById(userId);
                 if (user == null)
                 {
                     return ServiceResult.FailureResult("User not found");
                 }
 
+                // Toggle active status
                 user.IsActive = !user.IsActive;
                 user.UpdatedAt = DateTime.Now;
 

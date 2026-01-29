@@ -1,10 +1,12 @@
 @using System.Configuration
+@* page title and layout *@
 @{
     ViewBag.Title = "Attandance Synchronization";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="container-fluid">
+    @* page header with back button *@
     <div class="d-flex justify-content-between align-items-center my-4">
         <h2 class="mb-0">Attandance Synchronization System</h2>
         <a href="@Url.Action("Dashboard", "Attandance")" class="btn btn-outline-secondary">
@@ -15,7 +17,7 @@
         </a>
     </div>
 
-    <!-- Company Database Selector (Required for Context) -->
+    @* company database selector dropdown *@
     <div class="row mb-4">
         <div class="col-md-6 offset-md-3">
             <div class="card shadow">
@@ -29,21 +31,22 @@
         </div>
     </div>
 
+    @* main sync content section *@
     <div id="syncContent" class="d-none">
-        <!-- Hidden fields for selected company data -->
+        @* hidden fields to store selected company data *@
         <input type="hidden" id="employeeId" />
         <input type="hidden" id="selectedCompanyId" />
         <input type="hidden" id="selectedToolId" />
         <input type="hidden" id="selectedDbConfigId" />
 
-        <!-- Action Button -->
+        @* create new synchronization button *@
         <div class="d-flex justify-content-end mb-3">
             <button class="btn btn-primary" onclick="showCreateModal()">
                 <i class="fa fa-plus me-2"></i>Create New Synchronization
             </button>
         </div>
 
-        <!-- Sort Accordion -->
+        @* sort controls accordion *@
         <div class="accordion mb-4" id="sortAccordion">
             <div class="accordion-item shadow-sm">
                 <h2 class="accordion-header" id="sortHeading">
@@ -90,7 +93,7 @@
             </div>
         </div>
 
-        <!-- Table Section -->
+        @* synchronization records table *@
         <div class="table-section shadow">
             <h4 class="mb-3">Synchronization Records</h4>
             <div class="table-responsive">
@@ -120,7 +123,7 @@
         </div>
     </div>
 
-    <!-- No Access Message -->
+    @* message shown when user has no company access *@
     <div id="noAccessMessage" class="d-none">
         <div class="alert alert-warning text-center mt-4">
             <h5>No Company Access</h5>
@@ -129,7 +132,7 @@
     </div>
 </div>
 
-<!-- Create Synchronization Modal -->
+@* modal for creating new synchronization *@
 <div class="modal fade" id="createSyncModal" tabindex="-1" aria-labelledby="createSyncModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -158,10 +161,12 @@
 </div>
 
 @section Scripts {
+    @* app configuration *@
     <script>
         window.APP = {
             baseUrl: '@Url.Content(ConfigurationManager.AppSettings["AppBaseUrl"])'
         };
     </script>
+    @* attendance synchronization functionality script *@
     <script src="~/Scripts/AttandanceSync/AttandanceSync.js"></script>
 }

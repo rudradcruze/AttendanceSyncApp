@@ -11,38 +11,61 @@ using AttandanceSyncApp.Services.Interfaces.Sync;
 
 namespace AttandanceSyncApp.Services.Sync
 {
+    /// <summary>
+    /// Service for managing attendance synchronization requests for users.
+    /// Handles creation, retrieval, and cancellation of sync requests from both local and external databases.
+    /// Manages database assignments and permissions for user-company relationships.
+    /// </summary>
     public class SyncRequestService : ISyncRequestService
     {
+        /// Unit of work for database operations.
         private readonly IAuthUnitOfWork _unitOfWork;
 
+        /// <summary>
+        /// Initializes a new SyncRequestService with the given unit of work.
+        /// </summary>
+        /// <param name="unitOfWork">The authentication unit of work.</param>
         public SyncRequestService(IAuthUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }
 
+        /// <summary>
+        /// Retrieves user's sync requests with pagination and sorting.
+        /// Fetches from external database if a company is selected and user has access,
+        /// otherwise returns local database records.
+        /// </summary>
+        /// <param name="userId">The user ID.</param>
+        /// <param name="companyId">Optional company ID to filter and fetch from external DB.</param>
+        /// <param name="page">Page number for pagination.</param>
+        /// <param name="pageSize">Number of records per page.</param>
+        /// <param name="sortColumn">Column to sort by (FromDate, ToDate, Id).</param>
+        /// <param name="sortDirection">Sort direction (ASC or DESC).</param>
+        /// <returns>Paginated list of sync requests with status information.</returns>
         public ServiceResult<PagedResultDto<SyncRequestDto>> GetUserRequestsPaged(int userId, int? companyId, int page, int pageSize, string sortColumn = "ToDate", string sortDirection = "DESC")
         {
             try
             {
-                // If a specific company is selected, try to fetch from external DB
+                // If company is selected, fetch from external database
                 if (companyId.HasValue)
                 {
-                    // 1. Get the DB Config for this company
+                    // Get database configuration for the selected company
                     var userDatabases = GetUserCompanyDatabases(userId);
                     if (userDatabases.Success)
                     {
+                        // Find the database assignment for this company
                         var targetDb = userDatabases.Data.FirstOrDefault(d => d.CompanyId == companyId.Value);
                         if (targetDb != null)
                         {
                             var dbConfig = _unitOfWork.DatabaseConfigurations.GetById(targetDb.DatabaseConfigurationId);
                             if (dbConfig != null)
                             {
-                                // 2. Connect and Query External DB
+                                // Connect to external database and query attendance records
                                 try
                                 {
                                     using (var context = Helpers.DynamicDbHelper.CreateExternalDbContext(dbConfig))
                                     {
-                                        // Get ALL AttandanceSynchronizations (no CompanyId filter)
+                                        // Query all attendance synchronizations from external database
                                         var baseQuery = context.AttandanceSynchronizations.AsQueryable();
 
                                         // Apply sorting
@@ -116,7 +139,7 @@ namespace AttandanceSyncApp.Services.Sync
                     }
                 }
 
-                // Fallback to Local DB (Original Logic)
+                // Fallback to local database if no company selected or external fetch failed
                 var totalCount = _unitOfWork.AttandanceSyncRequests.GetTotalCountByUserId(userId);
                 var requests = _unitOfWork.AttandanceSyncRequests.GetPagedByUserId(userId, page, pageSize)
                     .ToList()
@@ -152,11 +175,19 @@ namespace AttandanceSyncApp.Services.Sync
             }
         }
 
+        /// <summary>
+        /// Creates a new synchronization request in the local database.
+        /// Validates dates and ensures employee, company, and tool are active.
+        /// </summary>
+        /// <param name="dto">The sync request creation data.</param>
+        /// <param name="userId">The user creating the request.</param>
+        /// <param name="sessionId">The current session ID.</param>
+        /// <returns>The created request ID on success.</returns>
         public ServiceResult<int> CreateSyncRequest(SyncRequestCreateDto dto, int userId, int sessionId)
         {
             try
             {
-                // Validate dates
+                // Validate from date format
                 if (!DateTime.TryParse(dto.FromDate, out DateTime fromDate))
                 {
                     return ServiceResult<int>.FailureResult("Invalid From Date format");
@@ -218,10 +249,18 @@ namespace AttandanceSyncApp.Services.Sync
             }
         }
 
+        /// <summary>
+        /// Cancels a pending synchronization request.
+        /// Only allows users to cancel their own pending requests.
+        /// </summary>
+        /// <param name="requestId">The request ID to cancel.</param>
+        /// <param name="userId">The user requesting cancellation.</param>
+        /// <returns>Success or failure result.</returns>
         public ServiceResult CancelSyncRequest(int requestId, int userId)
         {
             try
             {
+                // Retrieve the request
                 var request = _unitOfWork.AttandanceSyncRequests.GetById(requestId);
                 if (request == null)
                 {
@@ -255,10 +294,16 @@ namespace AttandanceSyncApp.Services.Sync
             }
         }
 
+        /// <summary>
+        /// Retrieves status information for multiple requests by their IDs from local database.
+        /// </summary>
+        /// <param name="ids">Array of request IDs.</param>
+        /// <returns>List of status DTOs with ID and status text.</returns>
         public ServiceResult<IEnumerable<StatusDto>> GetStatusesByIds(int[] ids)
         {
             try
             {
+                // Return empty list if no IDs provided
                 if (ids == null || !ids.Any())
                 {
                     return ServiceResult<IEnumerable<StatusDto>>.SuccessResult(new List<StatusDto>());
@@ -282,10 +327,19 @@ namespace AttandanceSyncApp.Services.Sync
             }
         }
 
+        /// <summary>
+        /// Retrieves status information from external database for multiple synchronizations.
+        /// Used to check real-time status of attendance syncs in company database.
+        /// </summary>
+        /// <param name="userId">The user ID for access validation.</param>
+        /// <param name="companyId">The company ID.</param>
+        /// <param name="ids">Array of external synchronization IDs.</param>
+        /// <returns>List of status DTOs from external database.</returns>
         public ServiceResult<IEnumerable<StatusDto>> GetExternalStatusesByIds(int userId, int companyId, int[] ids)
         {
             try
             {
+                // Return empty list if no IDs provided
                 if (ids == null || !ids.Any())
                 {
                     return ServiceResult<IEnumerable<StatusDto>>.SuccessResult(new List<StatusDto>());
@@ -331,10 +385,15 @@ namespace AttandanceSyncApp.Services.Sync
             }
         }
 
+        /// <summary>
+        /// Retrieves all active users for display in UI dropdowns.
+        /// </summary>
+        /// <returns>List of active users with basic information.</returns>
         public ServiceResult<IEnumerable<UserDto>> GetAllUsers()
         {
             try
             {
+                // Get all active users ordered by name
                 var users = _unitOfWork.Users.GetAll()
                     .Where(u => u.IsActive)
                     .OrderBy(u => u.Name)
@@ -355,10 +414,15 @@ namespace AttandanceSyncApp.Services.Sync
             }
         }
 
+        /// <summary>
+        /// Retrieves all active companies for synchronization.
+        /// </summary>
+        /// <returns>List of active sync companies.</returns>
         public ServiceResult<IEnumerable<SyncCompany>> GetActiveCompanies()
         {
             try
             {
+                // Get companies with Active status
                 var companies = _unitOfWork.SyncCompanies.GetActiveCompanies();
                 return ServiceResult<IEnumerable<SyncCompany>>.SuccessResult(companies);
             }
@@ -368,10 +432,15 @@ namespace AttandanceSyncApp.Services.Sync
             }
         }
 
+        /// <summary>
+        /// Retrieves all active tools available for synchronization.
+        /// </summary>
+        /// <returns>List of active tools.</returns>
         public ServiceResult<IEnumerable<Tool>> GetActiveTools()
         {
             try
             {
+                // Get tools marked as active
                 var tools = _unitOfWork.Tools.GetActiveTools();
                 return ServiceResult<IEnumerable<Tool>>.SuccessResult(tools);
             }
@@ -381,10 +450,15 @@ namespace AttandanceSyncApp.Services.Sync
             }
         }
 
+        /// <summary>
+        /// Retrieves all active employees for synchronization requests.
+        /// </summary>
+        /// <returns>List of active employees.</returns>
         public ServiceResult<IEnumerable<EmployeeDto>> GetActiveEmployees()
         {
             try
             {
+                // Get employees marked as active
                 var employees = _unitOfWork.Employees.GetActiveEmployees()
                     .Select(e => new EmployeeDto
                     {
@@ -402,13 +476,20 @@ namespace AttandanceSyncApp.Services.Sync
             }
         }
 
+        /// <summary>
+        /// Retrieves all company databases that a user has access to.
+        /// Validates user has tool access, completed company requests, active database assignments,
+        /// and non-revoked access before including in results.
+        /// </summary>
+        /// <param name="userId">The user ID.</param>
+        /// <returns>List of accessible company databases with configuration details.</returns>
         public ServiceResult<IEnumerable<UserCompanyDatabaseDto>> GetUserCompanyDatabases(int userId)
         {
             try
             {
                 var result = new List<UserCompanyDatabaseDto>();
 
-                // 1. Find the "Attendance Sync" tool (or variations)
+                // Find the attendance sync tool (with name variations)
                 var validToolNames = new[] { "Attendance Sync", "Attandance Sync", "Attendance Tool", "Attandance Tool" };
                 var attendanceSyncTool = _unitOfWork.Tools.GetAll()
                     .FirstOrDefault(t => validToolNames.Contains(t.Name) && t.IsActive);
@@ -418,49 +499,44 @@ namespace AttandanceSyncApp.Services.Sync
                     return ServiceResult<IEnumerable<UserCompanyDatabaseDto>>.SuccessResult(result);
                 }
 
-                // 2. Check if user has this tool assigned explicitly
+                // Check if user has this tool assigned
                 var hasToolAccess = _unitOfWork.UserTools.HasActiveAssignment(userId, attendanceSyncTool.Id);
                 if (!hasToolAccess)
                 {
                     return ServiceResult<IEnumerable<UserCompanyDatabaseDto>>.SuccessResult(result);
                 }
 
-                // 3. Get ALL company requests for this user and tool that are NOT cancelled
-                // We fetch all non-cancelled ones first to then explicitly check status as requested
+                // Get all non-cancelled company requests for this user and tool
                 var userRequests = _unitOfWork.CompanyRequests.Find(cr =>
                     cr.UserId == userId &&
                     !cr.IsCancelled &&
                     cr.ToolId == attendanceSyncTool.Id)
                     .ToList();
 
+                // Process each request and validate access
                 foreach (var request in userRequests)
                 {
-                    // 4. EXPLICIT CHECK: Is the status "Completed" (CP)?
-                    // As requested: Check the company request status.
+                    // Check if request is completed
                     if (request.Status != "CP")
                     {
                         continue; // Skip if not completed
                     }
 
-                    // 5. EXPLICIT CHECK: Does a database assignment exist for this request?
-                    // As requested: Using that request id go to DatabaseAssignments then check that it exist or not.
+                    // Check if database assignment exists for this request
                     var dbAssign = _unitOfWork.DatabaseAssignments.GetByCompanyRequestId(request.Id);
-                    
+
                     if (dbAssign == null)
                     {
-                        // Assignment does not exist
-                        continue; 
+                        continue; // No assignment exists
                     }
 
-                    // 6. EXPLICIT CHECK: Is the assignment revoked?
-                    // As requested: If exist then it is revoked or not.
+                    // Check if assignment is revoked
                     if (dbAssign.IsRevoked)
                     {
-                        // Assignment exists but is revoked
-                        continue;
+                        continue; // Assignment is revoked
                     }
 
-                    // 7. Get Configuration and Company details if valid
+                    // Get database configuration and company details
                     var dbConfig = _unitOfWork.DatabaseConfigurations.GetById(dbAssign.DatabaseConfigurationId);
                     var company = _unitOfWork.SyncCompanies.GetById(request.CompanyId);
 
@@ -490,11 +566,20 @@ namespace AttandanceSyncApp.Services.Sync
             }
         }
 
+        /// <summary>
+        /// Creates a synchronization record directly in the external company database.
+        /// This "on-the-fly" sync creates the record in real-time and returns immediately.
+        /// Also creates a local tracking record with the external sync ID.
+        /// </summary>
+        /// <param name="dto">The sync request creation data.</param>
+        /// <param name="userId">The user creating the synchronization.</param>
+        /// <param name="sessionId">The current session ID.</param>
+        /// <returns>The local request ID on success.</returns>
         public ServiceResult<int> CreateOnTheFlySynchronization(SyncRequestCreateDto dto, int userId, int sessionId)
         {
             try
             {
-                // 1. Validate dates
+                // Validate date formats and range
                 if (!DateTime.TryParse(dto.FromDate, out DateTime fromDate) || !DateTime.TryParse(dto.ToDate, out DateTime toDate))
                 {
                     return ServiceResult<int>.FailureResult("Invalid Date format");
@@ -505,14 +590,14 @@ namespace AttandanceSyncApp.Services.Sync
                     return ServiceResult<int>.FailureResult("From Date cannot be after To Date");
                 }
 
-                // 2. Get Database Configuration using the explicit logic we built earlier
-                // We need to find the valid assignment for this user/company/tool
+                // Get database configuration for user's assigned company
                 var userDatabases = GetUserCompanyDatabases(userId);
                 if (!userDatabases.Success)
                 {
                     return ServiceResult<int>.FailureResult("Failed to retrieve database configurations");
                 }
 
+                // Find the target database for this company
                 var targetDb = userDatabases.Data.FirstOrDefault(d => d.CompanyId == dto.CompanyId);
                 if (targetDb == null)
                 {
@@ -525,18 +610,16 @@ namespace AttandanceSyncApp.Services.Sync
                     return ServiceResult<int>.FailureResult("Database configuration not found");
                 }
 
-                // 3. Connect to External DB and Create Record
+                // Connect to external database and create sync record
                 int? externalId = Helpers.DynamicDbHelper.CreateSyncInExternalDb(dbConfig, fromDate, toDate, dto.CompanyId);
-                
-                // If external creation fails, we might still want to record the attempt locally but mark as failed?
-                // Or fail completely? User said "it will connect... and show below view". 
-                // Let's assume if it fails to connect, the request fails.
+
+                // Fail if external record creation fails
                 if (externalId == null)
                 {
                     return ServiceResult<int>.FailureResult("Failed to connect to company database or create record");
                 }
 
-                // 4. Create Local Request Record
+                // Create local tracking record for this synchronization
                 var request = new AttandanceSyncRequest
                 {
                     UserId = userId,
@@ -562,8 +645,14 @@ namespace AttandanceSyncApp.Services.Sync
             }
         }
 
+        /// <summary>
+        /// Converts IsSuccessful boolean to human-readable status text.
+        /// </summary>
+        /// <param name="isSuccessful">The success status (null = Pending, true = Completed, false = Failed).</param>
+        /// <returns>Status text.</returns>
         private static string GetStatusText(bool? isSuccessful)
         {
+            // Map nullable boolean to status text
             if (isSuccessful == null) return "Pending";
             return isSuccessful.Value ? "Completed" : "Failed";
         }

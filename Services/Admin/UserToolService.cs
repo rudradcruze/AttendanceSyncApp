@@ -9,20 +9,38 @@ using AttandanceSyncApp.Services.Interfaces.Admin;
 
 namespace AttandanceSyncApp.Services.Admin
 {
+    /// <summary>
+    /// Service for managing tool assignments to users.
+    /// Handles assignment, revocation, and retrieval of user-tool relationships and access control.
+    /// </summary>
     public class UserToolService : IUserToolService
     {
+        /// Unit of work for database operations.
         private readonly IAuthUnitOfWork _unitOfWork;
 
+        /// <summary>
+        /// Initializes a new UserToolService with the given unit of work.
+        /// </summary>
+        /// <param name="unitOfWork">The authentication unit of work.</param>
         public UserToolService(IAuthUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }
 
+        /// <summary>
+        /// Retrieves all tool assignments with pagination support.
+        /// </summary>
+        /// <param name="page">The page number to retrieve.</param>
+        /// <param name="pageSize">The number of records per page.</param>
+        /// <returns>Paginated list of tool assignments with user and tool details.</returns>
         public ServiceResult<PagedResultDto<UserToolDto>> GetAllAssignmentsPaged(int page, int pageSize)
         {
             try
             {
+                // Get total count for pagination
                 var totalCount = _unitOfWork.UserTools.GetTotalAssignmentsCount();
+
+                // Retrieve paginated assignments and map to DTOs
                 var assignments = _unitOfWork.UserTools.GetAllAssignments(page, pageSize)
                     .Select(ut => new UserToolDto
                     {
@@ -55,12 +73,20 @@ namespace AttandanceSyncApp.Services.Admin
             }
         }
 
+        /// <summary>
+        /// Retrieves all active tools assigned to a specific user.
+        /// Maps tools to their corresponding route URLs and implementation status.
+        /// </summary>
+        /// <param name="userId">The user ID.</param>
+        /// <returns>List of assigned tools with routing information.</returns>
         public ServiceResult<IEnumerable<AssignedToolDto>> GetUserAssignedTools(int userId)
         {
             try
             {
+                // Get active tool assignments for user
                 var userTools = _unitOfWork.UserTools.GetActiveToolsByUserId(userId).ToList();
 
+                // Map to DTOs with route information
                 var assignments = userTools.Select(ut => new AssignedToolDto
                 {
                     ToolId = ut.ToolId,
@@ -78,13 +104,20 @@ namespace AttandanceSyncApp.Services.Admin
             }
         }
 
+        /// <summary>
+        /// Maps tool names to their corresponding route URLs in the application.
+        /// </summary>
+        /// <param name="toolName">The name of the tool.</param>
+        /// <returns>The route URL for the tool, or null if not mapped.</returns>
         private string GetToolRouteUrl(string toolName)
         {
             if (string.IsNullOrWhiteSpace(toolName))
                 return null;
 
+            // Normalize tool name for comparison
             var normalizedName = toolName.ToLower().Replace(" ", "");
 
+            // Map tool names to routes
             if (normalizedName.Contains("attendance") || normalizedName.Contains("attandance"))
                 return "~/Attandance/Index";
 
@@ -100,18 +133,25 @@ namespace AttandanceSyncApp.Services.Admin
             return null;
         }
 
+        /// <summary>
+        /// Assigns a tool to a user.
+        /// Validates that both user and tool exist and are active before creating assignment.
+        /// </summary>
+        /// <param name="dto">Assignment details including user and tool IDs.</param>
+        /// <param name="assignedBy">The admin user ID performing the assignment.</param>
+        /// <returns>Success or failure result.</returns>
         public ServiceResult AssignToolToUser(UserToolAssignDto dto, int assignedBy)
         {
             try
             {
-                // Validate user exists
+                // Validate user exists and is active
                 var user = _unitOfWork.Users.GetById(dto.UserId);
                 if (user == null || !user.IsActive)
                 {
                     return ServiceResult.FailureResult("User not found or inactive");
                 }
 
-                // Validate tool exists
+                // Validate tool exists and is active
                 var tool = _unitOfWork.Tools.GetById(dto.ToolId);
                 if (tool == null || !tool.IsActive)
                 {
@@ -124,6 +164,7 @@ namespace AttandanceSyncApp.Services.Admin
                     return ServiceResult.FailureResult("Tool already assigned to this user");
                 }
 
+                // Create new assignment
                 var userTool = new UserTool
                 {
                     UserId = dto.UserId,
@@ -145,16 +186,24 @@ namespace AttandanceSyncApp.Services.Admin
             }
         }
 
+        /// <summary>
+        /// Revokes a tool assignment from a user.
+        /// Marks the assignment as revoked rather than deleting it.
+        /// </summary>
+        /// <param name="dto">Revocation details including user and tool IDs.</param>
+        /// <returns>Success or failure result.</returns>
         public ServiceResult RevokeToolFromUser(UserToolRevokeDto dto)
         {
             try
             {
+                // Get active assignment
                 var assignment = _unitOfWork.UserTools.GetActiveAssignment(dto.UserId, dto.ToolId);
                 if (assignment == null)
                 {
                     return ServiceResult.FailureResult("Assignment not found");
                 }
 
+                // Mark as revoked
                 assignment.IsRevoked = true;
                 assignment.RevokedAt = DateTime.Now;
                 assignment.UpdatedAt = DateTime.Now;
@@ -170,6 +219,14 @@ namespace AttandanceSyncApp.Services.Admin
             }
         }
 
+        /// <summary>
+        /// Restores a previously revoked tool assignment.
+        /// Updates the assignment timestamp and assigned-by information.
+        /// </summary>
+        /// <param name="userId">The user ID.</param>
+        /// <param name="toolId">The tool ID.</param>
+        /// <param name="assignedBy">The admin user ID performing the restoration.</param>
+        /// <returns>Success or failure result.</returns>
         public ServiceResult UnrevokeToolAssignment(int userId, int toolId, int assignedBy)
         {
             try
@@ -185,6 +242,7 @@ namespace AttandanceSyncApp.Services.Admin
                     return ServiceResult.FailureResult("Revoked assignment not found");
                 }
 
+                // Restore assignment
                 assignment.IsRevoked = false;
                 assignment.RevokedAt = null;
                 assignment.AssignedBy = assignedBy;
@@ -202,10 +260,16 @@ namespace AttandanceSyncApp.Services.Admin
             }
         }
 
+        /// <summary>
+        /// Retrieves all active tool assignments for a specific user.
+        /// </summary>
+        /// <param name="userId">The user ID.</param>
+        /// <returns>List of active tool assignments.</returns>
         public ServiceResult<IEnumerable<UserToolDto>> GetToolAssignmentsByUserId(int userId)
         {
             try
             {
+                // Get active assignments
                 var assignments = _unitOfWork.UserTools.GetActiveToolsByUserId(userId)
                     .Select(ut => new UserToolDto
                     {
@@ -228,8 +292,15 @@ namespace AttandanceSyncApp.Services.Admin
             }
         }
 
+        /// <summary>
+        /// Checks if a user has active access to a specific tool.
+        /// </summary>
+        /// <param name="userId">The user ID.</param>
+        /// <param name="toolId">The tool ID.</param>
+        /// <returns>True if user has active access, false otherwise.</returns>
         public bool UserHasToolAccess(int userId, int toolId)
         {
+            // Check for active assignment
             return _unitOfWork.UserTools.HasActiveAssignment(userId, toolId);
         }
     }

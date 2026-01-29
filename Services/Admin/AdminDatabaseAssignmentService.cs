@@ -8,19 +8,35 @@ using AttandanceSyncApp.Services.Interfaces.Admin;
 
 namespace AttandanceSyncApp.Services.Admin
 {
+    /// <summary>
+    /// Service for managing database assignments to company requests.
+    /// Handles retrieval of assignments and revocation/un-revocation operations.
+    /// </summary>
     public class AdminDatabaseAssignmentService : IAdminDatabaseAssignmentService
     {
+        /// Unit of work for database operations.
         private readonly IAuthUnitOfWork _unitOfWork;
 
+        /// <summary>
+        /// Initializes a new AdminDatabaseAssignmentService with the given unit of work.
+        /// </summary>
+        /// <param name="unitOfWork">The authentication unit of work.</param>
         public AdminDatabaseAssignmentService(IAuthUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }
 
+        /// <summary>
+        /// Retrieves all database assignments with pagination support.
+        /// </summary>
+        /// <param name="page">The page number to retrieve.</param>
+        /// <param name="pageSize">The number of records per page.</param>
+        /// <returns>Paginated list of database assignments with related details.</returns>
         public ServiceResult<PagedResultDto<DatabaseAssignListDto>> GetAllAssignmentsPaged(int page, int pageSize)
         {
             try
             {
+                // Get total count for pagination
                 var totalCount = _unitOfWork.DatabaseAssignments.GetTotalCount();
                 var assignments = _unitOfWork.DatabaseAssignments.GetPaged(page, pageSize)
                     .Select(a => MapToDto(a))
@@ -42,10 +58,16 @@ namespace AttandanceSyncApp.Services.Admin
             }
         }
 
+        /// <summary>
+        /// Retrieves a specific database assignment by its ID with full details.
+        /// </summary>
+        /// <param name="id">The assignment ID.</param>
+        /// <returns>Database assignment details with user, company, and configuration information.</returns>
         public ServiceResult<DatabaseAssignListDto> GetAssignmentById(int id)
         {
             try
             {
+                // Fetch assignment with related entities
                 var assignment = _unitOfWork.DatabaseAssignments.GetWithDetails(id);
                 if (assignment == null)
                 {
@@ -60,10 +82,16 @@ namespace AttandanceSyncApp.Services.Admin
             }
         }
 
+        /// <summary>
+        /// Retrieves the database assignment for a specific company request.
+        /// </summary>
+        /// <param name="companyRequestId">The company request ID.</param>
+        /// <returns>Database assignment details for the request.</returns>
         public ServiceResult<DatabaseAssignListDto> GetAssignmentByRequestId(int companyRequestId)
         {
             try
             {
+                // Find assignment by company request ID
                 var assignment = _unitOfWork.DatabaseAssignments.GetByCompanyRequestId(companyRequestId);
                 if (assignment == null)
                 {
@@ -79,10 +107,16 @@ namespace AttandanceSyncApp.Services.Admin
             }
         }
 
+        /// <summary>
+        /// Revokes a database assignment, preventing access.
+        /// </summary>
+        /// <param name="id">The assignment ID to revoke.</param>
+        /// <returns>Success or failure result.</returns>
         public ServiceResult RevokeAssignment(int id)
         {
             try
             {
+                // Retrieve the assignment
                 var assignment = _unitOfWork.DatabaseAssignments.GetById(id);
                 if (assignment == null)
                 {
@@ -109,10 +143,16 @@ namespace AttandanceSyncApp.Services.Admin
             }
         }
 
+        /// <summary>
+        /// Restores a revoked database assignment, re-enabling access.
+        /// </summary>
+        /// <param name="id">The assignment ID to un-revoke.</param>
+        /// <returns>Success or failure result.</returns>
         public ServiceResult UnrevokeAssignment(int id)
         {
             try
             {
+                // Retrieve the assignment
                 var assignment = _unitOfWork.DatabaseAssignments.GetById(id);
                 if (assignment == null)
                 {
@@ -139,8 +179,14 @@ namespace AttandanceSyncApp.Services.Admin
             }
         }
 
+        /// <summary>
+        /// Maps a DatabaseAssign entity to a DatabaseAssignListDto.
+        /// </summary>
+        /// <param name="a">The database assignment entity.</param>
+        /// <returns>The mapped DTO with all related information.</returns>
         private static DatabaseAssignListDto MapToDto(DatabaseAssign a)
         {
+            // Map assignment to DTO with navigation properties
             return new DatabaseAssignListDto
             {
                 Id = a.Id,

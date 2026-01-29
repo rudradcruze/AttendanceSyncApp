@@ -8,12 +8,26 @@ using AttandanceSyncApp.Services.Interfaces.Auth;
 
 namespace AttandanceSyncApp.Services.Auth
 {
+    /// <summary>
+    /// Service for handling user authentication and registration.
+    /// Supports Google OAuth, traditional email/password, and admin authentication.
+    /// Manages user sessions and account linking.
+    /// </summary>
     public class AuthService : IAuthService
     {
+        /// Unit of work for database operations.
         private readonly IAuthUnitOfWork _unitOfWork;
+        /// Google authentication service for OAuth validation.
         private readonly IGoogleAuthService _googleAuthService;
+        /// Session management service for user sessions.
         private readonly ISessionService _sessionService;
 
+        /// <summary>
+        /// Initializes a new AuthService with required dependencies.
+        /// </summary>
+        /// <param name="unitOfWork">The authentication unit of work.</param>
+        /// <param name="googleAuthService">The Google authentication service.</param>
+        /// <param name="sessionService">The session management service.</param>
         public AuthService(
             IAuthUnitOfWork unitOfWork,
             IGoogleAuthService googleAuthService,
@@ -24,11 +38,18 @@ namespace AttandanceSyncApp.Services.Auth
             _sessionService = sessionService;
         }
 
+        /// <summary>
+        /// Authenticates a user via Google OAuth.
+        /// Auto-creates user account on first sign-in or links Google account to existing email user.
+        /// </summary>
+        /// <param name="googleAuth">The Google authentication token data.</param>
+        /// <param name="sessionInfo">Session information for creating user session.</param>
+        /// <returns>User details with session token, or failure result.</returns>
         public ServiceResult<UserDto> LoginWithGoogle(GoogleAuthDto googleAuth, SessionDto sessionInfo)
         {
             try
             {
-                // Validate Google token
+                // Validate Google ID token with Google
                 var googleResult = _googleAuthService.ValidateIdToken(googleAuth.IdToken);
                 if (!googleResult.Success)
                 {
@@ -37,13 +58,13 @@ namespace AttandanceSyncApp.Services.Auth
 
                 var googleUser = googleResult.Data;
 
-                // Find or create user
+                // Find existing user by Google ID or email
                 var user = _unitOfWork.Users.GetByGoogleId(googleUser.GoogleId)
                         ?? _unitOfWork.Users.GetByEmail(googleUser.Email);
 
                 if (user == null)
                 {
-                    // Auto-create user on first Google sign-in
+                    // Create new user account on first Google sign-in
                     user = new User
                     {
                         Name = googleUser.Name,
@@ -88,10 +109,19 @@ namespace AttandanceSyncApp.Services.Auth
             }
         }
 
+        /// <summary>
+        /// Authenticates an admin user with email and password.
+        /// Only users with ADMIN role can log in through this endpoint.
+        /// </summary>
+        /// <param name="email">The admin's email address.</param>
+        /// <param name="password">The admin's password.</param>
+        /// <param name="sessionInfo">Session information for creating user session.</param>
+        /// <returns>Admin user details with session token, or failure result.</returns>
         public ServiceResult<UserDto> LoginAdmin(string email, string password, SessionDto sessionInfo)
         {
             try
             {
+                // Validate credentials are provided
                 if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
                 {
                     return ServiceResult<UserDto>.FailureResult("Email and password are required");
@@ -136,10 +166,18 @@ namespace AttandanceSyncApp.Services.Auth
             }
         }
 
+        /// <summary>
+        /// Authenticates a regular user with email and password.
+        /// </summary>
+        /// <param name="email">The user's email address.</param>
+        /// <param name="password">The user's password.</param>
+        /// <param name="sessionInfo">Session information for creating user session.</param>
+        /// <returns>User details with session token, or failure result.</returns>
         public ServiceResult<UserDto> LoginUser(string email, string password, SessionDto sessionInfo)
         {
             try
             {
+                // Validate credentials are provided
                 if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
                 {
                     return ServiceResult<UserDto>.FailureResult("Email and password are required");
@@ -185,11 +223,18 @@ namespace AttandanceSyncApp.Services.Auth
             }
         }
 
+        /// <summary>
+        /// Registers a new user via Google OAuth.
+        /// Fails if an account with the Google email already exists.
+        /// </summary>
+        /// <param name="googleAuth">The Google authentication token data.</param>
+        /// <param name="sessionInfo">Session information for creating user session.</param>
+        /// <returns>New user details with session token, or failure result.</returns>
         public ServiceResult<UserDto> RegisterWithGoogle(GoogleAuthDto googleAuth, SessionDto sessionInfo)
         {
             try
             {
-                // Validate Google token
+                // Validate Google ID token
                 var googleResult = _googleAuthService.ValidateIdToken(googleAuth.IdToken);
                 if (!googleResult.Success)
                 {
@@ -235,11 +280,18 @@ namespace AttandanceSyncApp.Services.Auth
             }
         }
 
+        /// <summary>
+        /// Registers a new user with email and password.
+        /// Validates password strength and checks for duplicate emails.
+        /// </summary>
+        /// <param name="registerDto">The registration data including name, email, and password.</param>
+        /// <param name="sessionInfo">Session information for creating user session.</param>
+        /// <returns>New user details with session token, or failure result.</returns>
         public ServiceResult<UserDto> RegisterUser(RegisterDto registerDto, SessionDto sessionInfo)
         {
             try
             {
-                // Validate input
+                // Validate registration data
                 if (registerDto == null)
                 {
                     return ServiceResult<UserDto>.FailureResult("Registration data is required");
@@ -294,15 +346,27 @@ namespace AttandanceSyncApp.Services.Auth
             }
         }
 
+        /// <summary>
+        /// Logs out a user by ending their session.
+        /// </summary>
+        /// <param name="sessionToken">The session token to invalidate.</param>
+        /// <returns>Success or failure result.</returns>
         public ServiceResult Logout(string sessionToken)
         {
+            // Delegate to session service to end session
             return _sessionService.EndSession(sessionToken);
         }
 
+        /// <summary>
+        /// Retrieves the currently authenticated user by their session token.
+        /// </summary>
+        /// <param name="sessionToken">The session token.</param>
+        /// <returns>Current user details, or failure if session is invalid.</returns>
         public ServiceResult<UserDto> GetCurrentUser(string sessionToken)
         {
             try
             {
+                // Validate session is active
                 var sessionResult = _sessionService.GetActiveSession(sessionToken);
                 if (!sessionResult.Success)
                 {
@@ -324,14 +388,27 @@ namespace AttandanceSyncApp.Services.Auth
             }
         }
 
+        /// <summary>
+        /// Validates if a session token is active.
+        /// </summary>
+        /// <param name="sessionToken">The session token to validate.</param>
+        /// <returns>True if session is valid and active, false otherwise.</returns>
         public bool ValidateSession(string sessionToken)
         {
+            // Check if session exists and is active
             var result = _sessionService.GetActiveSession(sessionToken);
             return result.Success;
         }
 
+        /// <summary>
+        /// Maps a User entity to a UserDto for client responses.
+        /// </summary>
+        /// <param name="user">The user entity.</param>
+        /// <param name="sessionToken">The session token to include in DTO.</param>
+        /// <returns>User DTO with session token.</returns>
         private UserDto MapToUserDto(User user, string sessionToken)
         {
+            // Map user properties to DTO
             return new UserDto
             {
                 Id = user.Id,

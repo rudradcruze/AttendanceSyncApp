@@ -1,9 +1,11 @@
+@* page title and layout *@
 @{
     ViewBag.Title = "Request Company";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="company-requests mt-4">
+    @* header with new request button *@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4>My Company Requests</h4>
         <button class="btn btn-primary" onclick="showCreateModal()">
@@ -11,6 +13,7 @@
         </button>
     </div>
 
+    @* user company requests table *@
     <div class="table-responsive">
         <table class="table table-bordered table-striped" id="requestsTable">
             <thead>
@@ -29,10 +32,11 @@
         </table>
     </div>
 
+    @* pagination controls *@
     <div id="pagination" class="pagination-wrapper"></div>
 </div>
 
-<!-- Create Request Modal -->
+@* modal for creating new company request *@
 <div class="modal fade" id="createRequestModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -71,5 +75,6 @@
 </div>
 
 @section Scripts {
+    @* company request functionality script *@
     <script src="~/Scripts/CompanyRequest/CompanyRequest.js"></script>
 }

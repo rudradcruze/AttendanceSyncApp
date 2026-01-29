@@ -1,4 +1,5 @@
 @using System.Configuration
+@* page title and layout *@
 @{
     ViewBag.Title = "Dashboard";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -8,6 +9,7 @@
     <h2 class="text-center mb-2">My Tools Dashboard</h2>
     <hr class="w-25 mx-auto mb-4" style="border-top: 2px solid #667eea;" />
 
+    @* tools container with loading spinner *@
     <div class="row" id="toolsContainer">
         <div class="col-12 text-center">
             <div class="spinner-border text-primary" role="status">
@@ -16,7 +18,7 @@
         </div>
     </div>
 
-    <!-- No Tools Message -->
+    @* message shown when no tools are assigned *@
     <div id="noToolsMessage" class="d-none">
         <div class="alert alert-info text-center">
             <h5>No Tools Assigned</h5>
@@ -26,7 +28,7 @@
     </div>
 </div>
 
-<!-- Under Development Modal -->
+@* modal shown when clicking on tools under development *@
 <div class="modal fade" id="underDevelopmentModal" tabindex="-1" aria-labelledby="underDevelopmentModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -106,10 +108,12 @@
 </style>
 
 @section Scripts {
+    @* app configuration *@
     <script>
         window.APP = {
             baseUrl: '@Url.Content(ConfigurationManager.AppSettings["AppBaseUrl"])'
         };
     </script>
+    @* user dashboard functionality script *@
     <script src="~/Scripts/User/Dashboard.js"></script>
 }

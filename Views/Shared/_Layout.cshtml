@@ -1,4 +1,5 @@
 @using System.Configuration
+@* main user layout template with navigation bar *@
 <!DOCTYPE html>
 <html>
 <head>
@@ -11,7 +12,7 @@
     <link href="~/Content/Attandance.css" rel="stylesheet" />
 </head>
 <body>
-    <!-- Navigation Bar -->
+    @* top navigation bar *@
     <nav class="navbar navbar-expand-lg navbar-dark" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
         <div class="container">
             <a class="navbar-brand" href="@Url.Action("Dashboard", "Attandance")">Attandance Sync</a>
@@ -19,6 +20,7 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
+                @* navigation menu items *@
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="@Url.Action("Dashboard", "Attandance")">Dashboard</a>
@@ -27,13 +29,13 @@
                         <a class="nav-link" href="@Url.Action("Index", "CompanyRequest")">Request Company</a>
                     </li>
                 </ul>
-                <ul class="navbar-nav" id="userNavMenu">
-                    <!-- User menu will be populated by JS -->
-                </ul>
+                @* user menu populated by javascript *@
+                <ul class="navbar-nav" id="userNavMenu"></ul>
             </div>
         </div>
     </nav>
 
+    @* main content area *@
     <div class="container body-content">
         @RenderBody()
         <hr />
@@ -42,14 +44,17 @@
         </footer>
     </div>
 
+    @* required javascript libraries *@
     <script src="~/Scripts/jquery-3.7.1.min.js"></script>
     <script src="~/Scripts/bootstrap.bundle.min.js"></script>
     <script src="~/Scripts/sweetalert2@11.js"></script>
+    @* app configuration *@
     <script>
         window.APP = {
             baseUrl: '@Url.Content(ConfigurationManager.AppSettings["AppBaseUrl"])'
         };
     </script>
+    @* common user scripts *@
     <script src="~/Scripts/User/User.js"></script>
     <script src="~/Scripts/Common.js"></script>
     @RenderSection("Scripts", required: false)

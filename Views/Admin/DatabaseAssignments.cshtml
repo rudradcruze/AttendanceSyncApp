@@ -1,3 +1,4 @@
+@* page title and layout *@
 @{
     ViewBag.Title = "Database Assignments";
     ViewBag.ActiveMenu = "Assignments";
@@ -5,11 +6,9 @@
 }
 
 <div class="assignments-management">
-    @*<div class="d-flex justify-content-between align-items-center mb-3">
-        <h4>Database Assignments</h4>
-    </div>*@
     <div class="card">
         <div class="card-body">
+            @* database assignments table *@
             <div class="table-responsive">
                 <table class="table table-bordered table-striped" id="assignmentsTable">
                     <thead>
@@ -29,12 +28,13 @@
                     <tbody></tbody>
                 </table>
             </div>
+            @* pagination controls *@
             <div id="pagination" class="pagination-wrapper"></div>
         </div>
     </div>
 </div>
 
-<!-- View Details Modal -->
+@* modal for viewing assignment details *@
 <div class="modal fade" id="viewDetailsModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -73,5 +73,6 @@
 </div>
 
 @section Scripts {
+    @* script file for database assignments functionality *@
     <script src="~/Scripts/Admin/DatabaseAssignments.js"></script>
 }

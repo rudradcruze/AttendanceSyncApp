@@ -1,3 +1,4 @@
+@* page title and layout *@
 @{
     ViewBag.Title = "Sync Requests";
     ViewBag.ActiveMenu = "SyncRequests";
@@ -6,11 +7,13 @@
 
 <div class="requests-management">
     <div class="card">
+        @* header with total requests count *@
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Attendance Sync Requests</h5>
             <span class="badge bg-secondary" id="totalRequestsCount">0 Requests</span>
         </div>
         <div class="card-body">
+            @* sync requests table display *@
             <div class="table-responsive">
                 <table class="table table-bordered table-striped table-hover" id="requestsTable">
                     <thead class="table-dark">
@@ -32,6 +35,7 @@
                     <tbody></tbody>
                 </table>
             </div>
+            @* pagination controls *@
             <nav aria-label="Request pagination" class="mt-3">
                 <ul id="pagination" class="pagination justify-content-center"></ul>
             </nav>
@@ -39,7 +43,7 @@
     </div>
 </div>
 
-<!-- Request Details Modal -->
+@* modal for viewing request details *@
 <div class="modal fade" id="requestDetailsModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -154,5 +158,6 @@
 </div>
 
 @section Scripts {
+    @* sync requests management functionality script *@
     <script src="~/Scripts/Admin/SyncRequests.js"></script>
 }

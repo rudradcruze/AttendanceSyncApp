@@ -1,3 +1,4 @@
+@* page title and layout *@
 @{
     ViewBag.Title = "Sign Up";
     Layout = "~/Views/Shared/_AuthLayout.cshtml";
@@ -10,7 +11,7 @@
             <p>Create your Attandance Sync account</p>
         </div>
 
-        <!-- Google Sign-Up Button -->
+        @* Google authentication button section *@
         <div class="google-signup-section">
             <div id="g_id_onload"
                  data-client_id="@ViewBag.GoogleClientId"
@@ -41,8 +42,9 @@
             <span>or</span>
         </div>
 
-        <!-- Email Registration Form -->
+        @* Email registration form section *@
         <div class="email-register-section">
+            @* form was handled in the Auth.js file *@
             <form id="emailRegisterForm">
                 <div class="form-group mb-3">
                     <label for="registerName">Full Name</label>
@@ -73,8 +75,10 @@
             </form>
         </div>
 
+        @* showing alert message *@
         <div id="message" class="alert d-none mt-3"></div>
 
+        @* Sign in button by click on this it will redirect to the sign in page *@
         <div class="auth-footer">
             <p>Already have an account? <a href="@Url.Action("Login", "Auth")">Sign In</a></p>
         </div>
@@ -82,6 +86,8 @@
 </div>
 
 @section Scripts {
+    @* handel google sign in and sign up page *@
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    @* script to all action and api in the auth.js file *@
     <script src="~/Scripts/Auth.js"></script>
 }

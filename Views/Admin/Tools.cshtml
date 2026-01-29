@@ -1,4 +1,5 @@
 @using System.Configuration
+@* page title and layout *@
 @{
     ViewBag.Title = "Manage Tools";
     ViewBag.ActiveMenu = "Tools";
@@ -6,6 +7,7 @@
 }
 
 <div class="tools-management">
+    @* header with add tool button *@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h5>Tools List</h5>
         <button class="btn btn-primary" onclick="showCreateModal()">
@@ -13,6 +15,7 @@
         </button>
     </div>
 
+    @* tools table display *@
     <div class="table-responsive">
         <table class="table table-bordered table-striped" id="toolsTable">
             <thead>
@@ -30,10 +33,11 @@
         </table>
     </div>
 
+    @* pagination controls *@
     <div id="pagination" class="pagination-wrapper"></div>
 </div>
 
-<!-- Create/Edit Tool Modal -->
+@* modal for creating or editing tool *@
 <div class="modal fade" id="toolModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -71,10 +75,12 @@
 </div>
 
 @section Scripts {
+    @* app configuration *@
     <script>
         window.APP = {
             baseUrl: '@Url.Content(ConfigurationManager.AppSettings["AppBaseUrl"])'
         };
     </script>
+    @* tools management functionality script *@
     <script src="~/Scripts/Admin/Tools.js"></script>
 }

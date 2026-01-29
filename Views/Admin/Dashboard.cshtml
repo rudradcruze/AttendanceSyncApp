@@ -1,10 +1,12 @@
 @using System.Configuration
+@* page title and layout *@
 @{
     ViewBag.Title = "Dashboard";
     ViewBag.ActiveMenu = "Dashboard";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
+@* dashboard statistics cards *@
 <div class="dashboard-stats">
     <div class="row">
         <div class="col-md-3">
@@ -34,8 +36,10 @@
     </div>
 </div>
 
+@* recent activity sections *@
 <div class="row mt-4">
     <div class="col-md-6">
+        @* recent requests table *@
         <div class="card shadow">
             <div class="card-header">
                 <h5>Recent Requests</h5>
@@ -56,6 +60,7 @@
         </div>
     </div>
     <div class="col-md-6">
+        @* recent users table *@
         <div class="card shadow">
             <div class="card-header">
                 <h5>Recent Users</h5>
@@ -77,10 +82,12 @@
 </div>
 
 @section Scripts {
+    @* app configuration *@
     <script>
         window.APP = {
             baseUrl: '@Url.Content(ConfigurationManager.AppSettings["AppBaseUrl"])'
         };
     </script>
+    @* dashboard functionality script *@
     <script src="~/Scripts/Admin/Dashboard.js"></script>
 }

@@ -7,8 +7,10 @@ using AttandanceSyncApp.Models.DTOs.ConcurrentSimulation;
 using AttandanceSyncApp.Repositories;
 using AttandanceSyncApp.Repositories.Interfaces;
 using AttandanceSyncApp.Services.Admin;
+using AttandanceSyncApp.Services.AttandanceSync;
 using AttandanceSyncApp.Services.ConcurrentSimulation;
 using AttandanceSyncApp.Services.Interfaces.Admin;
+using AttandanceSyncApp.Services.Interfaces.AttandanceSync;
 using AttandanceSyncApp.Services.Interfaces.ConcurrentSimulation;
 
 namespace AttandanceSyncApp.Controllers.ConcurrentSimulation
@@ -23,6 +25,9 @@ namespace AttandanceSyncApp.Controllers.ConcurrentSimulation
         /// Concurrent simulation service for testing operations.
         private readonly IConcurrentSimulationService _service;
 
+        /// for checking tool list
+        private readonly ISyncRequestService _syncRequestService;
+
         /// User tool service for managing user-assigned tools.
         private readonly IUserToolService _userToolService;
 
@@ -35,6 +40,7 @@ namespace AttandanceSyncApp.Controllers.ConcurrentSimulation
             var unitOfWork = new AuthUnitOfWork();
             _unitOfWork = new AuthUnitOfWork();
             _userToolService = new UserToolService(_unitOfWork);
+            _syncRequestService = new SyncRequestService(_unitOfWork);
             _service = new ConcurrentSimulationService(unitOfWork);
         }
 
@@ -65,12 +71,31 @@ namespace AttandanceSyncApp.Controllers.ConcurrentSimulation
             base.OnActionExecuting(filterContext);
         }
 
+        private bool HasAttendanceToolAccess(int userId)
+        {
+            var validToolNames = new[] { "Concurrent Simulation", "Concurrent Simulation Tool", "ConcurrentSimulation", "ConcurrentSimulationTool" };
+            var tools = _syncRequestService.GetActiveTools();
+            if (!tools.Success) return false;
+
+            var targetTool = tools.Data.FirstOrDefault(t => validToolNames.Contains(t.Name, StringComparer.OrdinalIgnoreCase));
+            if (targetTool == null) return false;
+
+            return _userToolService.UserHasToolAccess(userId, targetTool.Id);
+        }
+
         // GET: ConcurrentSimulation/Index
         public ActionResult Index()
         {
+            if (!HasAttendanceToolAccess(CurrentUserId))
+            {
+                ViewBag.Message = "You do not have access to the Attendance Sync tool. Please request access from your administrator.";
+                return View("AccessDenied");
+            }
             // Return the concurrent simulation testing view
             return View("~/Views/ConcurrentSimulation/Index.cshtml");
         }
+
+
 
         // GET: ConcurrentSimulation/GetServerIps
         [HttpGet]

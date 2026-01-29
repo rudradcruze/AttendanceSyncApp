@@ -7,7 +7,9 @@ using AttandanceSyncApp.Models.DTOs.SalaryGarbge;
 using AttandanceSyncApp.Repositories;
 using AttandanceSyncApp.Repositories.Interfaces;
 using AttandanceSyncApp.Services.Admin;
+using AttandanceSyncApp.Services.AttandanceSync;
 using AttandanceSyncApp.Services.Interfaces.Admin;
+using AttandanceSyncApp.Services.Interfaces.AttandanceSync;
 using AttandanceSyncApp.Services.SalaryGarbge;
 using AttandanceSyncApp.Services.Interfaces.SalaryGarbge;
 
@@ -24,6 +26,9 @@ namespace AttandanceSyncApp.Controllers.SalaryGarbge
         /// Service for performing salary garbage scan operations.
         private readonly ISalaryGarbgeScanService _scanService;
 
+        /// for checking tool list
+        private readonly ISyncRequestService _syncRequestService;
+
         /// Service for managing user tool access and permissions.
         private readonly IUserToolService _userToolService;
 
@@ -35,6 +40,7 @@ namespace AttandanceSyncApp.Controllers.SalaryGarbge
         {
             _unitOfWork = new AuthUnitOfWork();
             _scanService = new SalaryGarbgeScanService(_unitOfWork);
+            _syncRequestService = new SyncRequestService(_unitOfWork);
             _userToolService = new UserToolService(_unitOfWork);
         }
 
@@ -64,9 +70,27 @@ namespace AttandanceSyncApp.Controllers.SalaryGarbge
             base.OnActionExecuting(filterContext);
         }
 
+        // tool access or not
+        private bool HasAttendanceToolAccess(int userId)
+        {
+            var validToolNames = new[] { "Salary Garbage", "SalaryGarbage", "Salary Garbage Tool", "SalaryGarbageTool" };
+            var tools = _syncRequestService.GetActiveTools();
+            if (!tools.Success) return false;
+
+            var targetTool = tools.Data.FirstOrDefault(t => validToolNames.Contains(t.Name, StringComparer.OrdinalIgnoreCase));
+            if (targetTool == null) return false;
+
+            return _userToolService.UserHasToolAccess(userId, targetTool.Id);
+        }
+
         // GET: SalaryGarbge/Index
         public ActionResult Index()
         {
+            if (!HasAttendanceToolAccess(CurrentUserId))
+            {
+                ViewBag.Message = "You do not have access to the Attendance Sync tool. Please request access from your administrator.";
+                return View("AccessDenied");
+            }
             // Return the main salary garbage scanning view for users
             return View("~/Views/SalaryGarbge/Index.cshtml");
         }

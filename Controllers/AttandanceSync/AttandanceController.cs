@@ -74,9 +74,26 @@ namespace AttandanceSyncApp.Controllers.AttandanceSync
             base.OnActionExecuting(filterContext);
         }
 
+        private bool HasAttendanceToolAccess(int userId)
+        {
+            var validToolNames = new[] { "Attendance Sync", "Attandance Sync", "Attendance Tool", "Attandance Tool" };
+            var tools = _syncRequestService.GetActiveTools();
+            if (!tools.Success) return false;
+
+            var targetTool = tools.Data.FirstOrDefault(t => validToolNames.Contains(t.Name, StringComparer.OrdinalIgnoreCase));
+            if (targetTool == null) return false;
+
+            return _userToolService.UserHasToolAccess(userId, targetTool.Id);
+        }
+
         // GET: Attandance/Dashboard - User dashboard with tool cards
         public ActionResult Dashboard()
         {
+            if (!HasAttendanceToolAccess(CurrentUserId))
+            {
+                ViewBag.Message = "You do not have access to the Attendance Sync tool. Please request access from your administrator.";
+                return View("AccessDenied");
+            }
             // Return the main user dashboard view
             return View();
         }
@@ -84,6 +101,11 @@ namespace AttandanceSyncApp.Controllers.AttandanceSync
         // GET: Attandance/Index - Attendance sync page
         public ActionResult Index()
         {
+            if (!HasAttendanceToolAccess(CurrentUserId))
+            {
+                ViewBag.Message = "You do not have access to the Attendance Sync tool. Please request access from your administrator.";
+                return View("AccessDenied");
+            }
             // Return the attendance synchronization page
             return View();
         }
